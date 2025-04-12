@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import UserProfile from './UserProfile';
 
 interface NavbarProps {
   sidebarOpen: boolean;
@@ -10,7 +11,7 @@ const Navbar: React.FC<NavbarProps> = ({ sidebarOpen, setSidebarOpen }) => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 shadow">
       <div className="mx-auto">
-        <div className="flex items-center h-16">
+        <div className="flex items-center justify-between h-16">
           <div className="flex items-center pl-4">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -34,6 +35,9 @@ const Navbar: React.FC<NavbarProps> = ({ sidebarOpen, setSidebarOpen }) => {
             <Link to="/" className="ml-4 text-xl font-bold text-gray-900 dark:text-white">
               HandwerkerApp
             </Link>
+          </div>
+          <div className="pr-4">
+            <UserProfile />
           </div>
         </div>
       </div>
