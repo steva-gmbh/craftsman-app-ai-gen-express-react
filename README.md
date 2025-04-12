@@ -33,9 +33,17 @@ cd handwerker-app
 npm install
 ```
 
-3. Start the development server:
+3. Start the development servers:
 ```bash
-npm run dev
+# Using the start script (recommended)
+./start.sh
+
+# Or with database seeding
+./start.sh --seed
+
+# Alternatively, you can start the servers manually:
+cd modules/backend && npm run dev
+cd modules/frontend && npm run dev
 ```
 
 The application will be available at http://localhost:5173.
@@ -45,17 +53,29 @@ The application will be available at http://localhost:5173.
 ```
 handwerker-app/
 ├── modules/
-│   └── frontend/
+│   ├── frontend/
+│   │   ├── src/
+│   │   │   ├── components/
+│   │   │   ├── pages/
+│   │   │   ├── App.tsx
+│   │   │   └── index.css
+│   │   ├── package.json
+│   │   ├── tsconfig.json
+│   │   ├── tsconfig.node.json
+│   │   ├── vite.config.ts
+│   │   ├── tailwind.config.js
+│   │   ├── postcss.config.js
+│   │   └── index.html
+│   └── backend/
 │       ├── src/
-│       │   ├── components/
-│       │   ├── pages/
-│       │   ├── App.tsx
-│       │   └── index.css
+│       ├── prisma/
 │       ├── package.json
-│       ├── tsconfig.json
-│       ├── vite.config.ts
-│       └── tailwind.config.js
-└── package.json
+│       └── tsconfig.json
+├── package.json
+├── package-lock.json
+├── turbo.json
+├── start.sh
+└── .gitignore
 ```
 
 ## Development
