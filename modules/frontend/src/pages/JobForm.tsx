@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { api, Customer, Material, JobMaterial } from '../services/api';
+import { api, Customer, Material, JobMaterial, Tool, JobTool } from '../services/api';
 import { toast } from 'react-hot-toast';
 import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 
@@ -23,15 +23,28 @@ export default function JobForm() {
   const [error, setError] = useState<string | null>(null);
   const [selectedMaterial, setSelectedMaterial] = useState<string>('');
   const [materialAmount, setMaterialAmount] = useState<string>('');
+  const [selectedTool, setSelectedTool] = useState<string>('');
+  const [toolAmount, setToolAmount] = useState<string>('');
 
   const { data: materials } = useQuery({
     queryKey: ['materials'],
     queryFn: api.getMaterials,
   });
 
+  const { data: tools } = useQuery({
+    queryKey: ['tools'],
+    queryFn: api.getTools,
+  });
+
   const { data: jobMaterials } = useQuery({
     queryKey: ['jobMaterials', id],
     queryFn: () => id ? api.getJobMaterials(Number(id)) : [],
+    enabled: !!id,
+  });
+
+  const { data: jobTools } = useQuery({
+    queryKey: ['jobTools', id],
+    queryFn: () => id ? api.getJobTools(Number(id)) : [],
     enabled: !!id,
   });
 
@@ -121,6 +134,47 @@ export default function JobForm() {
       toast.success('Material removed successfully');
     } catch (err) {
       toast.error('Failed to remove material');
+      console.error(err);
+    }
+  };
+
+  const handleAddTool = async () => {
+    if (!selectedTool || !toolAmount || !id) return;
+
+    try {
+      await api.addJobTool(Number(id), Number(selectedTool), Number(toolAmount));
+      await queryClient.invalidateQueries({ queryKey: ['jobTools', id] });
+      setSelectedTool('');
+      setToolAmount('');
+      toast.success('Tool added successfully');
+    } catch (err) {
+      toast.error('Failed to add tool');
+      console.error(err);
+    }
+  };
+
+  const handleUpdateTool = async (toolId: number, newAmount: number) => {
+    if (!id) return;
+
+    try {
+      await api.updateJobTool(Number(id), toolId, newAmount);
+      await queryClient.invalidateQueries({ queryKey: ['jobTools', id] });
+      toast.success('Tool updated successfully');
+    } catch (err) {
+      toast.error('Failed to update tool');
+      console.error(err);
+    }
+  };
+
+  const handleRemoveTool = async (toolId: number) => {
+    if (!id) return;
+
+    try {
+      await api.removeJobTool(Number(id), toolId);
+      await queryClient.invalidateQueries({ queryKey: ['jobTools', id] });
+      toast.success('Tool removed successfully');
+    } catch (err) {
+      toast.error('Failed to remove tool');
       console.error(err);
     }
   };
@@ -286,83 +340,163 @@ export default function JobForm() {
         </div>
 
         {id && (
-          <div className="space-y-4">
-            <h2 className="text-lg font-medium text-gray-900 dark:text-white">Materials</h2>
-            
-            <div className="flex gap-4">
-              <select
-                value={selectedMaterial}
-                onChange={(e) => setSelectedMaterial(e.target.value)}
-                className="flex-1 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
-              >
-                <option value="">Select a material</option>
-                {materials?.map(material => (
-                  <option key={material.id} value={material.id}>
-                    {material.name} ({material.unit})
-                  </option>
-                ))}
-              </select>
+          <>
+            <div className="space-y-4">
+              <h2 className="text-lg font-medium text-gray-900 dark:text-white">Materials</h2>
               
-              <input
-                type="number"
-                value={materialAmount}
-                onChange={(e) => setMaterialAmount(e.target.value)}
-                placeholder="Amount"
-                className="w-32 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
-              />
-              
-              <button
-                type="button"
-                onClick={handleAddMaterial}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 h-10"
-              >
-                <PlusIcon className="h-5 w-5 mr-2" />
-                Add
-              </button>
+              <div className="flex gap-4">
+                <select
+                  value={selectedMaterial}
+                  onChange={(e) => setSelectedMaterial(e.target.value)}
+                  className="flex-1 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
+                >
+                  <option value="">Select a material</option>
+                  {materials?.map(material => (
+                    <option key={material.id} value={material.id}>
+                      {material.name} ({material.unit})
+                    </option>
+                  ))}
+                </select>
+                
+                <input
+                  type="number"
+                  value={materialAmount}
+                  onChange={(e) => setMaterialAmount(e.target.value)}
+                  placeholder="Amount"
+                  className="w-32 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
+                />
+                
+                <button
+                  type="button"
+                  onClick={handleAddMaterial}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 h-10"
+                >
+                  <PlusIcon className="h-5 w-5 mr-2" />
+                  Add
+                </button>
+              </div>
+
+              <div className="mt-4">
+                <table className="min-w-full divide-y divide-gray-300">
+                  <thead className="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                      <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Material</th>
+                      <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Amount</th>
+                      <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Unit</th>
+                      <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-600 bg-white dark:bg-gray-800">
+                    {jobMaterials?.map((jobMaterial) => (
+                      <tr key={jobMaterial.id}>
+                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                          {jobMaterial.material.name}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                          <input
+                            type="number"
+                            value={jobMaterial.amount}
+                            onChange={(e) => handleUpdateMaterial(jobMaterial.materialId, Number(e.target.value))}
+                            className="w-24 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-8"
+                          />
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                          {jobMaterial.material.unit}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveMaterial(jobMaterial.materialId)}
+                            className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                          >
+                            <TrashIcon className="h-5 w-5" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
-            <div className="mt-4">
-              <table className="min-w-full divide-y divide-gray-300">
-                <thead className="bg-gray-50 dark:bg-gray-700">
-                  <tr>
-                    <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Material</th>
-                    <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Amount</th>
-                    <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Unit</th>
-                    <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-600 bg-white dark:bg-gray-800">
-                  {jobMaterials?.map((jobMaterial) => (
-                    <tr key={jobMaterial.id}>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
-                        {jobMaterial.material.name}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
-                        <input
-                          type="number"
-                          value={jobMaterial.amount}
-                          onChange={(e) => handleUpdateMaterial(jobMaterial.materialId, Number(e.target.value))}
-                          className="w-24 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-8"
-                        />
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
-                        {jobMaterial.material.unit}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveMaterial(jobMaterial.materialId)}
-                          className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                        >
-                          <TrashIcon className="h-5 w-5" />
-                        </button>
-                      </td>
-                    </tr>
+            <div className="space-y-4 mt-8">
+              <h2 className="text-lg font-medium text-gray-900 dark:text-white">Tools</h2>
+              
+              <div className="flex gap-4">
+                <select
+                  value={selectedTool}
+                  onChange={(e) => setSelectedTool(e.target.value)}
+                  className="flex-1 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
+                >
+                  <option value="">Select a tool</option>
+                  {tools?.map(tool => (
+                    <option key={tool.id} value={tool.id}>
+                      {tool.name}
+                    </option>
                   ))}
-                </tbody>
-              </table>
+                </select>
+                
+                <input
+                  type="number"
+                  value={toolAmount}
+                  onChange={(e) => setToolAmount(e.target.value)}
+                  placeholder="Amount"
+                  className="w-32 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
+                />
+                
+                <button
+                  type="button"
+                  onClick={handleAddTool}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 h-10"
+                >
+                  <PlusIcon className="h-5 w-5 mr-2" />
+                  Add
+                </button>
+              </div>
+
+              <div className="mt-4">
+                <table className="min-w-full divide-y divide-gray-300">
+                  <thead className="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                      <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Tool</th>
+                      <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Amount</th>
+                      <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Category</th>
+                      <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-600 bg-white dark:bg-gray-800">
+                    {jobTools?.map((jobTool) => (
+                      <tr key={jobTool.id}>
+                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                          {jobTool.tool.name}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                          <input
+                            type="number"
+                            value={jobTool.amount}
+                            onChange={(e) => handleUpdateTool(jobTool.toolId, Number(e.target.value))}
+                            className="w-24 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-8"
+                          />
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                          {jobTool.tool.category}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveTool(jobTool.toolId)}
+                            className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                          >
+                            <TrashIcon className="h-5 w-5" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
+          </>
         )}
 
         <div className="flex justify-end space-x-3">

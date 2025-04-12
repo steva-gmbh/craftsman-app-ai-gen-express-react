@@ -9,6 +9,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   CubeIcon,
+  WrenchScrewdriverIcon,
 } from '@heroicons/react/24/outline';
 
 interface SidebarProps {
@@ -20,6 +21,7 @@ const navigation = [
   { name: 'Customers', href: '/customers', icon: UserGroupIcon },
   { name: 'Jobs', href: '/jobs', icon: BriefcaseIcon },
   { name: 'Materials', href: '/materials', icon: CubeIcon },
+  { name: 'Tools', href: '/tools', icon: WrenchScrewdriverIcon },
   { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
 ];
 

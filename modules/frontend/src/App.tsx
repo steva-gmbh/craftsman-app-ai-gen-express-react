@@ -13,6 +13,8 @@ import CustomerForm from './pages/CustomerForm';
 import JobForm from './pages/JobForm';
 import Materials from './pages/Materials';
 import MaterialForm from './pages/MaterialForm';
+import Tools from './pages/Tools';
+import ToolForm from './pages/ToolForm';
 import Login from './pages/Login';
 import { api, Customer, Job } from './services/api';
 
@@ -117,6 +119,9 @@ function App() {
                                 <Route path="/materials" element={<Materials />} />
                                 <Route path="/materials/new" element={<MaterialForm />} />
                                 <Route path="/materials/:id" element={<MaterialForm />} />
+                                <Route path="/tools" element={<Tools />} />
+                                <Route path="/tools/new" element={<ToolForm />} />
+                                <Route path="/tools/:id" element={<ToolForm />} />
                               </Routes>
                             )}
                           </div>

@@ -31,6 +31,7 @@ model Job {
   customer    Customer      @relation(fields: [customerId], references: [id])
   customerId  Int
   materials   JobMaterial[]
+  tools       JobTool[]
 }
 
 model User {
@@ -87,4 +88,33 @@ model JobMaterial {
   updatedAt   DateTime @updatedAt
 
   @@unique([jobId, materialId])
+}
+
+model Tool {
+  id            Int        @id @default(autoincrement())
+  name          String
+  description   String?
+  category      String
+  brand         String?
+  model         String?
+  purchaseDate  DateTime?
+  purchasePrice Float?
+  location      String?
+  notes         String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  jobs          JobTool[]
+}
+
+model JobTool {
+  id        Int      @id @default(autoincrement())
+  job       Job      @relation(fields: [jobId], references: [id])
+  jobId     Int
+  tool      Tool     @relation(fields: [toolId], references: [id])
+  toolId    Int
+  amount    Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([jobId, toolId])
 } 

@@ -19,6 +19,7 @@ export interface Job {
   endDate?: Date;
   customer?: Customer;
   materials?: JobMaterial[];
+  tools?: JobTool[];
 }
 
 export interface JobMaterial {
@@ -45,6 +46,29 @@ export interface Material {
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface Tool {
+  id: number;
+  name: string;
+  description: string;
+  category: string;
+  brand?: string;
+  model?: string;
+  purchaseDate?: Date;
+  purchasePrice?: number;
+  location?: string;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface JobTool {
+  id: number;
+  jobId: number;
+  toolId: number;
+  amount: number;
+  tool: Tool;
 }
 
 export const api = {
@@ -229,6 +253,98 @@ export const api = {
     });
     if (!response.ok) {
       throw new Error('Failed to remove material from job');
+    }
+  },
+
+  // Tool endpoints
+  getTools: async (): Promise<Tool[]> => {
+    const response = await fetch(`${API_BASE_URL}/tools`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch tools');
+    }
+    return response.json();
+  },
+
+  createTool: async (tool: Omit<Tool, 'id' | 'createdAt' | 'updatedAt'>): Promise<Tool> => {
+    const response = await fetch(`${API_BASE_URL}/tools`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(tool),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to create tool');
+    }
+    return response.json();
+  },
+
+  updateTool: async (id: number, tool: Omit<Tool, 'id' | 'createdAt' | 'updatedAt'>): Promise<Tool> => {
+    const response = await fetch(`${API_BASE_URL}/tools/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(tool),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to update tool');
+    }
+    return response.json();
+  },
+
+  deleteTool: async (id: number): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/tools/${id}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      throw new Error('Failed to delete tool');
+    }
+  },
+
+  // Job Tool endpoints
+  getJobTools: async (jobId: number): Promise<JobTool[]> => {
+    const response = await fetch(`${API_BASE_URL}/jobs/${jobId}/tools`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch job tools');
+    }
+    return response.json();
+  },
+
+  addJobTool: async (jobId: number, toolId: number, amount: number): Promise<JobTool> => {
+    const response = await fetch(`${API_BASE_URL}/jobs/${jobId}/tools`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ toolId, amount }),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to add tool to job');
+    }
+    return response.json();
+  },
+
+  updateJobTool: async (jobId: number, toolId: number, amount: number): Promise<JobTool> => {
+    const response = await fetch(`${API_BASE_URL}/jobs/${jobId}/tools/${toolId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ amount }),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to update job tool');
+    }
+    return response.json();
+  },
+
+  removeJobTool: async (jobId: number, toolId: number): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/jobs/${jobId}/tools/${toolId}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      throw new Error('Failed to remove tool from job');
     }
   },
 }; 

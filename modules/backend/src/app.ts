@@ -6,6 +6,8 @@ import customersRoutes from './routes/customers';
 import authRoutes from './routes/auth';
 import userRoutes from './routes/users';
 import settingsRoutes from './routes/settings';
+import toolsRoutes from './routes/tools';
+import jobToolsRoutes from './routes/jobTools';
 
 const app = express();
 
@@ -19,5 +21,7 @@ app.use('/api/customers', customersRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/tools', toolsRoutes);
+app.use('/api/jobs', jobToolsRoutes);
 
 export default app; 

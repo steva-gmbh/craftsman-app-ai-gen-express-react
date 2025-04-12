@@ -10,7 +10,7 @@
     "migrate": "prisma migrate dev",
     "generate": "prisma generate",
     "studio": "prisma studio",
-    "seed": "ts-node src/seed.ts"
+    "seed": "ts-node prisma/seed.ts"
   },
   "keywords": [],
   "author": "",
@@ -31,6 +31,6 @@
     "typescript": "^5.8.3"
   },
   "prisma": {
-    "seed": "ts-node src/seed.ts"
+    "seed": "ts-node prisma/seed.ts"
   }
 }

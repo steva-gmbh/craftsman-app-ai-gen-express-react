@@ -12,6 +12,12 @@ import {
   updateJobMaterial,
   removeJobMaterial,
 } from '../controllers/jobMaterials';
+import {
+  getJobTools,
+  addJobTool,
+  updateJobTool,
+  removeJobTool,
+} from '../controllers/jobTools';
 
 const router = express.Router();
 
@@ -27,5 +33,11 @@ router.get('/:jobId/materials', getJobMaterials);
 router.post('/:jobId/materials', addJobMaterial);
 router.put('/:jobId/materials/:materialId', updateJobMaterial);
 router.delete('/:jobId/materials/:materialId', removeJobMaterial);
+
+// Job tools routes
+router.get('/:jobId/tools', getJobTools);
+router.post('/:jobId/tools', addJobTool);
+router.put('/:jobId/tools/:toolId', updateJobTool);
+router.delete('/:jobId/tools/:toolId', removeJobTool);
 
 export default router; 
