@@ -1,0 +1,16 @@
+{
+  "name": "handwerker-app",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "modules/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test"
+  },
+  "devDependencies": {
+    "turbo": "^1.12.4"
+  }
+} 
