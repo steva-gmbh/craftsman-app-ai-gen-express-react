@@ -20,6 +20,24 @@ export interface Job {
   customer?: Customer;
 }
 
+export interface Material {
+  id: number;
+  name: string;
+  description: string;
+  unit: string;
+  costPerUnit: number;
+  color?: string;
+  brand?: string;
+  supplier?: string;
+  category: string;
+  stock: number;
+  minStock: number;
+  location?: string;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export const api = {
   // Customer endpoints
   getCustomers: async (): Promise<Customer[]> => {
@@ -110,6 +128,52 @@ export const api = {
     });
     if (!response.ok) {
       throw new Error('Failed to delete job');
+    }
+  },
+
+  // Material endpoints
+  getMaterials: async (): Promise<Material[]> => {
+    const response = await fetch(`${API_BASE_URL}/materials`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch materials');
+    }
+    return response.json();
+  },
+
+  createMaterial: async (material: Omit<Material, 'id' | 'createdAt' | 'updatedAt'>): Promise<Material> => {
+    const response = await fetch(`${API_BASE_URL}/materials`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(material),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to create material');
+    }
+    return response.json();
+  },
+
+  updateMaterial: async (id: number, material: Omit<Material, 'id' | 'createdAt' | 'updatedAt'>): Promise<Material> => {
+    const response = await fetch(`${API_BASE_URL}/materials/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(material),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to update material');
+    }
+    return response.json();
+  },
+
+  deleteMaterial: async (id: number): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/materials/${id}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      throw new Error('Failed to delete material');
     }
   },
 }; 

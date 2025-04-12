@@ -19,17 +19,18 @@ model Customer {
 }
 
 model Job {
-  id          Int      @id @default(autoincrement())
+  id          Int        @id @default(autoincrement())
   title       String
   description String
-  status      String   @default("pending")
+  status      String     @default("pending")
   price       Float?
   startDate   DateTime?
   endDate     DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  customer    Customer @relation(fields: [customerId], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  customer    Customer   @relation(fields: [customerId], references: [id])
   customerId  Int
+  materials   Material[] @relation("JobMaterials")
 }
 
 model User {
@@ -54,4 +55,23 @@ model Settings {
   appearance     String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+}
+
+model Material {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  unit        String   // e.g., kg, l, m, pcs
+  costPerUnit Float
+  color       String?
+  brand       String?
+  supplier    String?
+  category    String   // e.g., paint, wood, metal, tools
+  stock       Int      @default(0)
+  minStock    Int      @default(0)
+  location    String?  // storage location
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  jobs        Job[]    @relation("JobMaterials")
 } 

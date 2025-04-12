@@ -11,6 +11,8 @@ import Customers from './pages/Customers';
 import Settings from './pages/Settings';
 import CustomerForm from './pages/CustomerForm';
 import JobForm from './pages/JobForm';
+import Materials from './pages/Materials';
+import MaterialForm from './pages/MaterialForm';
 import { api, Customer, Job } from './services/api';
 
 const queryClient = new QueryClient();
@@ -84,7 +86,11 @@ function App() {
                 sidebarOpen ? 'ml-64' : 'ml-16'
               }`}
             >
-              <Navbar sidebarOpen={sidebarOpen} />
+              <header className="bg-white dark:bg-gray-800 shadow">
+                <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+                  <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">HandwerkerApp</h1>
+                </div>
+              </header>
               <main className="py-10">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                   <Routes>
@@ -95,6 +101,9 @@ function App() {
                     <Route path="/jobs" element={<Jobs />} />
                     <Route path="/jobs/new" element={<JobForm />} />
                     <Route path="/jobs/:id/edit" element={<JobForm />} />
+                    <Route path="/materials" element={<Materials />} />
+                    <Route path="/materials/new" element={<MaterialForm />} />
+                    <Route path="/materials/:id/edit" element={<MaterialForm />} />
                     <Route path="/settings" element={<Settings />} />
                   </Routes>
                 </div>

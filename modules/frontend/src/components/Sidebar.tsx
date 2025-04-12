@@ -1,37 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { HomeIcon, BriefcaseIcon, UserGroupIcon, CogIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
-import { useTheme } from '../providers/ThemeProvider';
-
-const navigation = [
-  { name: 'Dashboard', href: '/', icon: HomeIcon },
-  { name: 'Jobs', href: '/jobs', icon: BriefcaseIcon },
-  { name: 'Customers', href: '/customers', icon: UserGroupIcon },
-  { name: 'Settings', href: '/settings', icon: CogIcon },
-];
+import {
+  HomeIcon,
+  UserGroupIcon,
+  BriefcaseIcon,
+  Cog6ToothIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  CubeIcon,
+} from '@heroicons/react/24/outline';
 
 interface SidebarProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
 }
 
+const navigation = [
+  { name: 'Dashboard', href: '/', icon: HomeIcon },
+  { name: 'Customers', href: '/customers', icon: UserGroupIcon },
+  { name: 'Jobs', href: '/jobs', icon: BriefcaseIcon },
+  { name: 'Materials', href: '/materials', icon: CubeIcon },
+  { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
+];
+
 export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
   const location = useLocation();
-  const { theme } = useTheme();
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth < 768) {
-        setIsOpen(false);
-      }
-    };
-
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, [setIsOpen]);
 
   return (
     <div

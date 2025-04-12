@@ -192,6 +192,52 @@ app.put('/api/settings', async (req: Request, res: Response) => {
   }
 });
 
+// Material routes
+app.get('/api/materials', async (req: Request, res: Response) => {
+  try {
+    const materials = await prisma.material.findMany();
+    res.json(materials);
+  } catch (error) {
+    res.status(500).json({ error: 'Error fetching materials' });
+  }
+});
+
+app.post('/api/materials', async (req: Request, res: Response) => {
+  try {
+    const material = await prisma.material.create({
+      data: req.body,
+    });
+    res.json(material);
+  } catch (error) {
+    res.status(500).json({ error: 'Error creating material' });
+  }
+});
+
+app.put('/api/materials/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const material = await prisma.material.update({
+      where: { id: Number(id) },
+      data: req.body,
+    });
+    res.json(material);
+  } catch (error) {
+    res.status(500).json({ error: 'Error updating material' });
+  }
+});
+
+app.delete('/api/materials/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    await prisma.material.delete({
+      where: { id: Number(id) },
+    });
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ error: 'Error deleting material' });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 }); 

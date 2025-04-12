@@ -78,6 +78,64 @@ async function main() {
     },
   });
 
+  // Create materials
+  await prisma.material.createMany({
+    data: [
+      {
+        name: 'White Paint',
+        description: 'Premium quality white wall paint',
+        unit: 'l',
+        costPerUnit: 25.99,
+        color: 'White',
+        brand: 'Premium Paints',
+        category: 'Paint',
+        stock: 50,
+        minStock: 10,
+        location: 'Storage Room A',
+      },
+      {
+        name: 'Wooden Planks',
+        description: 'Oak wooden planks for flooring',
+        unit: 'm',
+        costPerUnit: 15.50,
+        category: 'Wood',
+        stock: 200,
+        minStock: 50,
+        location: 'Storage Room B',
+      },
+      {
+        name: 'Concrete Mix',
+        description: 'Quick-drying concrete mix',
+        unit: 'kg',
+        costPerUnit: 0.75,
+        category: 'Concrete',
+        stock: 1000,
+        minStock: 200,
+        location: 'Outdoor Storage',
+      },
+      {
+        name: 'Electrical Wires',
+        description: 'Copper electrical wires',
+        unit: 'm',
+        costPerUnit: 2.99,
+        category: 'Electrical',
+        stock: 500,
+        minStock: 100,
+        location: 'Storage Room C',
+      },
+      {
+        name: 'PVC Pipes',
+        description: 'Standard PVC pipes for plumbing',
+        unit: 'm',
+        costPerUnit: 5.25,
+        category: 'Plumbing',
+        stock: 300,
+        minStock: 50,
+        location: 'Storage Room D',
+      },
+    ],
+  });
+
   console.log('Database has been seeded!');
 }
 
