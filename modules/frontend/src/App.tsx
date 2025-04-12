@@ -95,11 +95,11 @@ function App() {
         <Router>
           <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
             {isAuthenticated ? (
-              <div className="flex h-screen overflow-hidden">
+              <div className="flex h-screen">
                 <Navbar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
                 <Sidebar open={sidebarOpen} />
-                <div className="flex flex-col flex-1">
-                  <div className="relative flex-1 focus:outline-none">
+                <div className="flex flex-col flex-1 overflow-hidden">
+                  <div className="flex-1 overflow-y-auto">
                     <div className={`${sidebarOpen ? 'ml-64' : 'ml-20'} transition-all duration-300`}>
                       <main className="flex-1 pt-16">
                         <div className="py-6">
