@@ -73,8 +73,8 @@ export default function JobForm() {
               status: job.status,
               customerId: job.customerId.toString(),
               price: job.price?.toString() || '',
-              startDate: job.startDate?.toISOString().split('T')[0] || '',
-              endDate: job.endDate?.toISOString().split('T')[0] || '',
+              startDate: job.startDate ? new Date(job.startDate).toISOString().split('T')[0] : '',
+              endDate: job.endDate ? new Date(job.endDate).toISOString().split('T')[0] : '',
             });
           } else {
             setError('Job not found');

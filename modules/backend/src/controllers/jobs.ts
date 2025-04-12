@@ -13,6 +13,11 @@ export const getJobs = async (req: Request, res: Response) => {
             material: true,
           },
         },
+        tools: {
+          include: {
+            tool: true,
+          },
+        },
       },
     });
     res.json(jobs);
@@ -34,6 +39,11 @@ export const getJob = async (req: Request, res: Response) => {
         materials: {
           include: {
             material: true,
+          },
+        },
+        tools: {
+          include: {
+            tool: true,
           },
         },
       },
@@ -70,6 +80,11 @@ export const createJob = async (req: Request, res: Response) => {
             material: true,
           },
         },
+        tools: {
+          include: {
+            tool: true,
+          },
+        },
       },
     });
     res.status(201).json(job);
@@ -101,6 +116,11 @@ export const updateJob = async (req: Request, res: Response) => {
         materials: {
           include: {
             material: true,
+          },
+        },
+        tools: {
+          include: {
+            tool: true,
           },
         },
       },
