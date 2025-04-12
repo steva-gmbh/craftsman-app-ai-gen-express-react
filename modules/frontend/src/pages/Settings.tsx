@@ -67,9 +67,22 @@ export default function Settings() {
 
   const fetchSettings = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/settings');
+      // Get the current user's ID from localStorage
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const userId = user.id;
+
+      if (!userId) {
+        throw new Error('No user ID found');
+      }
+
+      const response = await fetch(`http://localhost:3001/api/settings/${userId}`);
       const data = await response.json();
-      setSettingsData(data);
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch settings');
+      }
+
+      setSettingsData({ ...data, userId }); // Store userId in settingsData
       if (data) {
         const parsedData = {
           profile: data.profile ? JSON.parse(data.profile) : { name: '', email: '' },
@@ -82,13 +95,18 @@ export default function Settings() {
         if (data.appearance) {
           const appearance = JSON.parse(data.appearance);
           if (appearance.theme && appearance.theme !== theme) {
-            toggleTheme(); // This will switch to the theme from the database
+            // Only toggle if the theme is different
+            if (appearance.theme === 'dark' && theme === 'light') {
+              toggleTheme();
+            } else if (appearance.theme === 'light' && theme === 'dark') {
+              toggleTheme();
+            }
           }
         }
       }
     } catch (error) {
       console.error('Error fetching settings:', error);
-      toast.error('Failed to load settings');
+      toast.error(error instanceof Error ? error.message : 'Failed to load settings');
     } finally {
       setIsLoading(false);
     }
@@ -107,29 +125,58 @@ export default function Settings() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const response = await fetch('http://localhost:3001/api/settings', {
+      // Get the current user's ID from localStorage
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const userId = user.id;
+
+      if (!userId) {
+        throw new Error('No user ID found');
+      }
+
+      console.log('Saving settings for user:', userId);
+      console.log('Form data:', formData);
+
+      const requestBody = {
+        profile: JSON.stringify(formData.profile),
+        business: JSON.stringify(formData.business),
+        notifications: JSON.stringify(formData.notifications),
+        appearance: JSON.stringify({ theme }),
+      };
+
+      console.log('Request body:', requestBody);
+
+      const response = await fetch(`http://localhost:3001/api/settings/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          profile: formData.profile,
-          business: formData.business,
-          notifications: formData.notifications,
-          appearance: { theme },
-        }),
+        body: JSON.stringify(requestBody),
       });
+
+      const data = await response.json();
+      
+      console.log('Server response:', data);
       
       if (!response.ok) {
-        throw new Error('Failed to save settings');
+        console.error('Server response:', data);
+        throw new Error(data.error || 'Failed to save settings');
       }
+
+      // Parse the response data and update both states
+      const parsedData = {
+        profile: data.profile ? JSON.parse(data.profile) : formData.profile,
+        business: data.business ? JSON.parse(data.business) : formData.business,
+        notifications: data.notifications ? JSON.parse(data.notifications) : formData.notifications,
+      };
       
-      const data = await response.json();
-      setSettingsData(data);
+      console.log('Parsed data:', parsedData);
+      
+      setSettingsData({ ...data, userId });
+      setFormData(parsedData);
       toast.success('Settings saved successfully');
     } catch (error) {
       console.error('Error saving settings:', error);
-      toast.error('Failed to save settings');
+      toast.error(error instanceof Error ? error.message : 'Failed to save settings');
     } finally {
       setIsSaving(false);
     }

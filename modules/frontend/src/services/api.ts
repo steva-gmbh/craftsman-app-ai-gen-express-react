@@ -18,6 +18,15 @@ export interface Job {
   startDate?: Date;
   endDate?: Date;
   customer?: Customer;
+  materials?: JobMaterial[];
+}
+
+export interface JobMaterial {
+  id: number;
+  jobId: number;
+  materialId: number;
+  amount: number;
+  material: Material;
 }
 
 export interface Material {
@@ -174,6 +183,52 @@ export const api = {
     });
     if (!response.ok) {
       throw new Error('Failed to delete material');
+    }
+  },
+
+  // Job Material endpoints
+  getJobMaterials: async (jobId: number): Promise<JobMaterial[]> => {
+    const response = await fetch(`${API_BASE_URL}/jobs/${jobId}/materials`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch job materials');
+    }
+    return response.json();
+  },
+
+  addJobMaterial: async (jobId: number, materialId: number, amount: number): Promise<JobMaterial> => {
+    const response = await fetch(`${API_BASE_URL}/jobs/${jobId}/materials`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ materialId, amount }),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to add material to job');
+    }
+    return response.json();
+  },
+
+  updateJobMaterial: async (jobId: number, materialId: number, amount: number): Promise<JobMaterial> => {
+    const response = await fetch(`${API_BASE_URL}/jobs/${jobId}/materials/${materialId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ amount }),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to update job material');
+    }
+    return response.json();
+  },
+
+  removeJobMaterial: async (jobId: number, materialId: number): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/jobs/${jobId}/materials/${materialId}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      throw new Error('Failed to remove material from job');
     }
   },
 }; 

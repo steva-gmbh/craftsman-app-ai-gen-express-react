@@ -22,7 +22,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     // Fetch theme from database on initial load
     const fetchTheme = async () => {
       try {
-        const response = await fetch('http://localhost:3001/api/settings');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const userId = user.id;
+
+        if (!userId) {
+          return;
+        }
+
+        const response = await fetch(`http://localhost:3001/api/settings/${userId}`);
         const data = await response.json();
         if (data?.appearance) {
           const appearance = JSON.parse(data.appearance);

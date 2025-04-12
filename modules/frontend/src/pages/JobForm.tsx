@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { api } from '../services/api';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { api, Customer, Material, JobMaterial } from '../services/api';
 import { toast } from 'react-hot-toast';
+import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 
 export default function JobForm() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -15,9 +18,22 @@ export default function JobForm() {
     startDate: '',
     endDate: '',
   });
-  const [customers, setCustomers] = useState<api.Customer[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedMaterial, setSelectedMaterial] = useState<string>('');
+  const [materialAmount, setMaterialAmount] = useState<string>('');
+
+  const { data: materials } = useQuery({
+    queryKey: ['materials'],
+    queryFn: api.getMaterials,
+  });
+
+  const { data: jobMaterials } = useQuery({
+    queryKey: ['jobMaterials', id],
+    queryFn: () => id ? api.getJobMaterials(Number(id)) : [],
+    enabled: !!id,
+  });
 
   useEffect(() => {
     const fetchCustomers = async () => {
@@ -68,6 +84,47 @@ export default function JobForm() {
     }));
   };
 
+  const handleAddMaterial = async () => {
+    if (!selectedMaterial || !materialAmount || !id) return;
+
+    try {
+      await api.addJobMaterial(Number(id), Number(selectedMaterial), Number(materialAmount));
+      await queryClient.invalidateQueries({ queryKey: ['jobMaterials', id] });
+      setSelectedMaterial('');
+      setMaterialAmount('');
+      toast.success('Material added successfully');
+    } catch (err) {
+      toast.error('Failed to add material');
+      console.error(err);
+    }
+  };
+
+  const handleUpdateMaterial = async (materialId: number, newAmount: number) => {
+    if (!id) return;
+
+    try {
+      await api.updateJobMaterial(Number(id), materialId, newAmount);
+      await queryClient.invalidateQueries({ queryKey: ['jobMaterials', id] });
+      toast.success('Material updated successfully');
+    } catch (err) {
+      toast.error('Failed to update material');
+      console.error(err);
+    }
+  };
+
+  const handleRemoveMaterial = async (materialId: number) => {
+    if (!id) return;
+
+    try {
+      await api.removeJobMaterial(Number(id), materialId);
+      await queryClient.invalidateQueries({ queryKey: ['jobMaterials', id] });
+      toast.success('Material removed successfully');
+    } catch (err) {
+      toast.error('Failed to remove material');
+      console.error(err);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -79,19 +136,20 @@ export default function JobForm() {
         description: formData.description,
         status: formData.status,
         customerId: Number(formData.customerId),
-        price: formData.price ? Number(formData.price) : null,
-        startDate: formData.startDate ? new Date(formData.startDate) : null,
-        endDate: formData.endDate ? new Date(formData.endDate) : null,
+        price: formData.price ? Number(formData.price) : undefined,
+        startDate: formData.startDate ? new Date(formData.startDate) : undefined,
+        endDate: formData.endDate ? new Date(formData.endDate) : undefined,
       };
 
       if (id) {
         await api.updateJob(Number(id), jobData);
         toast.success('Job updated successfully');
+        navigate('/jobs');
       } else {
-        await api.createJob(jobData);
+        const newJob = await api.createJob(jobData);
         toast.success('Job created successfully');
+        navigate('/jobs');
       }
-      navigate('/jobs');
     } catch (err) {
       setError('Failed to save job. Please try again.');
       toast.error(id ? 'Failed to update job' : 'Failed to create job');
@@ -226,6 +284,86 @@ export default function JobForm() {
             />
           </div>
         </div>
+
+        {id && (
+          <div className="space-y-4">
+            <h2 className="text-lg font-medium text-gray-900 dark:text-white">Materials</h2>
+            
+            <div className="flex gap-4">
+              <select
+                value={selectedMaterial}
+                onChange={(e) => setSelectedMaterial(e.target.value)}
+                className="flex-1 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
+              >
+                <option value="">Select a material</option>
+                {materials?.map(material => (
+                  <option key={material.id} value={material.id}>
+                    {material.name} ({material.unit})
+                  </option>
+                ))}
+              </select>
+              
+              <input
+                type="number"
+                value={materialAmount}
+                onChange={(e) => setMaterialAmount(e.target.value)}
+                placeholder="Amount"
+                className="w-32 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
+              />
+              
+              <button
+                type="button"
+                onClick={handleAddMaterial}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 h-10"
+              >
+                <PlusIcon className="h-5 w-5 mr-2" />
+                Add
+              </button>
+            </div>
+
+            <div className="mt-4">
+              <table className="min-w-full divide-y divide-gray-300">
+                <thead className="bg-gray-50 dark:bg-gray-700">
+                  <tr>
+                    <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Material</th>
+                    <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Amount</th>
+                    <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Unit</th>
+                    <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-600 bg-white dark:bg-gray-800">
+                  {jobMaterials?.map((jobMaterial) => (
+                    <tr key={jobMaterial.id}>
+                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                        {jobMaterial.material.name}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                        <input
+                          type="number"
+                          value={jobMaterial.amount}
+                          onChange={(e) => handleUpdateMaterial(jobMaterial.materialId, Number(e.target.value))}
+                          className="w-24 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-8"
+                        />
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                        {jobMaterial.material.unit}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveMaterial(jobMaterial.materialId)}
+                          className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                        >
+                          <TrashIcon className="h-5 w-5" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
 
         <div className="flex justify-end space-x-3">
           <button

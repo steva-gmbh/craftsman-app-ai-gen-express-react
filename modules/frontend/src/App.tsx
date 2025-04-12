@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from './providers/ThemeProvider';
@@ -13,6 +13,7 @@ import CustomerForm from './pages/CustomerForm';
 import JobForm from './pages/JobForm';
 import Materials from './pages/Materials';
 import MaterialForm from './pages/MaterialForm';
+import Login from './pages/Login';
 import { api, Customer, Job } from './services/api';
 
 const queryClient = new QueryClient();
@@ -23,13 +24,19 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(() => {
-    // Initialize from localStorage or default to true
     const saved = localStorage.getItem('sidebarOpen');
     return saved ? JSON.parse(saved) : true;
   });
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return !!localStorage.getItem('user');
+  });
 
   useEffect(() => {
-    // Save to localStorage whenever sidebar state changes
+    const saved = localStorage.getItem('sidebarOpen');
+    setSidebarOpen(saved ? JSON.parse(saved) : true);
+  }, []);
+
+  useEffect(() => {
     localStorage.setItem('sidebarOpen', JSON.stringify(sidebarOpen));
   }, [sidebarOpen]);
 
@@ -47,6 +54,11 @@ function App() {
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!isAuthenticated) {
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         const [customersData, jobsData] = await Promise.all([
@@ -65,14 +77,14 @@ function App() {
     };
 
     fetchData();
-  }, []);
+  }, [isAuthenticated]);
 
   if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>Error: {error}</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-gray-500 dark:text-gray-400">Loading...</div>
+      </div>
+    );
   }
 
   return (
@@ -80,37 +92,48 @@ function App() {
       <ThemeProvider>
         <Router>
           <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-            <div
-              className={`transition-all duration-300 ease-in-out ${
-                sidebarOpen ? 'ml-64' : 'ml-16'
-              }`}
-            >
-              <header className="bg-white dark:bg-gray-800 shadow">
-                <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-                  <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">HandwerkerApp</h1>
+            {isAuthenticated ? (
+              <div className="flex h-screen overflow-hidden">
+                <Navbar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+                <Sidebar open={sidebarOpen} />
+                <div className="flex flex-col flex-1">
+                  <div className="relative flex-1 focus:outline-none">
+                    <div className={`${sidebarOpen ? 'ml-64' : 'ml-20'} transition-all duration-300`}>
+                      <main className="flex-1 pt-16">
+                        <div className="py-6">
+                          <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
+                            {error ? (
+                              <div className="text-red-500 dark:text-red-400">{error}</div>
+                            ) : (
+                              <Routes>
+                                <Route path="/" element={<Dashboard />} />
+                                <Route path="/jobs" element={<Jobs />} />
+                                <Route path="/customers" element={<Customers />} />
+                                <Route path="/settings" element={<Settings />} />
+                                <Route path="/customers/new" element={<CustomerForm />} />
+                                <Route path="/customers/:id" element={<CustomerForm />} />
+                                <Route path="/jobs/new" element={<JobForm />} />
+                                <Route path="/jobs/:id" element={<JobForm />} />
+                                <Route path="/materials" element={<Materials />} />
+                                <Route path="/materials/new" element={<MaterialForm />} />
+                                <Route path="/materials/:id" element={<MaterialForm />} />
+                              </Routes>
+                            )}
+                          </div>
+                        </div>
+                      </main>
+                    </div>
+                  </div>
                 </div>
-              </header>
-              <main className="py-10">
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                  <Routes>
-                    <Route path="/" element={<Dashboard />} />
-                    <Route path="/customers" element={<Customers />} />
-                    <Route path="/customers/new" element={<CustomerForm />} />
-                    <Route path="/customers/:id/edit" element={<CustomerForm />} />
-                    <Route path="/jobs" element={<Jobs />} />
-                    <Route path="/jobs/new" element={<JobForm />} />
-                    <Route path="/jobs/:id/edit" element={<JobForm />} />
-                    <Route path="/materials" element={<Materials />} />
-                    <Route path="/materials/new" element={<MaterialForm />} />
-                    <Route path="/materials/:id/edit" element={<MaterialForm />} />
-                    <Route path="/settings" element={<Settings />} />
-                  </Routes>
-                </div>
-              </main>
-            </div>
+              </div>
+            ) : (
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="*" element={<Navigate to="/login" replace />} />
+              </Routes>
+            )}
+            <Toaster position="top-right" />
           </div>
-          <Toaster position="top-right" />
         </Router>
       </ThemeProvider>
     </QueryClientProvider>

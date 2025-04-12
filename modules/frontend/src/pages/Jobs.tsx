@@ -166,7 +166,7 @@ export default function Jobs() {
                       <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                         <div className="flex justify-end space-x-2">
                           <button
-                            onClick={() => navigate(`/jobs/${job.id}/edit`)}
+                            onClick={() => navigate(`/jobs/${job.id}`)}
                             className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
                           >
                             <PencilIcon className="h-5 w-5" />

@@ -3,7 +3,9 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  // Clear existing data
+  // Clear existing data in correct order to respect foreign key constraints
+  await prisma.jobMaterial.deleteMany();
+  await prisma.material.deleteMany();
   await prisma.job.deleteMany();
   await prisma.customer.deleteMany();
   await prisma.settings.deleteMany();

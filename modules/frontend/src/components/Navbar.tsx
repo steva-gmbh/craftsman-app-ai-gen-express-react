@@ -1,22 +1,44 @@
 import React from 'react';
-import { useTheme } from '../providers/ThemeProvider';
+import { Link } from 'react-router-dom';
 
 interface NavbarProps {
   sidebarOpen: boolean;
+  setSidebarOpen: (open: boolean) => void;
 }
 
-export default function Navbar({ sidebarOpen }: NavbarProps) {
-  const { theme } = useTheme();
-
+const Navbar: React.FC<NavbarProps> = ({ sidebarOpen, setSidebarOpen }) => {
   return (
-    <nav className="bg-white dark:bg-gray-800 shadow-sm">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center">
-          <span className="text-xl font-bold text-gray-900 dark:text-white">
-            HandwerkerApp
-          </span>
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 shadow">
+      <div className="mx-auto">
+        <div className="flex items-center h-16">
+          <div className="flex items-center pl-4">
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+              title={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+            >
+              <svg
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+            </button>
+            <Link to="/" className="ml-4 text-xl font-bold text-gray-900 dark:text-white">
+              HandwerkerApp
+            </Link>
+          </div>
         </div>
       </div>
     </nav>
   );
-} 
+};
+
+export default Navbar; 
