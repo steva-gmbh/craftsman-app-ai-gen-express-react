@@ -1,4 +1,4 @@
 node_modules
 modules/backend/prisma/dev.db
 /.idea/
-/handwerker-app-ai-generated.iml
+/craftsman-app.iml

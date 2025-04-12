@@ -33,7 +33,7 @@ const Navbar: React.FC<NavbarProps> = ({ sidebarOpen, setSidebarOpen }) => {
               </svg>
             </button>
             <Link to="/" className="ml-4 text-xl font-bold text-gray-900 dark:text-white">
-              HandwerkerApp
+              CraftsmanApp
             </Link>
           </div>
           <div className="pr-4">

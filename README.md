@@ -1,6 +1,6 @@
-# HandwerkerApp
+# CraftsmanApp
 
-A modern web application for craftsmen (handwerker) to manage their business, inspired by the "hero" application.
+A modern web application for craftsmen to manage their business, inspired by the "hero" application.
 
 ## Features
 
@@ -24,8 +24,8 @@ A modern web application for craftsmen (handwerker) to manage their business, in
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/handwerker-app.git
-cd handwerker-app
+git clone https://github.com/yourusername/craftsman-app.git
+cd craftsman-app
 ```
 
 2. Install dependencies:
@@ -51,7 +51,7 @@ The application will be available at http://localhost:5173.
 ## Project Structure
 
 ```
-handwerker-app/
+craftsman-app/
 ├── modules/
 │   ├── frontend/
 │   │   ├── src/
