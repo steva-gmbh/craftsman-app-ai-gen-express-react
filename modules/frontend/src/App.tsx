@@ -17,6 +17,8 @@ import MaterialForm from './pages/MaterialForm';
 import Tools from './pages/Tools';
 import ToolForm from './pages/ToolForm';
 import Login from './pages/Login';
+import Users from './pages/Users';
+import UserForm from './pages/UserForm';
 import { api, Customer, Job } from './services/api';
 
 const queryClient = new QueryClient();
@@ -124,6 +126,9 @@ function App() {
                                   <Route path="/tools" element={<Tools />} />
                                   <Route path="/tools/new" element={<ToolForm />} />
                                   <Route path="/tools/:id" element={<ToolForm />} />
+                                  <Route path="/users" element={<Users />} />
+                                  <Route path="/users/new" element={<UserForm />} />
+                                  <Route path="/users/:id" element={<UserForm />} />
                                 </Routes>
                               )}
                             </div>

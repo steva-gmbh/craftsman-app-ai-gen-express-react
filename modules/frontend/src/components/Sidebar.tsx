@@ -10,24 +10,53 @@ import {
   ChevronRightIcon,
   CubeIcon,
   WrenchScrewdriverIcon,
+  UsersIcon,
 } from '@heroicons/react/24/outline';
 
 interface SidebarProps {
   open: boolean;
 }
 
-const navigation = [
-  { name: 'Dashboard', href: '/', icon: HomeIcon },
-  { name: 'Customers', href: '/customers', icon: UserGroupIcon },
-  { name: 'Jobs', href: '/jobs', icon: BriefcaseIcon },
-  { name: 'Materials', href: '/materials', icon: CubeIcon },
-  { name: 'Tools', href: '/tools', icon: WrenchScrewdriverIcon },
-  { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
-];
+// Get current user to check if they have admin role
+const getCurrentUser = () => {
+  try {
+    return JSON.parse(localStorage.getItem('user') || '{}');
+  } catch (e) {
+    return {};
+  }
+};
 
 const Sidebar: React.FC<SidebarProps> = ({ open }) => {
   const location = useLocation();
   const { theme } = useTheme();
+  const currentUser = getCurrentUser();
+  const isAdmin = currentUser?.role === 'admin';
+
+  // Base navigation items
+  const baseNavigation = [
+    { name: 'Dashboard', href: '/', icon: HomeIcon },
+    { name: 'Customers', href: '/customers', icon: UserGroupIcon },
+    { name: 'Jobs', href: '/jobs', icon: BriefcaseIcon },
+    { name: 'Materials', href: '/materials', icon: CubeIcon },
+    { name: 'Tools', href: '/tools', icon: WrenchScrewdriverIcon },
+  ];
+
+  // Admin-only navigation items
+  const adminNavigation = [
+    { name: 'Users', href: '/users', icon: UsersIcon },
+  ];
+
+  // Settings is shown to all users
+  const settingsNavigation = [
+    { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
+  ];
+
+  // Combine navigation items based on user role
+  const navigation = [
+    ...baseNavigation,
+    ...(isAdmin ? adminNavigation : []),
+    ...settingsNavigation
+  ];
 
   return (
     <div className={`fixed top-16 left-0 z-40 h-[calc(100vh-4rem)] transform bg-white dark:bg-gray-800 transition-all duration-200 ease-in-out overflow-y-auto ${open ? 'w-64' : 'w-20'}`}>

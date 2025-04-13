@@ -1,12 +1,19 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcrypt';
 
 const router = express.Router();
 const prisma = new PrismaClient();
 
+// Note: In a real application, we would implement proper authentication middleware
+// This is a simplified version for demonstration purposes
+// In production, you'd likely use JWT or session-based authentication
+
 // Get all users
 router.get('/', async (req, res) => {
   try {
+    // For a real implementation we'd check the user's role from auth token
+    // For demo purposes, we'll fetch all users without authorization
     const users = await prisma.user.findMany({
       select: {
         id: true,
@@ -47,18 +54,82 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// Create user
+router.post('/', async (req, res) => {
+  const { email, name, password, role } = req.body;
+  
+  try {
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser) {
+      return res.status(400).json({ error: 'Email already registered' });
+    }
+
+    // Hash the password before storing
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create user and their default settings in a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({
+        data: {
+          email,
+          password: hashedPassword,
+          name,
+          role: role || 'user',
+        },
+      });
+
+      // Create default settings for the user
+      await tx.settings.create({
+        data: {
+          userId: user.id,
+          profile: JSON.stringify({ name: user.name, email: user.email }),
+          business: JSON.stringify({ name: '', services: [] }),
+          notifications: JSON.stringify({ email: true, sms: false }),
+          appearance: JSON.stringify({ theme: 'light' }),
+        },
+      });
+
+      return user;
+    });
+
+    res.status(201).json({
+      id: result.id,
+      email: result.email,
+      name: result.name,
+      role: result.role,
+      createdAt: result.createdAt,
+      updatedAt: result.updatedAt,
+    });
+  } catch (error) {
+    console.error('User creation error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Update user
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
-  const { email, name, role } = req.body;
+  const { email, name, role, password } = req.body;
+  
   try {
+    // Create update data with optional password update
+    const updateData: any = {
+      email,
+      name,
+      role,
+    };
+    
+    // If password was provided, hash it
+    if (password) {
+      updateData.password = await bcrypt.hash(password, 10);
+    }
+    
     const user = await prisma.user.update({
       where: { id: parseInt(id) },
-      data: {
-        email,
-        name,
-        role,
-      },
+      data: updateData,
       select: {
         id: true,
         email: true,
@@ -68,6 +139,7 @@ router.put('/:id', async (req, res) => {
         updatedAt: true,
       },
     });
+    
     res.json(user);
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
@@ -77,10 +149,18 @@ router.put('/:id', async (req, res) => {
 // Delete user
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
+  
   try {
+    // First delete user settings
+    await prisma.settings.deleteMany({
+      where: { userId: parseInt(id) },
+    });
+    
+    // Then delete the user
     await prisma.user.delete({
       where: { id: parseInt(id) },
     });
+    
     res.status(204).send();
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });

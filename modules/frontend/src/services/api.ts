@@ -71,6 +71,15 @@ export interface JobTool {
   tool: Tool;
 }
 
+export interface User {
+  id: number;
+  email: string;
+  name: string;
+  role: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export const api = {
   // Customer endpoints
   getCustomers: async (): Promise<Customer[]> => {
@@ -345,6 +354,60 @@ export const api = {
     });
     if (!response.ok) {
       throw new Error('Failed to remove tool from job');
+    }
+  },
+
+  // User endpoints
+  getUsers: async (): Promise<User[]> => {
+    const response = await fetch(`${API_BASE_URL}/users`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch users');
+    }
+    return response.json();
+  },
+
+  getUser: async (id: number): Promise<User> => {
+    const response = await fetch(`${API_BASE_URL}/users/${id}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch user');
+    }
+    return response.json();
+  },
+
+  createUser: async (user: { name: string; email: string; password: string; role: string }): Promise<User> => {
+    const response = await fetch(`${API_BASE_URL}/users`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(user),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to create user');
+    }
+    return response.json();
+  },
+
+  updateUser: async (id: number, user: { name: string; email: string; role: string; password?: string }): Promise<User> => {
+    const response = await fetch(`${API_BASE_URL}/users/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(user),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to update user');
+    }
+    return response.json();
+  },
+
+  deleteUser: async (id: number): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/users/${id}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      throw new Error('Failed to delete user');
     }
   },
 }; 
