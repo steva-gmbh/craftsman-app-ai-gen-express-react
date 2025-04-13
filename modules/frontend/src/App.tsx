@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from './providers/ThemeProvider';
+import { WebSocketProvider } from './contexts/WebSocketContext';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
@@ -93,52 +94,54 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <Router>
-          <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            {isAuthenticated ? (
-              <div className="flex h-screen">
-                <Navbar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-                <Sidebar open={sidebarOpen} />
-                <div className="flex flex-col flex-1 overflow-hidden">
-                  <div className="flex-1 overflow-y-auto">
-                    <div className={`${sidebarOpen ? 'ml-64' : 'ml-20'} transition-all duration-300`}>
-                      <main className="flex-1 pt-16">
-                        <div className="py-6">
-                          <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
-                            {error ? (
-                              <div className="text-red-500 dark:text-red-400">{error}</div>
-                            ) : (
-                              <Routes>
-                                <Route path="/" element={<Dashboard />} />
-                                <Route path="/jobs" element={<Jobs />} />
-                                <Route path="/customers" element={<Customers />} />
-                                <Route path="/settings" element={<Settings />} />
-                                <Route path="/customers/new" element={<CustomerForm />} />
-                                <Route path="/customers/:id" element={<CustomerForm />} />
-                                <Route path="/jobs/new" element={<JobForm />} />
-                                <Route path="/jobs/:id" element={<JobForm />} />
-                                <Route path="/materials" element={<Materials />} />
-                                <Route path="/materials/new" element={<MaterialForm />} />
-                                <Route path="/materials/:id" element={<MaterialForm />} />
-                                <Route path="/tools" element={<Tools />} />
-                                <Route path="/tools/new" element={<ToolForm />} />
-                                <Route path="/tools/:id" element={<ToolForm />} />
-                              </Routes>
-                            )}
+          <WebSocketProvider>
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+              {isAuthenticated ? (
+                <div className="flex h-screen">
+                  <Navbar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+                  <Sidebar open={sidebarOpen} />
+                  <div className="flex flex-col flex-1 overflow-hidden">
+                    <div className="flex-1 overflow-y-auto">
+                      <div className={`${sidebarOpen ? 'ml-64' : 'ml-20'} transition-all duration-300`}>
+                        <main className="flex-1 pt-16">
+                          <div className="py-6">
+                            <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
+                              {error ? (
+                                <div className="text-red-500 dark:text-red-400">{error}</div>
+                              ) : (
+                                <Routes>
+                                  <Route path="/" element={<Dashboard />} />
+                                  <Route path="/jobs" element={<Jobs />} />
+                                  <Route path="/customers" element={<Customers />} />
+                                  <Route path="/settings" element={<Settings />} />
+                                  <Route path="/customers/new" element={<CustomerForm />} />
+                                  <Route path="/customers/:id" element={<CustomerForm />} />
+                                  <Route path="/jobs/new" element={<JobForm />} />
+                                  <Route path="/jobs/:id" element={<JobForm />} />
+                                  <Route path="/materials" element={<Materials />} />
+                                  <Route path="/materials/new" element={<MaterialForm />} />
+                                  <Route path="/materials/:id" element={<MaterialForm />} />
+                                  <Route path="/tools" element={<Tools />} />
+                                  <Route path="/tools/new" element={<ToolForm />} />
+                                  <Route path="/tools/:id" element={<ToolForm />} />
+                                </Routes>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      </main>
+                        </main>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ) : (
-              <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="*" element={<Navigate to="/login" replace />} />
-              </Routes>
-            )}
-            <Toaster position="top-right" />
-          </div>
+              ) : (
+                <Routes>
+                  <Route path="/login" element={<Login />} />
+                  <Route path="*" element={<Navigate to="/login" replace />} />
+                </Routes>
+              )}
+              <Toaster position="top-right" />
+            </div>
+          </WebSocketProvider>
         </Router>
       </ThemeProvider>
     </QueryClientProvider>

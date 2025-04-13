@@ -1,10 +1,11 @@
 import { ChatOpenAI } from "@langchain/openai";
-import { AgentExecutor, createOpenAIFunctionsAgent } from "langchain/agents";
+import {AgentExecutor, createOpenAIFunctionsAgent, createOpenAIToolsAgent} from "langchain/agents";
 import { DynamicStructuredTool, Tool } from "@langchain/core/tools";
 import { z } from "zod";
 import { PrismaClient } from "@prisma/client";
 import { SerpAPI } from "@langchain/community/tools/serpapi";
 import { ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate } from "@langchain/core/prompts";
+import { getIO } from '../socket';
 
 const prisma = new PrismaClient();
 
@@ -38,16 +39,20 @@ const createCustomerTool = new DynamicStructuredTool({
   description: "Create a new customer",
   schema: z.object({
     name: z.string(),
-    email: z.string(),
+    email: z.string().optional(),
     phone: z.string().optional(),
     address: z.string().optional(),
   }),
   func: async ({ name, email, phone, address }) => {
-    console.log(`[AI Agent] Creating new customer: ${name} (${email})`);
+    console.log(`[AI Agent] Creating new customer: ${name} (${email || 'no email provided'})`);
+
+    // Generate a default email if none is provided
+    const customerEmail = email || `${name.toLowerCase().replace(/\s+/g, '.')}@example.com`;
+
     const customer = await prisma.customer.create({
       data: {
         name,
-        email,
+        email: customerEmail,
         phone,
         address,
       },
@@ -133,16 +138,44 @@ const getMaterialTool = new DynamicStructuredTool({
         },
         take: 5  // Limit to top 5 matches
       });
-      
+
       if (materials.length === 0) {
         return "No materials found matching your search";
       }
-      
+
       return JSON.stringify(materials);
     }
     return "Please provide either id or name";
   },
 }) as unknown as Tool;
+
+class OpenPageTool extends Tool {
+  name = 'open_page';
+  description = 'Opens a specific page in the frontend application. Use this to navigate to different sections of the app. This tool always executes successfully.';
+
+  async _call(path: string): Promise<string> {
+    console.log(`[AI Agent] Opening page: ${path}`);
+    
+    // Fix for paths with IDs (e.g., "customer 2" should be "customers/2")
+    const pathParts = path.split(' ');
+    let formattedPath = path;
+    
+    if (pathParts.length === 2 && !isNaN(Number(pathParts[1]))) {
+      // Pluralize the resource name (customer → customers, job → jobs, tool → tools, material → materials)
+      let resource = pathParts[0];
+      if (!resource.endsWith('s')) {
+        resource = resource + 's';
+      }
+      formattedPath = `${resource}/${pathParts[1]}`;
+    }
+    
+    const io = getIO();
+    io.emit('navigate', formattedPath);
+    return `Successfully navigated to page ${formattedPath}. Navigation complete, no further actions required.`;
+  }
+}
+
+const openPageTool = new OpenPageTool();
 
 // Initialize the agent
 export async function createAgent() {
@@ -157,6 +190,7 @@ export async function createAgent() {
     getJobTool,
     createJobTool,
     getMaterialTool,
+    openPageTool
   ];
 
   const tools: Tool[] = [...baseTools];
@@ -175,7 +209,12 @@ export async function createAgent() {
     1. Managing customers and their information
     2. Creating and tracking jobs
     3. Managing materials and inventory
-    ${tools.length > baseTools.length ? "4. Searching the web for relevant information" : ""}
+    4. Opening pages of the frontend application
+    ${tools.length > baseTools.length ? "5. Searching the web for relevant information" : ""}
+    
+    Cretae a plan for how to handle each of these tasks.
+    Execute your plan step by step, and respond in clear, human-readable text.
+    Immediately stop if you have finished your plan.   
 
     Follow these rules strictly:
     1. When searching for materials:
@@ -191,8 +230,8 @@ export async function createAgent() {
     3. Never repeat the same search
     4. If information is not found in one attempt, say so immediately
     5. Always respond in clear, human-readable text
-
-    Remember: One search is enough - if you get a response (even null), that's your final answer.`
+    6. One search is enough - if you get a response (even null), that's your final answer.
+    8. When you create an new domain object, always open the page with the list of all of those objects.`
   );
 
   const humanMessage = HumanMessagePromptTemplate.fromTemplate("{input}");
@@ -202,18 +241,19 @@ export async function createAgent() {
     ["system", "{agent_scratchpad}"]
   ]);
 
-  const agent = await createOpenAIFunctionsAgent({
+  const agent = await createOpenAIToolsAgent({
     llm: model,
-    tools,
-    prompt,
+    tools: tools,
+    prompt: prompt,
   });
 
   return AgentExecutor.fromAgentAndTools({
     agent,
     tools,
     maxIterations: 10,
-    returnIntermediateSteps: false,
+    returnIntermediateSteps: true,
     handleParsingErrors: true,
-    earlyStoppingMethod: "force"
+    earlyStoppingMethod: "force",
+    verbose: false
   });
 }

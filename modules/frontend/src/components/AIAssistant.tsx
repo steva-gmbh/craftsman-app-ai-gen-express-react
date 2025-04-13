@@ -17,6 +17,7 @@ const AIAssistant: React.FC = () => {
     return savedMessages ? JSON.parse(savedMessages) : [];
   });
   const [input, setInput] = useState('');
+  const [isThinking, setIsThinking] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -46,11 +47,12 @@ const AIAssistant: React.FC = () => {
   }, [isOpen]);
 
   const handleSendMessage = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || isThinking) return;
 
     const userMessage: Message = { role: 'user', content: input };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
+    setIsThinking(true);
 
     try {
       const response = await fetch('/api/ai/chat', {
@@ -83,6 +85,8 @@ const AIAssistant: React.FC = () => {
         role: 'assistant',
         content: 'Sorry, I encountered an error. Please try again.',
       }]);
+    } finally {
+      setIsThinking(false);
     }
   };
 
@@ -150,6 +154,17 @@ const AIAssistant: React.FC = () => {
               </div>
             </div>
           ))}
+          {isThinking && (
+            <div className="mb-4 text-left">
+              <div className="inline-block p-3 rounded-lg bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                <div className="flex space-x-2">
+                  <div className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                  <div className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                  <div className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                </div>
+              </div>
+            </div>
+          )}
           <div ref={messagesEndRef} />
         </div>
 
@@ -163,11 +178,13 @@ const AIAssistant: React.FC = () => {
               onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
               className="flex-1 border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               placeholder="Type your message..."
+              disabled={isThinking}
             />
             <button
               onClick={handleSendMessage}
               className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center"
               title="Send message"
+              disabled={isThinking}
             >
               <PaperAirplaneIcon className="w-5 h-5" />
             </button>

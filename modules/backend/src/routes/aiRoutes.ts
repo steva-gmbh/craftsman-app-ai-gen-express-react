@@ -25,15 +25,15 @@ router.post('/chat', async (req, res) => {
     }
 
     const result = await agent.invoke({
-      input: message,
+      input: message
     });
 
     // Extract the actual response from the agent's output
     const response = result.output;
-    
+
     // If the response starts with "ANSWER:", remove it and trim
-    const cleanResponse = response.startsWith('ANSWER:') 
-      ? response.substring(7).trim() 
+    const cleanResponse = response.startsWith('ANSWER:')
+      ? response.substring(7).trim()
       : response;
 
     res.json({ response: cleanResponse });
@@ -43,4 +43,4 @@ router.post('/chat', async (req, res) => {
   }
 });
 
-export default router; 
+export default router;

@@ -16,14 +16,16 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@langchain/core": "^0.1.27",
-    "@langchain/openai": "^0.0.14",
-    "@langchain/community": "^0.0.34",
-    "langchain": "^0.1.17",
+    "@langchain/community": "^0.3.40",
+    "@langchain/core": "^0.3.44",
+    "@langchain/openai": "^0.5.5",
     "@prisma/client": "^5.10.0",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "express": "^4.18.2",
+    "langchain": "^0.3.21",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
     "zod": "^3.22.4"
   },
   "devDependencies": {
