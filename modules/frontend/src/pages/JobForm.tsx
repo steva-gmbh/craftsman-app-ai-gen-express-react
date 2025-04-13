@@ -377,7 +377,7 @@ export default function JobForm() {
               </div>
 
               <div className="mt-4">
-                <table className="min-w-full divide-y divide-gray-300">
+                <table className="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
                   <thead className="bg-gray-50 dark:bg-gray-700">
                     <tr>
                       <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Material</th>
@@ -455,7 +455,7 @@ export default function JobForm() {
               </div>
 
               <div className="mt-4">
-                <table className="min-w-full divide-y divide-gray-300">
+                <table className="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
                   <thead className="bg-gray-50 dark:bg-gray-700">
                     <tr>
                       <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Tool</th>

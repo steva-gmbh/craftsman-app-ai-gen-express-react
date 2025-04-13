@@ -80,7 +80,7 @@ export default function Dashboard() {
       <div className="mt-8">
         <h2 className="text-lg font-medium text-gray-900 dark:text-white">Recent Jobs</h2>
         <div className="mt-4 overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-          <table className="min-w-full divide-y divide-gray-300">
+          <table className="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
                 <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Customer</th>
