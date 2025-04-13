@@ -4,6 +4,17 @@ import { useNavigate } from 'react-router-dom';
 import { IconPlus, IconPhone, IconMail, IconMapPin, IconEdit, IconTrash, IconBriefcase, IconUser } from '../components/icons';
 import { api } from '../services/api';
 import { toast } from 'react-hot-toast';
+import DataTable from '../components/DataTable';
+
+interface Project {
+  id: number;
+  name: string;
+  customer?: { name: string };
+  customerId: number;
+  status: string;
+  jobCount: number;
+  budget?: number;
+}
 
 export default function Projects() {
   const navigate = useNavigate();
@@ -50,8 +61,37 @@ export default function Projects() {
     return <div>Error loading projects: {error.message}</div>;
   }
 
+  const columns = [
+    { header: 'Name', accessor: 'name' as keyof Project },
+    { 
+      header: 'Customer', 
+      accessor: (project: Project) => project.customer?.name || '-'
+    },
+    { 
+      header: 'Status', 
+      accessor: (project: Project) => (
+        <span 
+          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+            project.status === 'active' 
+              ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400' 
+              : project.status === 'completed'
+              ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400'
+              : 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400'
+          }`}
+        >
+          {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
+        </span>
+      )
+    },
+    { header: 'Jobs', accessor: 'jobCount' as keyof Project },
+    { 
+      header: 'Budget', 
+      accessor: (project: Project) => project.budget ? `$${project.budget.toFixed(2)}` : '-'
+    },
+  ];
+
   return (
-    <div>
+    <div className="h-full">
       <div className="sm:flex sm:items-center">
         <div className="sm:flex-auto">
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Projects</h1>
@@ -90,86 +130,38 @@ export default function Projects() {
       </div>
 
       {/* Projects List */}
-      <div className="mt-8 flow-root">
-        <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-          <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-            <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-              <table className="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
-                <thead className="bg-gray-50 dark:bg-gray-700">
-                  <tr>
-                    <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-white sm:pl-6">
-                      Name
-                    </th>
-                    <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Customer</th>
-                    <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Status</th>
-                    <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Jobs</th>
-                    <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Budget</th>
-                    <th className="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                      <span className="sr-only">Actions</span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-600 bg-white dark:bg-gray-800">
-                  {projects?.map((project) => (
-                    <tr key={project.id}>
-                      <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-white sm:pl-6">
-                        {project.name}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
-                        {project.customer?.name}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
-                        <span 
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            project.status === 'active' 
-                              ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400' 
-                              : project.status === 'completed'
-                              ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400'
-                              : 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400'
-                          }`}
-                        >
-                          {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
-                        </span>
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
-                        {project.jobCount}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
-                        {project.budget ? `$${project.budget.toFixed(2)}` : '-'}
-                      </td>
-                      <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                        <div className="flex justify-end space-x-2">
-                          <button
-                            onClick={() => navigate(`/projects/${project.id}`)}
-                            className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
-                          >
-                            <IconEdit className="h-5 w-5" />
-                            <span className="sr-only">Edit {project.name}</span>
-                          </button>
-                          <button
-                            onClick={() => navigate(`/jobs/new?customerId=${project.customerId}&projectId=${project.id}&returnToProject=true`)}
-                            className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300"
-                            title="Create new job for this project"
-                          >
-                            <IconBriefcase className="h-5 w-5" />
-                            <span className="sr-only">Create job for {project.name}</span>
-                          </button>
-                          <button
-                            onClick={() => setProjectToDelete({ id: project.id, name: project.name })}
-                            className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                          >
-                            <IconTrash className="h-5 w-5" />
-                            <span className="sr-only">Delete {project.name}</span>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+      <div className="mt-8 shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+        <DataTable 
+          columns={columns}
+          data={projects || []}
+          keyField="id"
+          actions={(project) => (
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={() => navigate(`/projects/${project.id}`)}
+                className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+              >
+                <IconEdit className="h-5 w-5" />
+                <span className="sr-only">Edit {project.name}</span>
+              </button>
+              <button
+                onClick={() => navigate(`/jobs/new?customerId=${project.customerId}&projectId=${project.id}&returnToProject=true`)}
+                className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300"
+                title="Create new job for this project"
+              >
+                <IconBriefcase className="h-5 w-5" />
+                <span className="sr-only">Create job for {project.name}</span>
+              </button>
+              <button
+                onClick={() => setProjectToDelete({ id: project.id, name: project.name })}
+                className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+              >
+                <IconTrash className="h-5 w-5" />
+                <span className="sr-only">Delete {project.name}</span>
+              </button>
             </div>
-          </div>
-        </div>
+          )}
+        />
       </div>
 
       {/* Delete Confirmation Dialog */}
