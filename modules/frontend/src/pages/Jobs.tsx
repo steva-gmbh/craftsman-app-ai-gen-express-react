@@ -8,7 +8,7 @@ import DataTable from '../components/DataTable';
 
 // Update job types and statuses to match our database schema
 const jobTypes = ['All', 'Website Redesign', 'Mobile App Development', 'Database Migration'];
-const jobStatuses = ['All', 'PENDING', 'IN_PROGRESS', 'COMPLETED'];
+const jobStatuses = ['All', 'pending', 'in progress', 'completed'];
 
 interface Job {
   id: number;
@@ -90,7 +90,25 @@ export default function Jobs() {
     { header: 'Customer', accessor: 'customer' as keyof Job },
     { header: 'Project', accessor: 'project' as keyof Job },
     { header: 'Type', accessor: 'type' as keyof Job },
-    { header: 'Status', accessor: 'status' as keyof Job },
+    { 
+      header: 'Status', 
+      accessor: (job: Job) => {
+        const status = job.status.toLowerCase();
+        return (
+          <span 
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+              status === 'completed' 
+                ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400' 
+                : status === 'in_progress'
+                ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400'
+                : 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400'
+            }`}
+          >
+            {status.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+          </span>
+        );
+      }
+    },
     { header: 'Date', accessor: 'date' as keyof Job },
     { header: 'Description', accessor: 'description' as keyof Job },
   ];
