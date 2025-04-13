@@ -10,6 +10,7 @@ import {
   IconBox,
   IconTool,
   IconUsersGroup,
+  IconHammer,
   
   // User profile
   IconDoorExit,
@@ -58,6 +59,7 @@ export {
   IconBox,
   IconTool,
   IconUsersGroup,
+  IconHammer,
   
   // User profile
   IconDoorExit,

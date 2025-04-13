@@ -40,6 +40,7 @@ export default function Jobs() {
         return {
           id: job.id,
           customer: customer?.name || 'Unknown',
+          project: job.project?.name || 'None',
           type: job.title,
           status: job.status,
           date: new Date().toISOString().split('T')[0], // TODO: Add created_at to Job model
@@ -144,6 +145,7 @@ export default function Jobs() {
                     <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-white sm:pl-6">
                       Customer
                     </th>
+                    <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Project</th>
                     <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Type</th>
                     <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Status</th>
                     <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Date</th>
@@ -159,6 +161,7 @@ export default function Jobs() {
                       <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-white sm:pl-6">
                         {job.customer}
                       </td>
+                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">{job.project}</td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">{job.type}</td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">{job.status}</td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">{job.date}</td>

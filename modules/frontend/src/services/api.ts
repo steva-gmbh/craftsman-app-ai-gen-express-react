@@ -14,10 +14,12 @@ export interface Job {
   description: string;
   status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED';
   customerId: number;
+  projectId?: number;
   price?: number;
   startDate?: Date;
   endDate?: Date;
   customer?: Customer;
+  project?: Project;
   materials?: JobMaterial[];
   tools?: JobTool[];
 }
@@ -78,6 +80,21 @@ export interface User {
   role: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface Project {
+  id: number;
+  name: string;
+  description: string;
+  status: string;
+  budget?: number;
+  startDate?: Date;
+  endDate?: Date;
+  customerId: number;
+  customer?: Customer;
+  jobs?: Job[];
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export const api = {
@@ -408,6 +425,52 @@ export const api = {
     });
     if (!response.ok) {
       throw new Error('Failed to delete user');
+    }
+  },
+
+  // Project endpoints
+  getProjects: async (): Promise<Project[]> => {
+    const response = await fetch(`${API_BASE_URL}/projects`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch projects');
+    }
+    return response.json();
+  },
+
+  createProject: async (project: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>): Promise<Project> => {
+    const response = await fetch(`${API_BASE_URL}/projects`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(project),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to create project');
+    }
+    return response.json();
+  },
+
+  updateProject: async (id: number, project: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>): Promise<Project> => {
+    const response = await fetch(`${API_BASE_URL}/projects/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(project),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to update project');
+    }
+    return response.json();
+  },
+
+  deleteProject: async (id: number): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/projects/${id}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      throw new Error('Failed to delete project');
     }
   },
 }; 

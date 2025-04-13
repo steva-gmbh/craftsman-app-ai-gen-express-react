@@ -1,0 +1,210 @@
+import React, { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
+import { IconPlus, IconPhone, IconMail, IconMapPin, IconEdit, IconTrash, IconBriefcase, IconUser } from '../components/icons';
+import { api } from '../services/api';
+import { toast } from 'react-hot-toast';
+
+export default function Projects() {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [projectToDelete, setProjectToDelete] = useState<{ id: number; name: string } | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const { data: projects, isLoading, error } = useQuery({
+    queryKey: ['projects', searchQuery],
+    queryFn: async () => {
+      const projects = await api.getProjects();
+      // Count jobs for each project
+      const jobs = await api.getJobs();
+      return projects.map(project => ({
+        ...project,
+        jobCount: jobs.filter(job => job.projectId === project.id).length
+      }));
+    },
+  });
+
+  const handleDelete = async () => {
+    if (!projectToDelete) return;
+
+    try {
+      await api.deleteProject(projectToDelete.id);
+      // Invalidate and refetch projects to update the list
+      await queryClient.invalidateQueries({ queryKey: ['projects'] });
+      setProjectToDelete(null);
+      setDeleteError(null);
+      toast.success('Project deleted successfully');
+    } catch (error) {
+      console.error('Failed to delete project:', error);
+      setDeleteError(error instanceof Error ? error.message : 'Failed to delete project');
+      toast.error('Failed to delete project');
+    }
+  };
+
+  if (isLoading) {
+    return <div>Loading projects...</div>;
+  }
+
+  if (error) {
+    return <div>Error loading projects: {error.message}</div>;
+  }
+
+  return (
+    <div>
+      <div className="sm:flex sm:items-center">
+        <div className="sm:flex-auto">
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Projects</h1>
+          <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
+            A list of all projects including their details and associated jobs.
+          </p>
+        </div>
+        <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+          <button
+            type="button"
+            onClick={() => navigate('/projects/new')}
+            className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+          >
+            <IconPlus className="h-5 w-5 inline-block mr-2" />
+            Add Project
+          </button>
+        </div>
+      </div>
+
+      {/* Search */}
+      <div className="mt-6">
+        <label htmlFor="search" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Search
+        </label>
+        <div className="mt-1">
+          <input
+            type="text"
+            name="search"
+            id="search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
+            placeholder="Search projects..."
+          />
+        </div>
+      </div>
+
+      {/* Projects List */}
+      <div className="mt-8 flow-root">
+        <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+          <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+            <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+              <table className="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
+                <thead className="bg-gray-50 dark:bg-gray-700">
+                  <tr>
+                    <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-white sm:pl-6">
+                      Name
+                    </th>
+                    <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Customer</th>
+                    <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Status</th>
+                    <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Jobs</th>
+                    <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Budget</th>
+                    <th className="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                      <span className="sr-only">Actions</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-600 bg-white dark:bg-gray-800">
+                  {projects?.map((project) => (
+                    <tr key={project.id}>
+                      <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-white sm:pl-6">
+                        {project.name}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                        {project.customer?.name}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                        <span 
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            project.status === 'active' 
+                              ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400' 
+                              : project.status === 'completed'
+                              ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400'
+                              : 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400'
+                          }`}
+                        >
+                          {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
+                        </span>
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                        {project.jobCount}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                        {project.budget ? `$${project.budget.toFixed(2)}` : '-'}
+                      </td>
+                      <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                        <div className="flex justify-end space-x-2">
+                          <button
+                            onClick={() => navigate(`/projects/${project.id}`)}
+                            className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                          >
+                            <IconEdit className="h-5 w-5" />
+                            <span className="sr-only">Edit {project.name}</span>
+                          </button>
+                          <button
+                            onClick={() => navigate(`/jobs/new?customerId=${project.customerId}&projectId=${project.id}&returnToProject=true`)}
+                            className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300"
+                            title="Create new job for this project"
+                          >
+                            <IconBriefcase className="h-5 w-5" />
+                            <span className="sr-only">Create job for {project.name}</span>
+                          </button>
+                          <button
+                            onClick={() => setProjectToDelete({ id: project.id, name: project.name })}
+                            className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                          >
+                            <IconTrash className="h-5 w-5" />
+                            <span className="sr-only">Delete {project.name}</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Delete Confirmation Dialog */}
+      {projectToDelete && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm w-full">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white">Delete Project</h3>
+            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+              Are you sure you want to delete the project "{projectToDelete.name}"?
+            </p>
+            {deleteError && (
+              <p className="mt-2 text-sm text-red-600 dark:text-red-400">{deleteError}</p>
+            )}
+            <div className="mt-4 flex justify-end space-x-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setProjectToDelete(null);
+                  setDeleteError(null);
+                }}
+                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+} 

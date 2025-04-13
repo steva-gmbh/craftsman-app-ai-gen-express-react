@@ -546,6 +546,83 @@ async function main() {
 
   console.log('Demo customers created successfully');
 
+  // Create demo projects
+  const projects = [
+    {
+      name: 'Smith Residence Renovation',
+      description: 'Full home renovation including kitchen, bathroom, and basement',
+      status: 'active',
+      budget: 75000.00,
+      startDate: new Date('2024-01-15'),
+      endDate: new Date('2024-06-30'),
+      customerName: 'John Smith'
+    },
+    {
+      name: 'Johnson House Remodel',
+      description: 'Exterior updates including roof, windows, and landscaping',
+      status: 'active',
+      budget: 45000.00,
+      startDate: new Date('2024-02-10'),
+      endDate: new Date('2024-05-25'),
+      customerName: 'Sarah Johnson'
+    },
+    {
+      name: 'Brown Kitchen Upgrade',
+      description: 'Modern kitchen with new appliances and open concept design',
+      status: 'active',
+      budget: 35000.00,
+      startDate: new Date('2024-03-01'),
+      endDate: new Date('2024-04-30'),
+      customerName: 'Michael Brown'
+    },
+    {
+      name: 'Smith Backyard Oasis',
+      description: 'Complete backyard transformation with deck, patio, and landscaping',
+      status: 'on_hold',
+      budget: 28000.00,
+      startDate: new Date('2024-05-01'),
+      endDate: new Date('2024-07-15'),
+      customerName: 'John Smith'
+    },
+    {
+      name: 'Johnson Basement Conversion',
+      description: 'Converting unfinished basement into entertainment space and home office',
+      status: 'active',
+      budget: 42000.00,
+      startDate: new Date('2024-03-10'),
+      endDate: new Date('2024-06-10'),
+      customerName: 'Sarah Johnson'
+    }
+  ];
+
+  // Create projects and store their IDs
+  const projectIds: { [key: string]: number } = {};
+  for (const project of projects) {
+    try {
+      const customerId = customerIds[project.customerName];
+      if (!customerId) {
+        console.error(`Customer ${project.customerName} not found for project ${project.name}`);
+        continue;
+      }
+
+      const createdProject = await prisma.project.create({
+        data: {
+          name: project.name,
+          description: project.description,
+          status: project.status,
+          budget: project.budget,
+          startDate: project.startDate,
+          endDate: project.endDate,
+          customerId: customerId
+        }
+      });
+      projectIds[project.name] = createdProject.id;
+    } catch (error) {
+      console.error(`Failed to create project ${project.name}:`, error);
+    }
+  }
+
+  console.log('Demo projects created successfully');
 
   // Create demo jobs with proper customer connections
   const jobs = [
@@ -557,6 +634,7 @@ async function main() {
       startDate: new Date('2024-03-01'),
       endDate: new Date('2024-04-15'),
       customerName: 'John Smith',
+      projectName: 'Smith Residence Renovation',
       tools: [
         { toolName: 'Cordless Drill', amount: 2 },
         { toolName: 'Circular Saw', amount: 1 },
@@ -576,6 +654,7 @@ async function main() {
       startDate: new Date('2024-04-01'),
       endDate: new Date('2024-05-15'),
       customerName: 'Sarah Johnson',
+      projectName: 'Johnson House Remodel',
       tools: [
         { toolName: 'Cordless Drill', amount: 1 },
         { toolName: 'Measuring Tape', amount: 1 }
@@ -594,18 +673,15 @@ async function main() {
       startDate: new Date('2024-02-01'),
       endDate: new Date('2024-02-28'),
       customerName: 'Michael Brown',
-      tools: {
-        create: [
-          { toolId: 7, amount: 1 },
-          { toolId: 8, amount: 1 }
-        ]
-      },
-      materials: {
-        create: [
-          { materialId: 33, amount: 100 },
-          { materialId: 37, amount: 5 }
-        ]
-      }
+      projectName: 'Brown Kitchen Upgrade',
+      tools: [
+        { toolName: 'Circular Saw', amount: 1 },
+        { toolName: 'Measuring Tape', amount: 2 }
+      ],
+      materials: [
+        { materialName: '2x4 Lumber', amount: 100 },
+        { materialName: 'Deck Screws', amount: 5 }
+      ]
     },
     {
       title: 'Basement Finishing',
@@ -615,20 +691,16 @@ async function main() {
       startDate: new Date('2024-03-15'),
       endDate: new Date('2024-05-30'),
       customerName: 'John Smith',
-      tools: {
-        create: [
-          { toolId: 6, amount: 2 },
-          { toolId: 8, amount: 2 },
-          { toolId: 9, amount: 4 }
-        ]
-      },
-      materials: {
-        create: [
-          { materialId: 38, amount: 50 },
-          { materialId: 39, amount: 200 },
-          { materialId: 40, amount: 60 }
-        ]
-      }
+      projectName: 'Smith Residence Renovation',
+      tools: [
+        { toolName: 'Cordless Drill', amount: 2 },
+        { toolName: 'Circular Saw', amount: 1 }
+      ],
+      materials: [
+        { materialName: 'Drywall Sheets', amount: 50 },
+        { materialName: 'Electrical Wire', amount: 200 },
+        { materialName: 'Insulation Batts', amount: 60 }
+      ]
     },
     {
       title: 'Roof Replacement',
@@ -638,18 +710,13 @@ async function main() {
       startDate: new Date('2024-05-01'),
       endDate: new Date('2024-05-30'),
       customerName: 'Sarah Johnson',
-      tools: {
-        create: [
-          { toolId: 8, amount: 1 },
-          { toolId: 9, amount: 2 }
-        ]
-      },
-      materials: {
-        create: [
-          { materialId: 41, amount: 40 },
-          { materialId: 42, amount: 5 }
-        ]
-      }
+      projectName: 'Johnson House Remodel',
+      tools: [
+        { toolName: 'Measuring Tape', amount: 1 }
+      ],
+      materials: [
+        { materialName: 'Roofing Shingles', amount: 40 }
+      ]
     },
     {
       title: 'Interior Painting',
@@ -659,17 +726,14 @@ async function main() {
       startDate: new Date('2024-04-15'),
       endDate: new Date('2024-05-15'),
       customerName: 'Michael Brown',
-      tools: {
-        create: [
-          { toolId: 9, amount: 2 }
-        ]
-      },
-      materials: {
-        create: [
-          { materialId: 43, amount: 15 },
-          { materialId: 44, amount: 3 }
-        ]
-      }
+      projectName: 'Brown Kitchen Upgrade',
+      tools: [
+        { toolName: 'Safety Glasses', amount: 2 }
+      ],
+      materials: [
+        { materialName: 'Red Paint', amount: 15 },
+        { materialName: 'Paint Brushes', amount: 3 }
+      ]
     },
     {
       title: 'Electrical Panel Upgrade',
@@ -679,17 +743,14 @@ async function main() {
       startDate: new Date('2024-03-10'),
       endDate: new Date('2024-03-25'),
       customerName: 'John Smith',
-      tools: {
-        create: [
-          { toolId: 6, amount: 1 }
-        ]
-      },
-      materials: {
-        create: [
-          { materialId: 45, amount: 100 },
-          { materialId: 46, amount: 10 }
-        ]
-      }
+      projectName: 'Smith Residence Renovation',
+      tools: [
+        { toolName: 'Cordless Drill', amount: 1 }
+      ],
+      materials: [
+        { materialName: 'Electrical Wire', amount: 100 },
+        { materialName: 'Circuit Breakers', amount: 10 }
+      ]
     },
     {
       title: 'Window Replacement',
@@ -699,18 +760,15 @@ async function main() {
       startDate: new Date('2024-01-15'),
       endDate: new Date('2024-02-15'),
       customerName: 'Sarah Johnson',
-      tools: {
-        create: [
-          { toolId: 8, amount: 1 },
-          { toolId: 9, amount: 2 }
-        ]
-      },
-      materials: {
-        create: [
-          { materialId: 47, amount: 10 },
-          { materialId: 48, amount: 5 }
-        ]
-      }
+      projectName: 'Johnson House Remodel',
+      tools: [
+        { toolName: 'Measuring Tape', amount: 1 },
+        { toolName: 'Safety Glasses', amount: 2 }
+      ],
+      materials: [
+        { materialName: 'Window Caulk', amount: 10 },
+        { materialName: 'Weather Stripping', amount: 5 }
+      ]
     },
     {
       title: 'Concrete Patio',
@@ -720,17 +778,14 @@ async function main() {
       startDate: new Date('2024-05-15'),
       endDate: new Date('2024-06-15'),
       customerName: 'Michael Brown',
-      tools: {
-        create: [
-          { toolId: 8, amount: 1 }
-        ]
-      },
-      materials: {
-        create: [
-          { materialId: 49, amount: 40 },
-          { materialId: 50, amount: 2 }
-        ]
-      }
+      projectName: 'Brown Kitchen Upgrade',
+      tools: [
+        { toolName: 'Safety Glasses', amount: 1 }
+      ],
+      materials: [
+        { materialName: 'Concrete Mix', amount: 40 },
+        { materialName: 'Concrete Sealer', amount: 2 }
+      ]
     },
     {
       title: 'Door Installation',
@@ -740,28 +795,124 @@ async function main() {
       startDate: new Date('2024-03-20'),
       endDate: new Date('2024-04-10'),
       customerName: 'John Smith',
-      tools: {
-        create: [
-          { toolId: 6, amount: 1 },
-          { toolId: 8, amount: 1 }
-        ]
-      },
-      materials: {
-        create: [
-          { materialId: 51, amount: 20 },
-          { materialId: 52, amount: 10 }
-        ]
-      }
+      projectName: 'Smith Residence Renovation',
+      tools: [
+        { toolName: 'Cordless Drill', amount: 1 },
+        { toolName: 'Measuring Tape', amount: 1 }
+      ],
+      materials: [
+        { materialName: 'Door Knobs', amount: 20 },
+        { materialName: 'Door Hinges', amount: 10 }
+      ]
+    },
+    {
+      title: 'Landscaping Renovation',
+      description: 'Complete landscaping overhaul with new plants, mulch, and stone pathways',
+      status: 'pending',
+      price: 7500.00,
+      startDate: new Date('2024-05-10'),
+      endDate: new Date('2024-06-01'),
+      customerName: 'John Smith',
+      projectName: 'Smith Backyard Oasis',
+      tools: [
+        { toolName: 'Garden Shovel', amount: 3 },
+        { toolName: 'Safety Glasses', amount: 2 }
+      ],
+      materials: [
+        { materialName: 'Concrete Mix', amount: 10 }
+      ]
+    },
+    {
+      title: 'Custom Shelving',
+      description: 'Built-in shelving for home office and living areas',
+      status: 'completed',
+      price: 4200.00,
+      startDate: new Date('2024-02-05'),
+      endDate: new Date('2024-02-20'),
+      customerName: 'Sarah Johnson',
+      projectName: 'Johnson Basement Conversion',
+      tools: [
+        { toolName: 'Circular Saw', amount: 1 },
+        { toolName: 'Cordless Drill', amount: 1 }
+      ],
+      materials: [
+        { materialName: 'Plywood', amount: 8 },
+        { materialName: 'Wood Stain', amount: 2 }
+      ]
+    },
+    {
+      title: 'Home Theater Installation',
+      description: 'Complete home theater setup with surround sound and projection system',
+      status: 'in_progress',
+      price: 12000.00,
+      startDate: new Date('2024-03-25'),
+      endDate: new Date('2024-04-15'),
+      customerName: 'Sarah Johnson',
+      projectName: 'Johnson Basement Conversion',
+      tools: [
+        { toolName: 'Cordless Drill', amount: 1 }
+      ],
+      materials: [
+        { materialName: 'Electrical Wire', amount: 150 },
+        { materialName: 'Wall Anchors', amount: 25 }
+      ]
+    },
+    {
+      title: 'Outdoor Kitchen',
+      description: 'Built-in BBQ, countertops, and outdoor refrigerator',
+      status: 'pending',
+      price: 15000.00,
+      startDate: new Date('2024-06-01'),
+      endDate: new Date('2024-07-15'),
+      customerName: 'John Smith',
+      projectName: 'Smith Backyard Oasis',
+      tools: [
+        { toolName: 'Cordless Drill', amount: 1 },
+        { toolName: 'Circular Saw', amount: 1 },
+        { toolName: 'Measuring Tape', amount: 1 }
+      ],
+      materials: [
+        { materialName: 'Concrete Mix', amount: 30 },
+        { materialName: 'Electrical Wire', amount: 100 },
+        { materialName: 'Silicone Sealant', amount: 5 }
+      ]
+    },
+    {
+      title: 'Tile Backsplash',
+      description: 'Install decorative tile backsplash in kitchen',
+      status: 'completed',
+      price: 2800.00,
+      startDate: new Date('2024-03-10'),
+      endDate: new Date('2024-03-15'),
+      customerName: 'Michael Brown',
+      projectName: 'Brown Kitchen Upgrade',
+      tools: [
+        { toolName: 'Safety Glasses', amount: 1 }
+      ],
+      materials: [
+        { materialName: 'Ceramic Tiles', amount: 30 },
+        { materialName: 'Grout', amount: 2 }
+      ]
     }
   ];
 
-  // Create jobs with proper customer connections
+  // Create jobs with proper customer and project connections
   for (const job of jobs) {
     try {
       const customerId = customerIds[job.customerName];
       if (!customerId) {
         console.error(`Customer ${job.customerName} not found for job ${job.title}`);
         continue;
+      }
+
+      // Get project ID if specified
+      let projectId = undefined;
+      if (job.projectName) {
+        projectId = projectIds[job.projectName];
+        if (!projectId) {
+          console.error(`Project ${job.projectName} not found for job ${job.title}`);
+          // Continue without project association rather than skipping the job entirely
+        }
       }
 
       // First create the job
@@ -773,7 +924,8 @@ async function main() {
           price: job.price,
           startDate: job.startDate,
           endDate: job.endDate,
-          customerId: customerId
+          customerId: customerId,
+          projectId: projectId
         }
       });
 

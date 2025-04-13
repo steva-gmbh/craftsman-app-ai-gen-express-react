@@ -9,6 +9,7 @@ import settingsRoutes from './routes/settings';
 import toolsRoutes from './routes/tools';
 import jobToolsRoutes from './routes/jobTools';
 import aiRoutes from './routes/aiRoutes';
+import projectsRoutes from './routes/projects';
 
 const app = express();
 
@@ -25,5 +26,6 @@ app.use('/api/settings', settingsRoutes);
 app.use('/api/tools', toolsRoutes);
 app.use('/api/job-tools', jobToolsRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/projects', projectsRoutes);
 
 export default app; 

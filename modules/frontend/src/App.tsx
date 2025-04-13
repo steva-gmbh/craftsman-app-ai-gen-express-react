@@ -19,6 +19,8 @@ import ToolForm from './pages/ToolForm';
 import Login from './pages/Login';
 import Users from './pages/Users';
 import UserForm from './pages/UserForm';
+import Projects from './pages/Projects';
+import ProjectForm from './pages/ProjectForm';
 import UserSettingsDialog from './components/UserSettingsDialog';
 import { api, Customer, Job } from './services/api';
 
@@ -135,6 +137,9 @@ function App() {
                                   <Route path="/users" element={<Users />} />
                                   <Route path="/users/new" element={<UserForm />} />
                                   <Route path="/users/:id" element={<UserForm />} />
+                                  <Route path="/projects" element={<Projects />} />
+                                  <Route path="/projects/new" element={<ProjectForm />} />
+                                  <Route path="/projects/:id" element={<ProjectForm />} />
                                 </Routes>
                               )}
                             </div>

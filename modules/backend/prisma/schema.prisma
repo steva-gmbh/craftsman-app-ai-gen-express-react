@@ -16,6 +16,7 @@ model Customer {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   jobs      Job[]
+  projects  Project[]
 }
 
 model Job {
@@ -30,6 +31,8 @@ model Job {
   updatedAt   DateTime      @updatedAt
   customer    Customer      @relation(fields: [customerId], references: [id])
   customerId  Int
+  project     Project?      @relation(fields: [projectId], references: [id])
+  projectId   Int?
   materials   JobMaterial[]
   tools       JobTool[]
 }
@@ -117,4 +120,19 @@ model JobTool {
   updatedAt DateTime @updatedAt
 
   @@unique([jobId, toolId])
+}
+
+model Project {
+  id           Int       @id @default(autoincrement())
+  name         String
+  description  String
+  status       String    @default("active")
+  budget       Float?
+  startDate    DateTime?
+  endDate      DateTime?
+  customer     Customer  @relation(fields: [customerId], references: [id])
+  customerId   Int
+  jobs         Job[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 } 

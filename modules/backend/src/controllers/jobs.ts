@@ -8,6 +8,7 @@ export const getJobs = async (req: Request, res: Response) => {
     const jobs = await prisma.job.findMany({
       include: {
         customer: true,
+        project: true,
         materials: {
           include: {
             material: true,
@@ -36,6 +37,7 @@ export const getJob = async (req: Request, res: Response) => {
       },
       include: {
         customer: true,
+        project: true,
         materials: {
           include: {
             material: true,
@@ -62,19 +64,21 @@ export const getJob = async (req: Request, res: Response) => {
 
 export const createJob = async (req: Request, res: Response) => {
   try {
-    const { title, description, status, customerId, price, startDate, endDate } = req.body;
+    const { title, description, status, customerId, projectId, price, startDate, endDate } = req.body;
     const job = await prisma.job.create({
       data: {
         title,
         description,
         status,
         customerId: Number(customerId),
+        projectId: projectId ? Number(projectId) : undefined,
         price: price ? Number(price) : undefined,
         startDate: startDate ? new Date(startDate) : undefined,
         endDate: endDate ? new Date(endDate) : undefined,
       },
       include: {
         customer: true,
+        project: true,
         materials: {
           include: {
             material: true,
@@ -97,7 +101,7 @@ export const createJob = async (req: Request, res: Response) => {
 export const updateJob = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { title, description, status, customerId, price, startDate, endDate } = req.body;
+    const { title, description, status, customerId, projectId, price, startDate, endDate } = req.body;
     const job = await prisma.job.update({
       where: {
         id: Number(id),
@@ -107,12 +111,14 @@ export const updateJob = async (req: Request, res: Response) => {
         description,
         status,
         customerId: Number(customerId),
+        projectId: projectId ? Number(projectId) : null,
         price: price ? Number(price) : undefined,
         startDate: startDate ? new Date(startDate) : undefined,
         endDate: endDate ? new Date(endDate) : undefined,
       },
       include: {
         customer: true,
+        project: true,
         materials: {
           include: {
             material: true,
