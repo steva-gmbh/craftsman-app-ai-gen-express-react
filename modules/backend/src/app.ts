@@ -23,7 +23,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/tools', toolsRoutes);
-app.use('/api/jobs', jobToolsRoutes);
+app.use('/api/job-tools', jobToolsRoutes);
 app.use('/api/ai', aiRoutes);
 
 export default app; 

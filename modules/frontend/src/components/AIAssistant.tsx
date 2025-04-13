@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { CpuChipIcon, PaperAirplaneIcon, TrashIcon } from '@heroicons/react/24/outline';
+import ReactMarkdown from 'react-markdown';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -73,7 +74,7 @@ const AIAssistant: React.FC = () => {
       const data = await response.json();
       const assistantMessage: Message = {
         role: 'assistant',
-        content: data.content,
+        content: data.response || 'No response received',
       };
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
@@ -139,7 +140,13 @@ const AIAssistant: React.FC = () => {
                     : 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
                 }`}
               >
-                {message.content}
+                {message.role === 'user' ? (
+                  message.content
+                ) : (
+                  <div className="prose dark:prose-invert max-w-none">
+                    <ReactMarkdown>{message.content}</ReactMarkdown>
+                  </div>
+                )}
               </div>
             </div>
           ))}
