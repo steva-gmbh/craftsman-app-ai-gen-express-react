@@ -19,6 +19,7 @@ A modern web application for craftsmen to manage their business, inspired by the
 
 - Node.js (v18 or later)
 - npm (v9 or later)
+- OpenAI API key for the AI Assistant feature
 
 ### Installation
 
@@ -33,7 +34,12 @@ cd craftsman-app
 npm install
 ```
 
-3. Start the development servers:
+3. Create a `.env` file in the `modules/frontend` directory and add your OpenAI API key:
+```bash
+VITE_OPENAI_API_KEY=your-openai-api-key-here
+```
+
+4. Start the development servers:
 ```bash
 # Using the start script (recommended)
 ./start.sh

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import UserProfile from './UserProfile';
+import AIAssistant from './AIAssistant';
 
 interface NavbarProps {
   sidebarOpen: boolean;
@@ -36,7 +37,8 @@ const Navbar: React.FC<NavbarProps> = ({ sidebarOpen, setSidebarOpen }) => {
               CraftsmanApp
             </Link>
           </div>
-          <div className="pr-4">
+          <div className="flex items-center pr-4 space-x-2">
+            <AIAssistant />
             <UserProfile />
           </div>
         </div>

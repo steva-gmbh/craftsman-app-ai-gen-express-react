@@ -2,3 +2,7 @@ node_modules
 modules/backend/prisma/dev.db
 /.idea/
 /craftsman-app.iml
+.env
+.env.local
+.env.development
+.env.production

@@ -8,6 +8,7 @@ import userRoutes from './routes/users';
 import settingsRoutes from './routes/settings';
 import toolsRoutes from './routes/tools';
 import jobToolsRoutes from './routes/jobTools';
+import aiRoutes from './routes/aiRoutes';
 
 const app = express();
 
@@ -23,5 +24,6 @@ app.use('/api/users', userRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/tools', toolsRoutes);
 app.use('/api/jobs', jobToolsRoutes);
+app.use('/api/ai', aiRoutes);
 
 export default app; 
