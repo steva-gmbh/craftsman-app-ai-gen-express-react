@@ -6,9 +6,10 @@ import AIAssistant from './AIAssistant';
 interface NavbarProps {
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
+  onOpenUserSettings?: () => void;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ sidebarOpen, setSidebarOpen }) => {
+const Navbar: React.FC<NavbarProps> = ({ sidebarOpen, setSidebarOpen, onOpenUserSettings }) => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 shadow">
       <div className="mx-auto">
@@ -39,7 +40,7 @@ const Navbar: React.FC<NavbarProps> = ({ sidebarOpen, setSidebarOpen }) => {
           </div>
           <div className="flex items-center pr-4 space-x-2">
             <AIAssistant />
-            <UserProfile />
+            <UserProfile onOpenSettings={onOpenUserSettings} />
           </div>
         </div>
       </div>

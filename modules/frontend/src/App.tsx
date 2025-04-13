@@ -19,6 +19,7 @@ import ToolForm from './pages/ToolForm';
 import Login from './pages/Login';
 import Users from './pages/Users';
 import UserForm from './pages/UserForm';
+import UserSettingsDialog from './components/UserSettingsDialog';
 import { api, Customer, Job } from './services/api';
 
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return !!localStorage.getItem('user');
   });
+  const [isUserSettingsOpen, setIsUserSettingsOpen] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('sidebarOpen');
@@ -100,7 +102,11 @@ function App() {
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
               {isAuthenticated ? (
                 <div className="flex h-screen">
-                  <Navbar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+                  <Navbar 
+                    sidebarOpen={sidebarOpen} 
+                    setSidebarOpen={setSidebarOpen} 
+                    onOpenUserSettings={() => setIsUserSettingsOpen(true)} 
+                  />
                   <Sidebar open={sidebarOpen} />
                   <div className="flex flex-col flex-1 overflow-hidden">
                     <div className="flex-1 overflow-y-auto">
@@ -137,6 +143,10 @@ function App() {
                       </div>
                     </div>
                   </div>
+                  <UserSettingsDialog 
+                    isOpen={isUserSettingsOpen} 
+                    onClose={() => setIsUserSettingsOpen(false)} 
+                  />
                 </div>
               ) : (
                 <Routes>
