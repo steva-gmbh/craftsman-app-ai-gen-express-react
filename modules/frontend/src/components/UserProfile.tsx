@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { Cog6ToothIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
+import { IconSettings, IconDoorExit } from './icons';
 
 interface UserProfileProps {
   onOpenSettings?: () => void;
@@ -77,7 +77,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ onOpenSettings }) => {
               className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
               role="menuitem"
             >
-              <Cog6ToothIcon className="mr-3 h-5 w-5 text-gray-500 dark:text-gray-400" />
+              <IconSettings className="mr-3 h-5 w-5 text-gray-500 dark:text-gray-400" stroke={1.5} />
               Settings
             </button>
             <button
@@ -85,7 +85,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ onOpenSettings }) => {
               className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
               role="menuitem"
             >
-              <ArrowRightOnRectangleIcon className="mr-3 h-5 w-5 text-gray-500 dark:text-gray-400" />
+              <IconDoorExit className="mr-3 h-5 w-5 text-gray-500 dark:text-gray-400" stroke={1.5} />
               Logout
             </button>
           </div>

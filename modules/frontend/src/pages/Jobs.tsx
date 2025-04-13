@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { PlusIcon, FunnelIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { IconPlus, IconFilter, IconEdit, IconTrash } from '../components/icons';
 import { api } from '../services/api';
 import { toast } from 'react-hot-toast';
 
@@ -89,7 +89,7 @@ export default function Jobs() {
             onClick={() => navigate('/jobs/new')}
             className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
           >
-            <PlusIcon className="h-5 w-5 inline-block mr-2" />
+            <IconPlus className="h-5 w-5 inline-block mr-2" stroke={1.5} />
             Add Job
           </button>
         </div>
@@ -169,14 +169,14 @@ export default function Jobs() {
                             onClick={() => navigate(`/jobs/${job.id}`)}
                             className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
                           >
-                            <PencilIcon className="h-5 w-5" />
+                            <IconEdit className="h-5 w-5" stroke={1.5} />
                             <span className="sr-only">Edit {job.type}</span>
                           </button>
                           <button
                             onClick={() => setJobToDelete({ id: job.id, title: job.type })}
                             className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
                           >
-                            <TrashIcon className="h-5 w-5" />
+                            <IconTrash className="h-5 w-5" stroke={1.5} />
                             <span className="sr-only">Delete {job.type}</span>
                           </button>
                         </div>

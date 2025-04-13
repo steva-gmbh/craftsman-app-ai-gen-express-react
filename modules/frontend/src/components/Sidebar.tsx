@@ -2,16 +2,16 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../providers/ThemeProvider';
 import {
-  HomeIcon,
-  UserGroupIcon,
-  BriefcaseIcon,
-  Cog6ToothIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  CubeIcon,
-  WrenchScrewdriverIcon,
-  UsersIcon,
-} from '@heroicons/react/24/outline';
+  IconHome,
+  IconUsers,
+  IconBriefcase,
+  IconSettings,
+  IconChevronLeft,
+  IconChevronRight,
+  IconBox,
+  IconTool,
+  IconUsersGroup,
+} from './icons';
 
 interface SidebarProps {
   open: boolean;
@@ -34,21 +34,21 @@ const Sidebar: React.FC<SidebarProps> = ({ open }) => {
 
   // Base navigation items
   const baseNavigation = [
-    { name: 'Dashboard', href: '/', icon: HomeIcon },
-    { name: 'Customers', href: '/customers', icon: UserGroupIcon },
-    { name: 'Jobs', href: '/jobs', icon: BriefcaseIcon },
-    { name: 'Materials', href: '/materials', icon: CubeIcon },
-    { name: 'Tools', href: '/tools', icon: WrenchScrewdriverIcon },
+    { name: 'Dashboard', href: '/', icon: IconHome },
+    { name: 'Customers', href: '/customers', icon: IconUsersGroup },
+    { name: 'Jobs', href: '/jobs', icon: IconBriefcase },
+    { name: 'Materials', href: '/materials', icon: IconBox },
+    { name: 'Tools', href: '/tools', icon: IconTool },
   ];
 
   // Admin-only navigation items
   const adminNavigation = [
-    { name: 'Users', href: '/users', icon: UsersIcon },
+    { name: 'Users', href: '/users', icon: IconUsers },
   ];
 
   // Settings is shown to all users
   const settingsNavigation = [
-    { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
+    { name: 'Settings', href: '/settings', icon: IconSettings },
   ];
 
   // Combine navigation items based on user role

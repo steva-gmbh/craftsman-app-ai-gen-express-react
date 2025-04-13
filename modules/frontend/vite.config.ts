@@ -8,6 +8,20 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      // https://stackoverflow.com/a/79346934
+      '@tabler/icons-react': '@tabler/icons-react/dist/esm/icons/index.mjs',
+    },
+  },
+  optimizeDeps: {
+    include: ['@tabler/icons-react'],
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'tabler-icons': ['@tabler/icons-react'],
+        },
+      },
     },
   },
   server: {
@@ -19,4 +33,4 @@ export default defineConfig({
       },
     },
   },
-}); 
+});

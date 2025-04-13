@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { CpuChipIcon, PaperAirplaneIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { IconRobot, IconSend, IconTrash } from './icons';
 import ReactMarkdown from 'react-markdown';
 
 interface Message {
@@ -101,7 +101,7 @@ const AIAssistant: React.FC = () => {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors mr-2"
       >
-        <CpuChipIcon className="w-5 h-5" />
+        <IconRobot className="w-5 h-5" stroke={1.5} />
         AI Assistant
       </button>
 
@@ -118,7 +118,7 @@ const AIAssistant: React.FC = () => {
               className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
               title="Clear chat history"
             >
-              <TrashIcon className="w-5 h-5" />
+              <IconTrash className="w-5 h-5" stroke={1.5} />
             </button>
             <button
               onClick={() => setIsOpen(false)}
@@ -186,7 +186,7 @@ const AIAssistant: React.FC = () => {
               title="Send message"
               disabled={isThinking}
             >
-              <PaperAirplaneIcon className="w-5 h-5" />
+              <IconSend className="w-5 h-5" stroke={1.5} />
             </button>
           </div>
         </div>

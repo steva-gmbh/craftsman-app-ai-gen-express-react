@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { IconX } from './icons';
 
 interface UserSettingsDialogProps {
   isOpen: boolean;
@@ -125,7 +125,7 @@ const UserSettingsDialog: React.FC<UserSettingsDialogProps> = ({ isOpen, onClose
               className="bg-white dark:bg-gray-800 rounded-md text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 focus:outline-none"
             >
               <span className="sr-only">Close</span>
-              <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+              <IconX className="h-6 w-6" stroke={1.5} aria-hidden="true" />
             </button>
           </div>
           

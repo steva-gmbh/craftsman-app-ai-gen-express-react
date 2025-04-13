@@ -1,6 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { BriefcaseIcon, UserGroupIcon, CurrencyEuroIcon, ClockIcon } from '@heroicons/react/24/outline';
+import { IconBriefcase, IconUsers, IconCurrencyEuro, IconClock } from '../components/icons';
 import { api } from '../services/api';
 
 export default function Dashboard() {
@@ -30,10 +30,10 @@ export default function Dashboard() {
 
       return {
         stats: [
-          { name: 'Total Jobs', value: totalJobs.toString(), icon: BriefcaseIcon },
-          { name: 'Active Customers', value: activeCustomers.toString(), icon: UserGroupIcon },
-          { name: 'Revenue', value: `€${revenue}`, icon: CurrencyEuroIcon },
-          { name: 'Avg. Response Time', value: avgResponseTime, icon: ClockIcon },
+          { name: 'Total Jobs', value: totalJobs.toString(), icon: IconBriefcase },
+          { name: 'Active Customers', value: activeCustomers.toString(), icon: IconUsers },
+          { name: 'Revenue', value: `€${revenue}`, icon: IconCurrencyEuro },
+          { name: 'Avg. Response Time', value: avgResponseTime, icon: IconClock },
         ],
         recentJobs,
       };
@@ -61,7 +61,7 @@ export default function Dashboard() {
           >
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <stat.icon className="h-6 w-6 text-gray-400" aria-hidden="true" />
+                <stat.icon className="h-6 w-6 text-gray-400" stroke={1.5} aria-hidden="true" />
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>

@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, Customer, Material, JobMaterial, Tool, JobTool } from '../services/api';
 import { toast } from 'react-hot-toast';
-import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { IconPlus, IconTrash } from '../components/icons';
 
 export default function JobForm() {
   const navigate = useNavigate();
@@ -371,7 +371,7 @@ export default function JobForm() {
                   onClick={handleAddMaterial}
                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 h-10"
                 >
-                  <PlusIcon className="h-5 w-5 mr-2" />
+                  <IconPlus className="h-5 w-5 mr-2" />
                   Add
                 </button>
               </div>
@@ -409,7 +409,7 @@ export default function JobForm() {
                             onClick={() => handleRemoveMaterial(jobMaterial.materialId)}
                             className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
                           >
-                            <TrashIcon className="h-5 w-5" />
+                            <IconTrash className="h-5 w-5" />
                           </button>
                         </td>
                       </tr>
@@ -449,7 +449,7 @@ export default function JobForm() {
                   onClick={handleAddTool}
                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 h-10"
                 >
-                  <PlusIcon className="h-5 w-5 mr-2" />
+                  <IconPlus className="h-5 w-5 mr-2" />
                   Add
                 </button>
               </div>
@@ -487,7 +487,7 @@ export default function JobForm() {
                             onClick={() => handleRemoveTool(jobTool.toolId)}
                             className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
                           >
-                            <TrashIcon className="h-5 w-5" />
+                            <IconTrash className="h-5 w-5" />
                           </button>
                         </td>
                       </tr>

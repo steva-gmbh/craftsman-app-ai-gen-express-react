@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { UserIcon, BuildingOfficeIcon, CreditCardIcon, BellIcon, SunIcon, MoonIcon } from '@heroicons/react/24/outline';
+import { IconUser, IconBuilding, IconCreditCard, IconBell, IconSun, IconMoon } from '../components/icons';
 import { useTheme } from '../providers/ThemeProvider';
 import { toast } from 'react-hot-toast';
 
@@ -25,27 +25,27 @@ const settingsMenu = [
   {
     name: 'Profile',
     description: 'Update your personal information and preferences',
-    icon: UserIcon,
+    icon: IconUser,
   },
   {
     name: 'Business',
     description: 'Manage your business details and services',
-    icon: BuildingOfficeIcon,
+    icon: IconBuilding,
   },
   {
     name: 'Billing',
     description: 'View and update your payment methods',
-    icon: CreditCardIcon,
+    icon: IconCreditCard,
   },
   {
     name: 'Notifications',
     description: 'Configure how you receive updates',
-    icon: BellIcon,
+    icon: IconBell,
   },
   {
     name: 'Appearance',
     description: 'Customize the look and feel of the application',
-    icon: SunIcon,
+    icon: IconSun,
   },
 ];
 
@@ -385,7 +385,7 @@ export default function Settings() {
                             }`}
                             aria-hidden="true"
                           >
-                            <SunIcon className="h-3 w-3 text-gray-400" />
+                            <IconSun className="h-3 w-3 text-gray-400" />
                           </span>
                           <span
                             className={`absolute inset-0 flex h-full w-full items-center justify-center rounded-full transition-opacity ${
@@ -393,7 +393,7 @@ export default function Settings() {
                             }`}
                             aria-hidden="true"
                           >
-                            <MoonIcon className="h-3 w-3 text-gray-400" />
+                            <IconMoon className="h-3 w-3 text-gray-400" />
                           </span>
                         </span>
                       </button>
