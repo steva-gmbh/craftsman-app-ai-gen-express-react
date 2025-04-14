@@ -7,7 +7,7 @@ export default function Dashboard() {
   const { data: dashboardData, isLoading, error } = useQuery({
     queryKey: ['dashboard'],
     queryFn: async () => {
-      const [customers, jobs, projects, materials, tools] = await Promise.all([
+      const [customers, jobsResponse, projects, materials, tools] = await Promise.all([
         api.getCustomers(),
         api.getJobs(),
         api.getProjects(),
@@ -15,33 +15,36 @@ export default function Dashboard() {
         api.getTools(),
       ]);
 
+      // Get jobs array from the paginated response
+      const jobs = jobsResponse.data;
+
       // Calculate stats
       const totalJobs = jobs.length;
-      const activeCustomers = customers.length;
+      const activeCustomers = customers.data.length;
       const revenue = jobs.reduce((sum, job) => sum + (job.status === 'COMPLETED' ? 100 : 0), 0); // Assuming €100 per completed job
       const avgResponseTime = '2h'; // This would need to be calculated from actual timestamps
-      const totalProjects = projects.length;
-      const totalMaterials = materials.length;
-      const totalTools = tools.length;
+      const totalProjects = projects.data.length;
+      const totalMaterials = materials.data.length;
+      const totalTools = tools.data.length;
 
       // Get recent jobs (last 5)
       const recentJobs = jobs
         .slice(0, 5)
         .map(job => ({
           id: job.id,
-          customer: customers.find(c => c.id === job.customerId)?.name || 'Unknown',
+          customer: customers.data.find(c => c.id === job.customerId)?.name || 'Unknown',
           type: job.title,
           status: job.status,
         }));
 
       // Get active projects
-      const activeProjects = projects
+      const activeProjects = projects.data
         .filter(project => project.status === 'active')
         .slice(0, 5)
         .map(project => ({
           id: project.id,
           name: project.name,
-          customer: customers.find(c => c.id === project.customerId)?.name || 'Unknown',
+          customer: customers.data.find(c => c.id === project.customerId)?.name || 'Unknown',
           budget: project.budget,
           status: project.status,
         }));
