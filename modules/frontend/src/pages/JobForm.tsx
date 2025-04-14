@@ -262,12 +262,12 @@ export default function JobForm() {
 
   return (
     <div className="max-w-5xl mx-auto">
-      <h1 className="text-xl font-semibold mb-6">
+      <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
         {id ? 'Edit Job' : 'Create New Job'}
       </h1>
 
       {error && (
-        <div className="mb-4 p-4 bg-red-50 rounded-md text-red-800">
+        <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-md">
           {error}
         </div>
       )}
