@@ -382,6 +382,113 @@ const createInvoiceTool = new DynamicStructuredTool({
   },
 }) as unknown as Tool;
 
+const getVehicleTool = new DynamicStructuredTool({
+  name: "getVehicle",
+  description: "Get vehicle information by ID or search for vehicles by name, make, model, or type",
+  schema: z.object({
+    id: z.number().optional(),
+    name: z.string().optional(),
+    make: z.string().optional(),
+    model: z.string().optional(),
+    type: z.string().optional(),
+  }),
+  func: async ({ id, name, make, model, type }) => {
+    console.log(`[AI Agent] Searching for vehicle: ${id ? `ID ${id}` : `with filters: ${JSON.stringify({ name, make, model, type })}`}`);
+    
+    if (id) {
+      const vehicle = await prisma.vehicle.findUnique({
+        where: { id },
+        include: {
+          customer: true,
+        },
+      });
+      return JSON.stringify(vehicle);
+    } else {
+      // Construct where clause based on provided parameters
+      const whereClause: any = {};
+      
+      if (name) {
+        whereClause.name = {
+          contains: name
+        };
+      }
+      
+      if (make) {
+        whereClause.make = {
+          contains: make
+        };
+      }
+      
+      if (model) {
+        whereClause.model = {
+          contains: model
+        };
+      }
+      
+      if (type) {
+        whereClause.type = type;
+      }
+      
+      const vehicles = await prisma.vehicle.findMany({
+        where: whereClause,
+        include: {
+          customer: true,
+        },
+        take: 5, // Limit to top 5 matches
+      });
+      
+      if (vehicles.length === 0) {
+        return "No vehicles found matching your search";
+      }
+      
+      return JSON.stringify(vehicles);
+    }
+  },
+}) as unknown as Tool;
+
+const createVehicleTool = new DynamicStructuredTool({
+  name: "createVehicle",
+  description: "Create a new vehicle record",
+  schema: z.object({
+    name: z.string(),
+    make: z.string(),
+    model: z.string(),
+    year: z.number(),
+    type: z.string(),
+    licensePlate: z.string().optional(),
+    vin: z.string().optional(),
+    color: z.string().optional(),
+    customerId: z.number().optional(),
+    status: z.string().optional(),
+    mileage: z.number().optional(),
+    fuelType: z.string().optional(),
+    notes: z.string().optional(),
+  }),
+  func: async ({ name, make, model, year, type, licensePlate, vin, color, customerId, status, mileage, fuelType, notes }) => {
+    console.log(`[AI Agent] Creating new vehicle: ${make} ${model} (${year})`);
+    
+    const vehicle = await prisma.vehicle.create({
+      data: {
+        name,
+        make,
+        model,
+        year,
+        type,
+        licensePlate,
+        vin,
+        color,
+        customerId,
+        status: status || "active",
+        mileage,
+        fuelType,
+        notes,
+      },
+    });
+    
+    return JSON.stringify(vehicle);
+  },
+}) as unknown as Tool;
+
 class OpenPageTool extends Tool {
   name = 'open_page';
   description = 'Opens a specific page in the frontend application. Use this to navigate to different sections of the app. This tool always executes successfully.';
@@ -427,6 +534,8 @@ export async function createAgent() {
     createProjectTool,
     getInvoiceTool,
     createInvoiceTool,
+    getVehicleTool,
+    createVehicleTool,
     openPageTool
   ];
 
@@ -448,37 +557,47 @@ export async function createAgent() {
     3. Managing materials and inventory
     4. Managing projects and associated jobs
     5. Managing invoices for customers and projects
-    6. Opening pages of the frontend application
-    ${tools.length > baseTools.length ? "7. Searching the web for relevant information" : ""}
+    6. Managing vehicles and their information 
+    7. Opening pages of the frontend application
+    ${tools.length > baseTools.length ? "8. Searching the web for relevant information" : ""}
     
     Cretae a plan for how to handle each of these tasks.
     Execute your plan step by step, and respond in clear, human-readable text.
     Immediately stop if you have finished your plan.   
 
     Follow these rules strictly:
-    1. When searching for materials or projects:
-       - If you get a "No materials found" or "No projects found" message, say so clearly
+    1. When searching for materials, projects, or vehicles:
+       - If you get a "No materials found", "No projects found", or "No vehicles found" message, say so clearly
        - If you get a valid JSON response, parse it and present each item's information
        - For multiple results, list each item separately
     2. Format each material's information like this:
        Material:
-       - Name: <name>
+       - Name: <n>
        - Description: <description>
        - Price: <price>
        - Stock: <stock>
     3. Format each project's information like this:
        Project:
-       - Name: <name>
+       - Name: <n>
        - Description: <description>
        - Status: <status>
        - Budget: <budget>
        - Customer: <customer name>
-    4. Never repeat the same search
-    5. If information is not found in one attempt, say so immediately
-    6. Always respond in clear, human-readable text
-    7. One search is enough - if you get a response (even null), that's your final answer.
-    8. When you create a new domain object, always open the page with the list of all of those objects.
-    9. When creating a new project, you can specify either a customer ID or a customer name.`
+    4. Format each vehicle's information like this:
+       Vehicle:
+       - Name: <name>
+       - Make: <make>
+       - Model: <model>
+       - Year: <year>
+       - Type: <type>
+       - Status: <status>
+       - License Plate: <licensePlate>
+    5. Never repeat the same search
+    6. If information is not found in one attempt, say so immediately
+    7. Always respond in clear, human-readable text
+    8. One search is enough - if you get a response (even null), that's your final answer.
+    9. When you create a new domain object, always open the page with the list of all of those objects.
+    10. When creating a new project, you can specify either a customer ID or a customer name.`
   );
 
   const humanMessage = HumanMessagePromptTemplate.fromTemplate("{input}");

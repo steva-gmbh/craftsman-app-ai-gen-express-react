@@ -13,6 +13,7 @@ import {
   IconUsersGroup,
   IconHammer,
   IconReceipt,
+  IconCar,
 } from './icons';
 
 interface SidebarProps {
@@ -43,6 +44,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open }) => {
     { name: 'Invoices', href: '/invoices', icon: IconReceipt },
     { name: 'Materials', href: '/materials', icon: IconBox },
     { name: 'Tools', href: '/tools', icon: IconTool },
+    { name: 'Vehicles', href: '/vehicles', icon: IconCar },
   ];
 
   // Admin-only navigation items

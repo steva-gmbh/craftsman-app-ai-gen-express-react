@@ -12,6 +12,7 @@ import {
   IconUsersGroup,
   IconHammer,
   IconReceipt,
+  IconCar,
   
   // User profile
   IconDoorExit,
@@ -63,6 +64,7 @@ export {
   IconUsersGroup,
   IconHammer,
   IconReceipt,
+  IconCar,
   
   // User profile
   IconDoorExit,

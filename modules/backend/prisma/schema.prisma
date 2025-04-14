@@ -156,4 +156,24 @@ model Invoice {
   projects        Project[]
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+}
+
+model Vehicle {
+  id              Int       @id @default(autoincrement())
+  name            String
+  make            String
+  model           String
+  year            Int
+  licensePlate    String?
+  vin             String?   @unique
+  color           String?
+  type            String    // car, truck, van, etc.
+  status          String    @default("active") // active, maintenance, retired
+  purchaseDate    DateTime?
+  purchasePrice   Float?
+  mileage         Int?
+  fuelType        String?
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 } 

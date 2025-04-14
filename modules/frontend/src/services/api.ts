@@ -129,6 +129,28 @@ export interface PaginatedResponse<T> {
   limit: number;
 }
 
+export interface Vehicle {
+  id: number;
+  name: string;
+  make: string;
+  model: string;
+  year: number;
+  licensePlate?: string;
+  vin?: string;
+  color?: string;
+  type: string;
+  status: string;
+  purchaseDate?: Date;
+  purchasePrice?: number;
+  mileage?: number;
+  fuelType?: string;
+  notes?: string;
+  customerId?: number;
+  customer?: Customer;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export const api = {
   // Customer endpoints
   getCustomers: async (params?: PaginationParams): Promise<PaginatedResponse<Customer>> => {
@@ -639,5 +661,77 @@ export const api = {
     if (!response.ok) {
       throw new Error('Failed to delete invoice');
     }
+  },
+
+  // Vehicle endpoints
+  getVehicles: async (params: { page?: number; limit?: number } = {}) => {
+    const { page, limit } = params;
+    const queryParams = new URLSearchParams();
+    
+    if (page) queryParams.append('page', page.toString());
+    if (limit) queryParams.append('limit', limit.toString());
+    
+    const queryString = queryParams.toString();
+    const response = await fetch(`${API_BASE_URL}/vehicles${queryString ? `?${queryString}` : ''}`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch vehicles');
+    }
+    
+    return response.json();
+  },
+
+  getVehicle: async (id: number) => {
+    const response = await fetch(`${API_BASE_URL}/vehicles/${id}`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch vehicle');
+    }
+    
+    return response.json();
+  },
+
+  createVehicle: async (data: Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const response = await fetch(`${API_BASE_URL}/vehicles`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to create vehicle');
+    }
+    
+    return response.json();
+  },
+
+  updateVehicle: async (id: number, data: Partial<Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt'>>) => {
+    const response = await fetch(`${API_BASE_URL}/vehicles/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to update vehicle');
+    }
+    
+    return response.json();
+  },
+
+  deleteVehicle: async (id: number) => {
+    const response = await fetch(`${API_BASE_URL}/vehicles/${id}`, {
+      method: 'DELETE',
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to delete vehicle');
+    }
+    
+    return response.status === 204 ? null : response.json();
   },
 }; 

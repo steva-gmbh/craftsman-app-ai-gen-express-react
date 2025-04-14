@@ -722,9 +722,7 @@ async function main() {
         await prisma.project.update({
           where: { id: projectIds[projectName] },
           data: {
-            invoice: {
-              connect: { id: createdInvoice.id }
-            }
+            invoiceId: createdInvoice.id
           }
         });
       }
@@ -1084,6 +1082,146 @@ async function main() {
   }
 
   console.log('Demo jobs created successfully');
+
+  // Create demo vehicles
+  const vehicles = [
+    {
+      name: 'Work Truck',
+      make: 'Ford',
+      model: 'F-150',
+      year: 2022,
+      licensePlate: 'WRK-1234',
+      vin: 'ABC123XYZ456789D1',
+      color: 'Blue',
+      type: 'truck',
+      status: 'active',
+      purchaseDate: new Date('2022-01-15'),
+      purchasePrice: 45000,
+      mileage: 12500,
+      fuelType: 'gasoline',
+      notes: 'Primary service vehicle'
+    },
+    {
+      name: 'Delivery Van',
+      make: 'Mercedes-Benz',
+      model: 'Sprinter',
+      year: 2021,
+      licensePlate: 'DEL-5678',
+      vin: 'XYZ987ABC654321E2',
+      color: 'White',
+      type: 'van',
+      status: 'active',
+      purchaseDate: new Date('2021-06-10'),
+      purchasePrice: 52000,
+      mileage: 25000,
+      fuelType: 'diesel',
+      notes: 'Used for material deliveries'
+    },
+    {
+      name: 'Site Supervisor Vehicle',
+      make: 'Toyota',
+      model: 'Tacoma',
+      year: 2023,
+      licensePlate: 'SUP-9012',
+      vin: 'DEF456GHI789012F3',
+      color: 'Silver',
+      type: 'truck',
+      status: 'active',
+      purchaseDate: new Date('2023-02-20'),
+      purchasePrice: 38000,
+      mileage: 5000,
+      fuelType: 'gasoline',
+      notes: 'For site supervisor use'
+    },
+    {
+      name: 'Compact Equipment Hauler',
+      make: 'Chevrolet',
+      model: 'Silverado 2500',
+      year: 2020,
+      licensePlate: 'HAUL-345',
+      vin: 'JKL789MNO123456G4',
+      color: 'Black',
+      type: 'truck',
+      status: 'maintenance',
+      purchaseDate: new Date('2020-11-05'),
+      purchasePrice: 48000,
+      mileage: 35000,
+      fuelType: 'diesel',
+      notes: 'Currently in for transmission service'
+    },
+    {
+      name: 'Electric Utility Vehicle',
+      make: 'Tesla',
+      model: 'Cybertruck',
+      year: 2024,
+      licensePlate: 'ELEC-001',
+      vin: 'PQR123STU456789H5',
+      color: 'Silver',
+      type: 'truck',
+      status: 'active',
+      purchaseDate: new Date('2024-01-10'),
+      purchasePrice: 69000,
+      mileage: 1200,
+      fuelType: 'electric',
+      notes: 'New electric vehicle for sustainable operations'
+    }
+  ];
+
+  // Create the vehicles after the customers
+  for (const vehicleData of vehicles) {
+    try {
+      // Check if vehicle with this VIN already exists
+      if (vehicleData.vin) {
+        const existingVehicle = await prisma.vehicle.findUnique({
+          where: { vin: vehicleData.vin }
+        });
+        
+        if (existingVehicle) {
+          // Update existing vehicle
+          await prisma.vehicle.update({
+            where: { id: existingVehicle.id },
+            data: vehicleData
+          });
+          console.log(`Updated vehicle ${vehicleData.name}`);
+        } else {
+          // Create new vehicle
+          await prisma.vehicle.create({
+            data: vehicleData
+          });
+          console.log(`Created vehicle ${vehicleData.name}`);
+        }
+      } else {
+        // Handle vehicles without VIN
+        const existingVehicle = await prisma.vehicle.findFirst({
+          where: {
+            name: vehicleData.name,
+            make: vehicleData.make,
+            model: vehicleData.model,
+            year: vehicleData.year
+          }
+        });
+        
+        if (existingVehicle) {
+          // Update existing vehicle
+          await prisma.vehicle.update({
+            where: { id: existingVehicle.id },
+            data: vehicleData
+          });
+          console.log(`Updated vehicle ${vehicleData.name}`);
+        } else {
+          // Create new vehicle
+          await prisma.vehicle.create({
+            data: vehicleData
+          });
+          console.log(`Created vehicle ${vehicleData.name}`);
+        }
+      }
+    } catch (error) {
+      console.error(`Failed to create/update vehicle ${vehicleData.name}:`, error);
+    }
+  }
+
+  console.log('Demo vehicles created successfully');
 }
 
 
