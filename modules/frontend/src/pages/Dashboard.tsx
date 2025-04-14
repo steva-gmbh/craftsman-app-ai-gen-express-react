@@ -1,15 +1,18 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { IconBriefcase, IconUsers, IconCurrencyEuro, IconClock } from '../components/icons';
+import { IconBriefcase, IconUsers, IconCurrencyEuro, IconClock, IconTool, IconBox, IconFilter } from '../components/icons';
 import { api } from '../services/api';
 
 export default function Dashboard() {
   const { data: dashboardData, isLoading, error } = useQuery({
     queryKey: ['dashboard'],
     queryFn: async () => {
-      const [customers, jobs] = await Promise.all([
+      const [customers, jobs, projects, materials, tools] = await Promise.all([
         api.getCustomers(),
         api.getJobs(),
+        api.getProjects(),
+        api.getMaterials(),
+        api.getTools(),
       ]);
 
       // Calculate stats
@@ -17,6 +20,9 @@ export default function Dashboard() {
       const activeCustomers = customers.length;
       const revenue = jobs.reduce((sum, job) => sum + (job.status === 'COMPLETED' ? 100 : 0), 0); // Assuming €100 per completed job
       const avgResponseTime = '2h'; // This would need to be calculated from actual timestamps
+      const totalProjects = projects.length;
+      const totalMaterials = materials.length;
+      const totalTools = tools.length;
 
       // Get recent jobs (last 5)
       const recentJobs = jobs
@@ -34,6 +40,9 @@ export default function Dashboard() {
           { name: 'Active Customers', value: activeCustomers.toString(), icon: IconUsers },
           { name: 'Revenue', value: `€${revenue}`, icon: IconCurrencyEuro },
           { name: 'Avg. Response Time', value: avgResponseTime, icon: IconClock },
+          { name: 'Projects', value: totalProjects.toString(), icon: IconFilter },
+          { name: 'Materials', value: totalMaterials.toString(), icon: IconBox },
+          { name: 'Tools', value: totalTools.toString(), icon: IconTool },
         ],
         recentJobs,
       };
