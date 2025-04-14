@@ -32,7 +32,7 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3001/api/auth/login', {
+      const response = await fetch('http://localhost:3000/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -48,7 +48,7 @@ export default function Login() {
 
       // Store user data in localStorage
       localStorage.setItem('user', JSON.stringify(data));
-      
+
       toast.success('Login successful');
       // Force a page reload to ensure the App component re-renders with the new auth state
       window.location.href = '/';
@@ -121,4 +121,4 @@ export default function Login() {
       </div>
     </div>
   );
-} 
+}

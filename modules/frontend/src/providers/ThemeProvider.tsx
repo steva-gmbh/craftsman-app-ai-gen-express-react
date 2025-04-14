@@ -29,7 +29,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        const response = await fetch(`http://localhost:3001/api/settings/${userId}`);
+        const response = await fetch(`http://localhost:3000/api/settings/${userId}`);
         const data = await response.json();
         if (data?.appearance) {
           const appearance = JSON.parse(data.appearance);
@@ -63,4 +63,4 @@ export function useTheme() {
     throw new Error('useTheme must be used within a ThemeProvider');
   }
   return context;
-} 
+}

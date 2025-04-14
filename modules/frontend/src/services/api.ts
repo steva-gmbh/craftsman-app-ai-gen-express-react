@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = 'http://localhost:3000/api';
 
 export interface Customer {
   id: number;
@@ -154,8 +154,8 @@ export interface Vehicle {
 export const api = {
   // Customer endpoints
   getCustomers: async (params?: PaginationParams): Promise<PaginatedResponse<Customer>> => {
-    const queryParams = params 
-      ? `?page=${params.page}&limit=${params.limit}` 
+    const queryParams = params
+      ? `?page=${params.page}&limit=${params.limit}`
       : '';
     const response = await fetch(`${API_BASE_URL}/customers${queryParams}`);
     if (!response.ok) {
@@ -211,8 +211,8 @@ export const api = {
 
   // Job endpoints
   getJobs: async (params?: PaginationParams): Promise<PaginatedResponse<Job>> => {
-    const queryParams = params 
-      ? `?page=${params.page}&limit=${params.limit}` 
+    const queryParams = params
+      ? `?page=${params.page}&limit=${params.limit}`
       : '';
     const response = await fetch(`${API_BASE_URL}/jobs${queryParams}`);
     if (!response.ok) {
@@ -268,8 +268,8 @@ export const api = {
 
   // Material endpoints
   getMaterials: async (params?: PaginationParams): Promise<PaginatedResponse<Material>> => {
-    const queryParams = params 
-      ? `?page=${params.page}&limit=${params.limit}` 
+    const queryParams = params
+      ? `?page=${params.page}&limit=${params.limit}`
       : '';
     const response = await fetch(`${API_BASE_URL}/materials${queryParams}`);
     if (!response.ok) {
@@ -371,8 +371,8 @@ export const api = {
 
   // Tool endpoints
   getTools: async (params?: PaginationParams): Promise<PaginatedResponse<Tool>> => {
-    const queryParams = params 
-      ? `?page=${params.page}&limit=${params.limit}` 
+    const queryParams = params
+      ? `?page=${params.page}&limit=${params.limit}`
       : '';
     const response = await fetch(`${API_BASE_URL}/tools${queryParams}`);
     if (!response.ok) {
@@ -528,8 +528,8 @@ export const api = {
 
   // Project endpoints
   getProjects: async (params?: PaginationParams): Promise<PaginatedResponse<Project>> => {
-    const queryParams = params 
-      ? `?page=${params.page}&limit=${params.limit}` 
+    const queryParams = params
+      ? `?page=${params.page}&limit=${params.limit}`
       : '';
     const response = await fetch(`${API_BASE_URL}/projects${queryParams}`);
     if (!response.ok) {
@@ -608,8 +608,8 @@ export const api = {
 
   // Invoice endpoints
   getInvoices: async (params?: PaginationParams): Promise<PaginatedResponse<Invoice>> => {
-    const queryParams = params 
-      ? `?page=${params.page}&limit=${params.limit}` 
+    const queryParams = params
+      ? `?page=${params.page}&limit=${params.limit}`
       : '';
     const response = await fetch(`${API_BASE_URL}/invoices${queryParams}`);
     if (!response.ok) {
@@ -666,32 +666,32 @@ export const api = {
   downloadInvoicePdf: async (id: number): Promise<void> => {
     try {
       const response = await fetch(`${API_BASE_URL}/invoices/${id}/pdf`);
-      
+
       if (!response.ok) {
         throw new Error('Failed to generate invoice PDF');
       }
-      
+
       // Get filename from Content-Disposition header if available
       const contentDisposition = response.headers.get('Content-Disposition');
       let filename = `invoice-${id}.pdf`;
-      
+
       if (contentDisposition) {
         const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
         if (filenameMatch && filenameMatch.length > 1) {
           filename = filenameMatch[1];
         }
       }
-      
+
       // Convert response to blob
       const blob = await response.blob();
-      
+
       // Create a download link and trigger download
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.style.display = 'none';
       a.href = url;
       a.download = filename;
-      
+
       // Append to document, click, and clean up
       document.body.appendChild(a);
       a.click();
@@ -707,27 +707,27 @@ export const api = {
   getVehicles: async (params: { page?: number; limit?: number } = {}) => {
     const { page, limit } = params;
     const queryParams = new URLSearchParams();
-    
+
     if (page) queryParams.append('page', page.toString());
     if (limit) queryParams.append('limit', limit.toString());
-    
+
     const queryString = queryParams.toString();
     const response = await fetch(`${API_BASE_URL}/vehicles${queryString ? `?${queryString}` : ''}`);
-    
+
     if (!response.ok) {
       throw new Error('Failed to fetch vehicles');
     }
-    
+
     return response.json();
   },
 
   getVehicle: async (id: number) => {
     const response = await fetch(`${API_BASE_URL}/vehicles/${id}`);
-    
+
     if (!response.ok) {
       throw new Error('Failed to fetch vehicle');
     }
-    
+
     return response.json();
   },
 
@@ -739,11 +739,11 @@ export const api = {
       },
       body: JSON.stringify(data),
     });
-    
+
     if (!response.ok) {
       throw new Error('Failed to create vehicle');
     }
-    
+
     return response.json();
   },
 
@@ -755,11 +755,11 @@ export const api = {
       },
       body: JSON.stringify(data),
     });
-    
+
     if (!response.ok) {
       throw new Error('Failed to update vehicle');
     }
-    
+
     return response.json();
   },
 
@@ -767,11 +767,11 @@ export const api = {
     const response = await fetch(`${API_BASE_URL}/vehicles/${id}`, {
       method: 'DELETE',
     });
-    
+
     if (!response.ok) {
       throw new Error('Failed to delete vehicle');
     }
-    
+
     return response.status === 204 ? null : response.json();
   },
-}; 
+};

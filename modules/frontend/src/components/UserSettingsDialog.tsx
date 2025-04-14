@@ -48,7 +48,7 @@ const UserSettingsDialog: React.FC<UserSettingsDialogProps> = ({ isOpen, onClose
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (userData.password && userData.password !== userData.confirmPassword) {
       toast.error('Passwords do not match');
       return;
@@ -59,7 +59,7 @@ const UserSettingsDialog: React.FC<UserSettingsDialogProps> = ({ isOpen, onClose
     try {
       // Create a copy of the userData excluding confirmPassword
       const { confirmPassword, ...dataToSend } = userData;
-      
+
       // Only send password if it's not empty
       const payload = userData.password ? dataToSend : {
         id: userData.id,
@@ -67,7 +67,7 @@ const UserSettingsDialog: React.FC<UserSettingsDialogProps> = ({ isOpen, onClose
         email: userData.email
       };
 
-      const response = await fetch(`http://localhost:3001/api/users/${userData.id}`, {
+      const response = await fetch(`http://localhost:3000/api/users/${userData.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -81,7 +81,7 @@ const UserSettingsDialog: React.FC<UserSettingsDialogProps> = ({ isOpen, onClose
       }
 
       const updatedUser = await response.json();
-      
+
       // Update the localStorage with new user data, but keep any other fields like token
       const currentUserData = JSON.parse(localStorage.getItem('user') || '{}');
       const newUserData = {
@@ -112,10 +112,10 @@ const UserSettingsDialog: React.FC<UserSettingsDialogProps> = ({ isOpen, onClose
 
         <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-        <div 
+        <div
           className="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
-          role="dialog" 
-          aria-modal="true" 
+          role="dialog"
+          aria-modal="true"
           aria-labelledby="modal-headline"
         >
           <div className="absolute top-0 right-0 pt-4 pr-4">
@@ -128,7 +128,7 @@ const UserSettingsDialog: React.FC<UserSettingsDialogProps> = ({ isOpen, onClose
               <IconX className="h-6 w-6" stroke={1.5} aria-hidden="true" />
             </button>
           </div>
-          
+
           <div className="px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
             <div className="sm:flex sm:items-start">
               <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
@@ -152,7 +152,7 @@ const UserSettingsDialog: React.FC<UserSettingsDialogProps> = ({ isOpen, onClose
                           className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
                         />
                       </div>
-                      
+
                       <div>
                         <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                           Email
@@ -167,7 +167,7 @@ const UserSettingsDialog: React.FC<UserSettingsDialogProps> = ({ isOpen, onClose
                           className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
                         />
                       </div>
-                      
+
                       <div>
                         <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                           New Password (leave blank to keep current)
@@ -181,7 +181,7 @@ const UserSettingsDialog: React.FC<UserSettingsDialogProps> = ({ isOpen, onClose
                           className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
                         />
                       </div>
-                      
+
                       <div>
                         <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                           Confirm New Password
@@ -196,7 +196,7 @@ const UserSettingsDialog: React.FC<UserSettingsDialogProps> = ({ isOpen, onClose
                         />
                       </div>
                     </div>
-                    
+
                     <div className="mt-5 sm:mt-6 sm:flex sm:flex-row-reverse">
                       <button
                         type="submit"
@@ -224,4 +224,4 @@ const UserSettingsDialog: React.FC<UserSettingsDialogProps> = ({ isOpen, onClose
   );
 };
 
-export default UserSettingsDialog; 
+export default UserSettingsDialog;

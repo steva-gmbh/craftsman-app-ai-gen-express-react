@@ -20,7 +20,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const navigate = useNavigate();
 
   useEffect(() => {
-    const socketInstance = io('http://localhost:3001');
+    const socketInstance = io('http://localhost:3000');
 
     socketInstance.on('connect', () => {
       console.log('Connected to WebSocket server');
@@ -50,4 +50,4 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       {children}
     </WebSocketContext.Provider>
   );
-}; 
+};
