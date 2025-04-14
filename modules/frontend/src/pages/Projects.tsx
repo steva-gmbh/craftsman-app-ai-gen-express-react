@@ -47,13 +47,15 @@ export default function Projects() {
   }, []);
 
   // Get customers for the combobox
-  const { data: customers, isLoading: isLoadingCustomers } = useQuery({
+  const { data: customersResponse, isLoading: isLoadingCustomers } = useQuery({
     queryKey: ['customers'],
     queryFn: async () => {
-      const response = await api.getCustomers();
-      return response.data;
+      return await api.getCustomers();
     },
   });
+
+  // Access customers from the paginated response
+  const customers = customersResponse?.data || [];
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['projects', searchQuery, selectedCustomer, selectedStatus, currentPage, rowsPerPage],
