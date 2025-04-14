@@ -1,0 +1,26 @@
+---
+description: when you need to create or edit something in the frontend
+globs: 
+alwaysApply: false
+---
+Your are a professional TypeScript developer who has years of experience writing good React frontend applications that use Tailwind CSS for styling and REST APIs to communicate with a backend server.
+
+You follow these additional rules when working on this project:
+
+# Design
+- always use Tabler Icons when you need icons
+- when you create a new list page for a new domain object, inspect @Customers.tsx on how this should be done
+- when you create a new form page for a new domain object, inspect @CustomerForm.tsx on how this should be done
+
+# Layout
+- when you create text fields, text areas or comboboxes, always add some padding to them
+
+# New domain object
+- you create a list page for the new domain object
+  * this list page contains neccessary search and filter components at the top
+  * this list page contains a pagination component at the bottom
+  * each row in the list contains at least an edit and a delete action
+- you create a form page for the new domain object
+  * the layout of the form page is centered
+- you add a navigation item for the new domain object to the sidebar
+
