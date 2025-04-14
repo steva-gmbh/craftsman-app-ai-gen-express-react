@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { IconPlus, IconEdit, IconTrash } from '../components/icons';
 import { api } from '../services/api';
+import { settingsService } from '../services/settingsService';
 import { toast } from 'react-hot-toast';
 import DataTable from '../components/DataTable';
 
@@ -27,21 +28,42 @@ export default function Materials() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [materialToDelete, setMaterialToDelete] = useState<{ id: number; name: string } | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  const { data: materials, isLoading, error } = useQuery({
-    queryKey: ['materials', searchQuery, selectedCategory],
+  // Load rows per page from user settings
+  useEffect(() => {
+    const loadRowsPerPage = async () => {
+      try {
+        const perPage = await settingsService.getRowsPerPage();
+        setRowsPerPage(perPage);
+      } catch (error) {
+        console.error('Error loading rows per page setting:', error);
+      }
+    };
+    
+    loadRowsPerPage();
+  }, []);
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['materials', searchQuery, selectedCategory, currentPage, rowsPerPage],
     queryFn: async () => {
-      const materials = await api.getMaterials();
+      const materialsResponse = await api.getMaterials({
+        page: currentPage,
+        limit: rowsPerPage
+      });
+      
+      let filteredMaterials = materialsResponse.data;
       
       // Apply search filter
-      let filteredMaterials = searchQuery 
-        ? materials.filter(material => 
-            material.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            material.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            material.brand?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            material.supplier?.toLowerCase().includes(searchQuery.toLowerCase())
-          )
-        : materials;
+      if (searchQuery) {
+        filteredMaterials = filteredMaterials.filter(material => 
+          material.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          material.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          material.brand?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          material.supplier?.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+      }
       
       // Apply category filter
       if (selectedCategory !== 'All') {
@@ -50,7 +72,10 @@ export default function Materials() {
         );
       }
       
-      return filteredMaterials;
+      return {
+        ...materialsResponse,
+        data: filteredMaterials
+      };
     },
   });
 
@@ -73,12 +98,17 @@ export default function Materials() {
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       setSearchQuery(searchInput);
+      setCurrentPage(1); // Reset to first page on new search
     }
   };
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   // Extract unique categories for the dropdown
-  const categoryOptions = materials 
-    ? ['All', ...new Set(materials.map(material => material.category))] 
+  const categoryOptions = data?.data 
+    ? ['All', ...new Set(data.data.map(material => material.category))] 
     : ['All'];
 
   if (isLoading) {
@@ -162,7 +192,10 @@ export default function Materials() {
           <select
             id="category-filter"
             value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
+            onChange={(e) => {
+              setSelectedCategory(e.target.value);
+              setCurrentPage(1); // Reset to first page on filter change
+            }}
             className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
           >
             {categoryOptions.map((category) => (
@@ -178,7 +211,7 @@ export default function Materials() {
       <div className="mt-8 shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
         <DataTable 
           columns={columns}
-          data={materials || []}
+          data={data?.data || []}
           keyField="id"
           actions={(material) => (
             <div className="flex justify-end space-x-2">
@@ -198,6 +231,12 @@ export default function Materials() {
               </button>
             </div>
           )}
+          totalCount={data?.totalCount || 0}
+          currentPage={currentPage}
+          totalPages={data?.totalPages || 1}
+          onPageChange={handlePageChange}
+          isPaginated={true}
+          rowsPerPage={rowsPerPage}
         />
       </div>
 

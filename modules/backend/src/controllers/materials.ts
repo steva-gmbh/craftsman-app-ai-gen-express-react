@@ -5,8 +5,32 @@ const prisma = new PrismaClient();
 
 export const getMaterials = async (req: Request, res: Response) => {
   try {
-    const materials = await prisma.material.findMany();
-    res.json(materials);
+    // Get pagination parameters from query
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+
+    // Get total count for pagination
+    const totalCount = await prisma.material.count();
+    
+    // Get paginated materials
+    const materials = await prisma.material.findMany({
+      skip,
+      take: limit,
+      orderBy: { id: 'asc' }
+    });
+
+    // Calculate total pages
+    const totalPages = Math.ceil(totalCount / limit);
+
+    // Return paginated response
+    res.json({
+      data: materials,
+      totalCount,
+      totalPages,
+      currentPage: page,
+      limit
+    });
   } catch (error) {
     console.error('Error fetching materials:', error);
     res.status(500).json({ error: 'Failed to fetch materials' });

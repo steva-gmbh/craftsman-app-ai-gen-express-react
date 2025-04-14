@@ -32,6 +32,7 @@ import {
   IconPlus,
   IconFilter,
   IconEdit,
+  IconTable,
   
   // Users and customers
   IconPhone,
@@ -81,6 +82,7 @@ export {
   IconPlus,
   IconFilter,
   IconEdit,
+  IconTable,
   
   // Users and customers
   IconPhone,

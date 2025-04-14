@@ -5,23 +5,38 @@ const prisma = new PrismaClient();
 
 export const getJobs = async (req: Request, res: Response) => {
   try {
+    // Get pagination parameters from query
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+
+    // Get total count for pagination
+    const totalCount = await prisma.job.count();
+    
+    // Get paginated jobs
     const jobs = await prisma.job.findMany({
+      skip,
+      take: limit,
       include: {
         customer: true,
         project: true,
-        materials: {
-          include: {
-            material: true,
-          },
-        },
-        tools: {
-          include: {
-            tool: true,
-          },
-        },
+        materials: true,
+        tools: true,
       },
+      orderBy: { id: 'asc' }
     });
-    res.json(jobs);
+
+    // Calculate total pages
+    const totalPages = Math.ceil(totalCount / limit);
+
+    // Return paginated response
+    res.json({
+      data: jobs,
+      totalCount,
+      totalPages,
+      currentPage: page,
+      limit
+    });
   } catch (error) {
     console.error('Error fetching jobs:', error);
     res.status(500).json({ error: 'Failed to fetch jobs' });

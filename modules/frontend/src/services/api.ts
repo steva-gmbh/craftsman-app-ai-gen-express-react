@@ -97,10 +97,26 @@ export interface Project {
   updatedAt?: Date;
 }
 
+export interface PaginationParams {
+  page: number;
+  limit: number;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  totalCount: number;
+  totalPages: number;
+  currentPage: number;
+  limit: number;
+}
+
 export const api = {
   // Customer endpoints
-  getCustomers: async (): Promise<Customer[]> => {
-    const response = await fetch(`${API_BASE_URL}/customers`);
+  getCustomers: async (params?: PaginationParams): Promise<PaginatedResponse<Customer>> => {
+    const queryParams = params 
+      ? `?page=${params.page}&limit=${params.limit}` 
+      : '';
+    const response = await fetch(`${API_BASE_URL}/customers${queryParams}`);
     if (!response.ok) {
       throw new Error('Failed to fetch customers');
     }
@@ -145,8 +161,11 @@ export const api = {
   },
 
   // Job endpoints
-  getJobs: async (): Promise<Job[]> => {
-    const response = await fetch(`${API_BASE_URL}/jobs`);
+  getJobs: async (params?: PaginationParams): Promise<PaginatedResponse<Job>> => {
+    const queryParams = params 
+      ? `?page=${params.page}&limit=${params.limit}` 
+      : '';
+    const response = await fetch(`${API_BASE_URL}/jobs${queryParams}`);
     if (!response.ok) {
       throw new Error('Failed to fetch jobs');
     }
@@ -191,8 +210,11 @@ export const api = {
   },
 
   // Material endpoints
-  getMaterials: async (): Promise<Material[]> => {
-    const response = await fetch(`${API_BASE_URL}/materials`);
+  getMaterials: async (params?: PaginationParams): Promise<PaginatedResponse<Material>> => {
+    const queryParams = params 
+      ? `?page=${params.page}&limit=${params.limit}` 
+      : '';
+    const response = await fetch(`${API_BASE_URL}/materials${queryParams}`);
     if (!response.ok) {
       throw new Error('Failed to fetch materials');
     }
@@ -283,8 +305,11 @@ export const api = {
   },
 
   // Tool endpoints
-  getTools: async (): Promise<Tool[]> => {
-    const response = await fetch(`${API_BASE_URL}/tools`);
+  getTools: async (params?: PaginationParams): Promise<PaginatedResponse<Tool>> => {
+    const queryParams = params 
+      ? `?page=${params.page}&limit=${params.limit}` 
+      : '';
+    const response = await fetch(`${API_BASE_URL}/tools${queryParams}`);
     if (!response.ok) {
       throw new Error('Failed to fetch tools');
     }
@@ -429,8 +454,11 @@ export const api = {
   },
 
   // Project endpoints
-  getProjects: async (): Promise<Project[]> => {
-    const response = await fetch(`${API_BASE_URL}/projects`);
+  getProjects: async (params?: PaginationParams): Promise<PaginatedResponse<Project>> => {
+    const queryParams = params 
+      ? `?page=${params.page}&limit=${params.limit}` 
+      : '';
+    const response = await fetch(`${API_BASE_URL}/projects${queryParams}`);
     if (!response.ok) {
       throw new Error('Failed to fetch projects');
     }
@@ -472,5 +500,28 @@ export const api = {
     if (!response.ok) {
       throw new Error('Failed to delete project');
     }
+  },
+
+  // User Settings endpoints
+  getUserSettings: async (userId: number): Promise<any> => {
+    const response = await fetch(`${API_BASE_URL}/settings/${userId}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch user settings');
+    }
+    return response.json();
+  },
+
+  updateUserSettings: async (userId: number, settings: any): Promise<any> => {
+    const response = await fetch(`${API_BASE_URL}/settings/${userId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(settings),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to update user settings');
+    }
+    return response.json();
   },
 }; 

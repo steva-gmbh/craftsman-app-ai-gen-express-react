@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { IconPlus, IconPhone, IconMail, IconMapPin, IconEdit, IconTrash, IconBriefcase, IconUser } from '../components/icons';
 import { api } from '../services/api';
+import { settingsService } from '../services/settingsService';
 import { toast } from 'react-hot-toast';
 import DataTable from '../components/DataTable';
 
@@ -28,51 +29,81 @@ export default function Projects() {
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [projectToDelete, setProjectToDelete] = useState<{ id: number; name: string } | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  // Load rows per page from user settings
+  useEffect(() => {
+    const loadRowsPerPage = async () => {
+      try {
+        const perPage = await settingsService.getRowsPerPage();
+        setRowsPerPage(perPage);
+      } catch (error) {
+        console.error('Error loading rows per page setting:', error);
+      }
+    };
+    
+    loadRowsPerPage();
+  }, []);
 
   // Get customers for the combobox
   const { data: customers, isLoading: isLoadingCustomers } = useQuery({
     queryKey: ['customers'],
     queryFn: async () => {
-      return await api.getCustomers();
+      const response = await api.getCustomers();
+      return response.data;
     },
   });
 
-  const { data: projects, isLoading, error } = useQuery({
-    queryKey: ['projects', searchQuery, selectedCustomer, selectedStatus],
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['projects', searchQuery, selectedCustomer, selectedStatus, currentPage, rowsPerPage],
     queryFn: async () => {
-      const projects = await api.getProjects();
-      // Count jobs for each project
-      const jobs = await api.getJobs();
-      
-      let filteredProjects = projects.map(project => ({
-        ...project,
-        jobCount: jobs.filter(job => job.projectId === project.id).length
-      }));
+      try {
+        const projectsResponse = await api.getProjects({
+          page: currentPage,
+          limit: rowsPerPage
+        });
+        
+        // Count jobs for each project
+        const jobsResponse = await api.getJobs();
+        const jobs = jobsResponse.data || [];
+        
+        let filteredProjects = projectsResponse.data.map(project => ({
+          ...project,
+          jobCount: jobs.filter(job => job.projectId === project.id).length
+        }));
 
-      // Apply text search filter
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        filteredProjects = filteredProjects.filter(project => 
-          project.name.toLowerCase().includes(query) ||
-          project.description?.toLowerCase().includes(query)
-        );
+        // Apply text search filter
+        if (searchQuery) {
+          const query = searchQuery.toLowerCase();
+          filteredProjects = filteredProjects.filter(project => 
+            project.name.toLowerCase().includes(query) ||
+            project.description?.toLowerCase().includes(query)
+          );
+        }
+
+        // Apply customer filter
+        if (selectedCustomer !== 'All') {
+          filteredProjects = filteredProjects.filter(project => 
+            project.customer?.name === selectedCustomer
+          );
+        }
+
+        // Apply status filter
+        if (selectedStatus !== 'All') {
+          filteredProjects = filteredProjects.filter(project => 
+            project.status === selectedStatus
+          );
+        }
+
+        return {
+          ...projectsResponse,
+          data: filteredProjects
+        };
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+        throw error;
       }
-
-      // Apply customer filter
-      if (selectedCustomer !== 'All') {
-        filteredProjects = filteredProjects.filter(project => 
-          project.customer?.name === selectedCustomer
-        );
-      }
-
-      // Apply status filter
-      if (selectedStatus !== 'All') {
-        filteredProjects = filteredProjects.filter(project => 
-          project.status === selectedStatus
-        );
-      }
-
-      return filteredProjects;
     },
   });
 
@@ -96,7 +127,12 @@ export default function Projects() {
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       setSearchQuery(searchInput);
+      setCurrentPage(1); // Reset to first page on new search
     }
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   // Extract unique customer names for the dropdown
@@ -190,7 +226,10 @@ export default function Projects() {
           <select
             id="customer-filter"
             value={selectedCustomer}
-            onChange={(e) => setSelectedCustomer(e.target.value)}
+            onChange={(e) => {
+              setSelectedCustomer(e.target.value);
+              setCurrentPage(1); // Reset to first page on filter change
+            }}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
           >
             {customerOptions.map((name) => (
@@ -207,7 +246,10 @@ export default function Projects() {
           <select
             id="status-filter"
             value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
+            onChange={(e) => {
+              setSelectedStatus(e.target.value);
+              setCurrentPage(1); // Reset to first page on filter change
+            }}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
           >
             {projectStatuses.map((status) => (
@@ -223,7 +265,7 @@ export default function Projects() {
       <div className="mt-8 shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
         <DataTable 
           columns={columns}
-          data={projects || []}
+          data={data?.data || []}
           keyField="id"
           actions={(project) => (
             <div className="flex justify-end space-x-2">
@@ -251,6 +293,12 @@ export default function Projects() {
               </button>
             </div>
           )}
+          totalCount={data?.totalCount || 0}
+          currentPage={currentPage}
+          totalPages={data?.totalPages || 1}
+          onPageChange={handlePageChange}
+          isPaginated={true}
+          rowsPerPage={rowsPerPage}
         />
       </div>
 

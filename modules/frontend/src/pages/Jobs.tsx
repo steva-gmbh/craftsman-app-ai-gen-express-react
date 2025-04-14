@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { IconPlus, IconFilter, IconEdit, IconTrash } from '../components/icons';
 import { api } from '../services/api';
+import { settingsService } from '../services/settingsService';
 import { toast } from 'react-hot-toast';
 import DataTable from '../components/DataTable';
 
@@ -29,49 +30,76 @@ export default function Jobs() {
   const [searchQuery, setSearchQuery] = useState('');
   const [jobToDelete, setJobToDelete] = useState<{ id: number; title: string } | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  const { data: jobs, isLoading, error } = useQuery({
-    queryKey: ['jobs', selectedType, selectedStatus, searchQuery],
+  // Load rows per page from user settings
+  useEffect(() => {
+    const loadRowsPerPage = async () => {
+      try {
+        const perPage = await settingsService.getRowsPerPage();
+        setRowsPerPage(perPage);
+      } catch (error) {
+        console.error('Error loading rows per page setting:', error);
+      }
+    };
+    
+    loadRowsPerPage();
+  }, []);
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['jobs', selectedType, selectedStatus, searchQuery, currentPage, rowsPerPage],
     queryFn: async () => {
-      const [jobs, customers] = await Promise.all([
-        api.getJobs(),
-        api.getCustomers(),
-      ]);
+      try {
+        const [jobsResponse, customersResponse] = await Promise.all([
+          api.getJobs({
+            page: currentPage,
+            limit: rowsPerPage
+          }),
+          api.getCustomers(),
+        ]);
 
-      // Map jobs to include customer information
-      let mappedJobs = jobs.map(job => {
-        const customer = customers.find(c => c.id === job.customerId);
+        // Map jobs to include customer information
+        let mappedJobs = jobsResponse.data.map(job => {
+          const customer = customersResponse.data.find(c => c.id === job.customerId);
+          return {
+            id: job.id,
+            customer: customer?.name || 'Unknown',
+            project: job.project?.name || 'None',
+            type: job.title,
+            status: job.status,
+            date: new Date().toISOString().split('T')[0], // TODO: Add created_at to Job model
+            description: job.description,
+          };
+        });
+
+        // Filter jobs based on selected type and status
+        if (selectedType !== 'All') {
+          mappedJobs = mappedJobs.filter(job => job.type === selectedType);
+        }
+        if (selectedStatus !== 'All') {
+          mappedJobs = mappedJobs.filter(job => job.status === selectedStatus);
+        }
+
+        // Filter jobs based on search text
+        if (searchQuery) {
+          const query = searchQuery.toLowerCase();
+          mappedJobs = mappedJobs.filter(job => 
+            job.customer.toLowerCase().includes(query) ||
+            job.project.toLowerCase().includes(query) ||
+            job.type.toLowerCase().includes(query) ||
+            job.description.toLowerCase().includes(query)
+          );
+        }
+
         return {
-          id: job.id,
-          customer: customer?.name || 'Unknown',
-          project: job.project?.name || 'None',
-          type: job.title,
-          status: job.status,
-          date: new Date().toISOString().split('T')[0], // TODO: Add created_at to Job model
-          description: job.description,
+          ...jobsResponse,
+          data: mappedJobs
         };
-      });
-
-      // Filter jobs based on selected type and status
-      if (selectedType !== 'All') {
-        mappedJobs = mappedJobs.filter(job => job.type === selectedType);
+      } catch (error) {
+        console.error('Error fetching jobs:', error);
+        throw error;
       }
-      if (selectedStatus !== 'All') {
-        mappedJobs = mappedJobs.filter(job => job.status === selectedStatus);
-      }
-
-      // Filter jobs based on search text
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        mappedJobs = mappedJobs.filter(job => 
-          job.customer.toLowerCase().includes(query) ||
-          job.project.toLowerCase().includes(query) ||
-          job.type.toLowerCase().includes(query) ||
-          job.description.toLowerCase().includes(query)
-        );
-      }
-
-      return mappedJobs;
     },
   });
 
@@ -95,7 +123,12 @@ export default function Jobs() {
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       setSearchQuery(searchInput);
+      setCurrentPage(1); // Reset to first page on new search
     }
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   if (isLoading) {
@@ -182,7 +215,10 @@ export default function Jobs() {
           <select
             id="job-type"
             value={selectedType}
-            onChange={(e) => setSelectedType(e.target.value)}
+            onChange={(e) => {
+              setSelectedType(e.target.value);
+              setCurrentPage(1); // Reset to first page on filter change
+            }}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
           >
             {jobTypes.map((type) => (
@@ -199,7 +235,10 @@ export default function Jobs() {
           <select
             id="job-status"
             value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
+            onChange={(e) => {
+              setSelectedStatus(e.target.value);
+              setCurrentPage(1); // Reset to first page on filter change
+            }}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
           >
             {jobStatuses.map((status) => (
@@ -215,7 +254,7 @@ export default function Jobs() {
       <div className="mt-8 shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
         <DataTable 
           columns={columns}
-          data={jobs || []}
+          data={data?.data || []}
           keyField="id"
           actions={(job) => (
             <div className="flex justify-end space-x-2">
@@ -235,6 +274,12 @@ export default function Jobs() {
               </button>
             </div>
           )}
+          totalCount={data?.totalCount || 0}
+          currentPage={currentPage}
+          totalPages={data?.totalPages || 1}
+          onPageChange={handlePageChange}
+          isPaginated={true}
+          rowsPerPage={rowsPerPage}
         />
       </div>
 

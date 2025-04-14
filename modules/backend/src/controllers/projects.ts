@@ -5,13 +5,36 @@ const prisma = new PrismaClient();
 
 export const getProjects = async (req: Request, res: Response) => {
   try {
+    // Get pagination parameters from query
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+
+    // Get total count for pagination
+    const totalCount = await prisma.project.count();
+    
+    // Get paginated projects
     const projects = await prisma.project.findMany({
+      skip,
+      take: limit,
       include: {
         customer: true,
         jobs: true,
       },
+      orderBy: { id: 'asc' }
     });
-    res.json(projects);
+
+    // Calculate total pages
+    const totalPages = Math.ceil(totalCount / limit);
+
+    // Return paginated response
+    res.json({
+      data: projects,
+      totalCount,
+      totalPages,
+      currentPage: page,
+      limit
+    });
   } catch (error) {
     console.error('Error fetching projects:', error);
     res.status(500).json({ error: 'Failed to fetch projects' });

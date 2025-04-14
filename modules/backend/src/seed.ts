@@ -30,6 +30,7 @@ async function main() {
       business: JSON.stringify({ name: 'My Business', services: [] }),
       notifications: JSON.stringify({ email: true, sms: false }),
       appearance: JSON.stringify({ theme: 'light' }),
+      pagination: JSON.stringify({ rowsPerPage: 10 }),
     },
   });
 

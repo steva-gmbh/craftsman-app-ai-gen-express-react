@@ -57,6 +57,7 @@ model Settings {
   billing        String?
   notifications  String?
   appearance     String?
+  pagination     String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }

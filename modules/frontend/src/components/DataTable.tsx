@@ -1,4 +1,5 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useState, useEffect } from 'react';
+import Pagination from './Pagination';
 
 interface Column<T> {
   header: string;
@@ -11,9 +12,57 @@ interface DataTableProps<T> {
   data: T[];
   keyField: keyof T;
   actions?: (item: T) => ReactNode;
+  // Pagination props
+  totalCount?: number;
+  currentPage?: number;
+  totalPages?: number;
+  onPageChange?: (page: number) => void;
+  isPaginated?: boolean;
+  rowsPerPage?: number;
 }
 
-export default function DataTable<T>({ columns, data, keyField, actions }: DataTableProps<T>) {
+export default function DataTable<T>({ 
+  columns,
+  data,
+  keyField,
+  actions,
+  totalCount,
+  currentPage = 1,
+  totalPages = 1,
+  onPageChange,
+  isPaginated = false,
+  rowsPerPage
+}: DataTableProps<T>) {
+  // For client-side pagination when server pagination is not enabled
+  const [localCurrentPage, setLocalCurrentPage] = useState(1);
+  const [paginatedData, setPaginatedData] = useState<T[]>(data);
+
+  // Apply client-side pagination if not using server pagination
+  useEffect(() => {
+    if (!isPaginated || onPageChange) {
+      // If server-side pagination is enabled, use the full data as is
+      setPaginatedData(data);
+      return;
+    }
+
+    // Otherwise, perform client-side pagination
+    if (rowsPerPage && data.length > 0) {
+      const startIndex = (localCurrentPage - 1) * rowsPerPage;
+      const endIndex = startIndex + rowsPerPage;
+      setPaginatedData(data.slice(startIndex, endIndex));
+    } else {
+      setPaginatedData(data);
+    }
+  }, [data, localCurrentPage, isPaginated, onPageChange, rowsPerPage]);
+
+  // Calculate total pages for client-side pagination
+  const localTotalPages = rowsPerPage ? Math.ceil(data.length / rowsPerPage) : 1;
+
+  // Handle page change for client-side pagination
+  const handleLocalPageChange = (page: number) => {
+    setLocalCurrentPage(page);
+  };
+
   return (
     <div className="relative">
       <div className="overflow-x-auto w-full relative">
@@ -37,7 +86,7 @@ export default function DataTable<T>({ columns, data, keyField, actions }: DataT
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 dark:divide-gray-600 bg-white dark:bg-gray-800">
-            {data.map((item) => (
+            {paginatedData.map((item) => (
               <tr key={String(item[keyField])}>
                 {columns.map((column, index) => {
                   const value = typeof column.accessor === 'function' 
@@ -61,9 +110,25 @@ export default function DataTable<T>({ columns, data, keyField, actions }: DataT
                 )}
               </tr>
             ))}
+            {paginatedData.length === 0 && (
+              <tr>
+                <td colSpan={columns.length + (actions ? 1 : 0)} className="py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                  No data available
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
+
+      {/* Pagination */}
+      {isPaginated && (
+        <Pagination
+          currentPage={onPageChange ? currentPage : localCurrentPage}
+          totalPages={onPageChange ? totalPages : localTotalPages}
+          onPageChange={onPageChange || handleLocalPageChange}
+        />
+      )}
     </div>
   );
 } 

@@ -47,6 +47,7 @@ export const getSettingsByUserId = async (req: Request, res: Response) => {
           business: JSON.stringify({ name: '', services: [] }),
           notifications: JSON.stringify({ email: true, sms: false }),
           appearance: JSON.stringify({ theme: 'light' }),
+          pagination: JSON.stringify({ rowsPerPage: 10 }),
         },
         include: {
           user: true,
@@ -65,7 +66,7 @@ export const getSettingsByUserId = async (req: Request, res: Response) => {
 
 export const createSettings = async (req: Request, res: Response) => {
   try {
-    const { userId, profile, business, billing, notifications, appearance } = req.body;
+    const { userId, profile, business, billing, notifications, appearance, pagination } = req.body;
     const settings = await prisma.settings.create({
       data: {
         userId: Number(userId),
@@ -74,6 +75,7 @@ export const createSettings = async (req: Request, res: Response) => {
         billing,
         notifications,
         appearance,
+        pagination,
       },
       include: {
         user: true,
@@ -89,7 +91,7 @@ export const createSettings = async (req: Request, res: Response) => {
 export const updateSettings = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
-    const { profile, business, billing, notifications, appearance } = req.body;
+    const { profile, business, billing, notifications, appearance, pagination } = req.body;
 
     console.log('Updating settings for user:', userId);
     console.log('Request body:', req.body);
@@ -115,6 +117,7 @@ export const updateSettings = async (req: Request, res: Response) => {
           billing,
           notifications,
           appearance,
+          pagination,
         },
         include: {
           user: true,
@@ -133,6 +136,7 @@ export const updateSettings = async (req: Request, res: Response) => {
           billing,
           notifications,
           appearance,
+          pagination,
         },
         include: {
           user: true,

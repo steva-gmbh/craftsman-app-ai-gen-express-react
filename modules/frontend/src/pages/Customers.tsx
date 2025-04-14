@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { IconPlus, IconPhone, IconMail, IconMapPin, IconEdit, IconTrash } from '../components/icons';
 import { api } from '../services/api';
+import { settingsService } from '../services/settingsService';
 import { toast } from 'react-hot-toast';
 import DataTable from '../components/DataTable';
 
@@ -22,31 +23,66 @@ export default function Customers() {
   const [searchQuery, setSearchQuery] = useState('');
   const [customerToDelete, setCustomerToDelete] = useState<{ id: number; name: string } | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  const { data: customers, isLoading, error } = useQuery({
-    queryKey: ['customers', searchQuery],
-    queryFn: async () => {
-      const customers = await api.getCustomers();
-      // Count jobs for each customer
-      const jobs = await api.getJobs();
-      
-      let filteredCustomers = customers.map(customer => ({
-        ...customer,
-        jobs: jobs.filter(job => job.customerId === customer.id).length
-      }));
-      
-      // Apply search filter if query exists
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        filteredCustomers = filteredCustomers.filter(customer => 
-          customer.name.toLowerCase().includes(query) ||
-          customer.email.toLowerCase().includes(query) ||
-          customer.phone.toLowerCase().includes(query) ||
-          customer.address.toLowerCase().includes(query)
-        );
+  // Load rows per page from user settings
+  useEffect(() => {
+    const loadRowsPerPage = async () => {
+      try {
+        const perPage = await settingsService.getRowsPerPage();
+        setRowsPerPage(perPage);
+      } catch (error) {
+        console.error('Error loading rows per page setting:', error);
       }
-      
-      return filteredCustomers;
+    };
+    
+    loadRowsPerPage();
+  }, []);
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['customers', searchQuery, currentPage, rowsPerPage],
+    queryFn: async () => {
+      try {
+        // Get paginated customers
+        let response = await api.getCustomers({
+          page: currentPage,
+          limit: rowsPerPage
+        });
+        
+        // Get all jobs to count for each customer
+        const jobs = await api.getJobs();
+        
+        // Add job count to each customer
+        const customersWithJobs = response.data.map(customer => ({
+          ...customer,
+          jobs: jobs.data ? jobs.data.filter(job => job.customerId === customer.id).length : 0
+        }));
+        
+        // Apply search filter if query exists
+        if (searchQuery) {
+          const query = searchQuery.toLowerCase();
+          const filteredCustomers = customersWithJobs.filter(customer => 
+            customer.name.toLowerCase().includes(query) ||
+            customer.email.toLowerCase().includes(query) ||
+            customer.phone.toLowerCase().includes(query) ||
+            customer.address.toLowerCase().includes(query)
+          );
+          
+          return {
+            ...response,
+            data: filteredCustomers
+          };
+        }
+        
+        return {
+          ...response,
+          data: customersWithJobs
+        };
+      } catch (error) {
+        console.error('Error fetching customers:', error);
+        throw error;
+      }
     },
   });
 
@@ -70,7 +106,12 @@ export default function Customers() {
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       setSearchQuery(searchInput);
+      setCurrentPage(1); // Reset to first page on new search
     }
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   if (isLoading) {
@@ -132,7 +173,7 @@ export default function Customers() {
       <div className="mt-8 shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
         <DataTable 
           columns={columns}
-          data={customers || []}
+          data={data?.data || []}
           keyField="id"
           actions={(customer) => (
             <div className="flex justify-end space-x-2">
@@ -152,6 +193,12 @@ export default function Customers() {
               </button>
             </div>
           )}
+          totalCount={data?.totalCount || 0}
+          currentPage={currentPage}
+          totalPages={data?.totalPages || 1}
+          onPageChange={handlePageChange}
+          isPaginated={true}
+          rowsPerPage={rowsPerPage}
         />
       </div>
 

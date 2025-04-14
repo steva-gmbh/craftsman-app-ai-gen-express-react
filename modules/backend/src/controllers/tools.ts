@@ -5,8 +5,32 @@ const prisma = new PrismaClient();
 
 export const getTools = async (req: Request, res: Response) => {
   try {
-    const tools = await prisma.tool.findMany();
-    res.json(tools);
+    // Get pagination parameters from query
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+
+    // Get total count for pagination
+    const totalCount = await prisma.tool.count();
+    
+    // Get paginated tools
+    const tools = await prisma.tool.findMany({
+      skip,
+      take: limit,
+      orderBy: { id: 'asc' }
+    });
+
+    // Calculate total pages
+    const totalPages = Math.ceil(totalCount / limit);
+
+    // Return paginated response
+    res.json({
+      data: tools,
+      totalCount,
+      totalPages,
+      currentPage: page,
+      limit
+    });
   } catch (error) {
     console.error('Error fetching tools:', error);
     res.status(500).json({ error: 'Failed to fetch tools' });
