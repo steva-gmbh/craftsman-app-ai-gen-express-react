@@ -663,6 +663,46 @@ export const api = {
     }
   },
 
+  downloadInvoicePdf: async (id: number): Promise<void> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/invoices/${id}/pdf`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate invoice PDF');
+      }
+      
+      // Get filename from Content-Disposition header if available
+      const contentDisposition = response.headers.get('Content-Disposition');
+      let filename = `invoice-${id}.pdf`;
+      
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+        if (filenameMatch && filenameMatch.length > 1) {
+          filename = filenameMatch[1];
+        }
+      }
+      
+      // Convert response to blob
+      const blob = await response.blob();
+      
+      // Create a download link and trigger download
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = filename;
+      
+      // Append to document, click, and clean up
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Error downloading invoice PDF:', error);
+      throw error;
+    }
+  },
+
   // Vehicle endpoints
   getVehicles: async (params: { page?: number; limit?: number } = {}) => {
     const { page, limit } = params;

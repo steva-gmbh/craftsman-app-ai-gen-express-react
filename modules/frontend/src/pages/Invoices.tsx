@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
-import { IconEdit, IconPlus, IconFilter, IconTrash } from '../components/icons';
+import { IconEdit, IconPlus, IconFilter, IconTrash, IconFileDownload } from '../components/icons';
 import { api, Invoice } from '../services/api';
 import { settingsService } from '../services/settingsService';
 import { toast } from 'react-hot-toast';
@@ -203,13 +203,32 @@ const Invoices: React.FC = () => {
               <button
                 onClick={() => navigate(`/invoices/${invoice.id}/edit`)}
                 className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                title="Edit invoice"
               >
                 <IconEdit className="h-5 w-5" />
                 <span className="sr-only">Edit invoice #{invoice.invoiceNumber}</span>
               </button>
               <button
+                onClick={() => {
+                  toast.promise(
+                    api.downloadInvoicePdf(invoice.id),
+                    {
+                      loading: 'Generating PDF...',
+                      success: 'PDF downloaded successfully',
+                      error: 'Failed to download PDF'
+                    }
+                  );
+                }}
+                className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                title="Download PDF"
+              >
+                <IconFileDownload className="h-5 w-5" />
+                <span className="sr-only">Download PDF for invoice #{invoice.invoiceNumber}</span>
+              </button>
+              <button
                 onClick={() => setInvoiceToDelete({ id: invoice.id, invoiceNumber: invoice.invoiceNumber })}
                 className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                title="Delete invoice"
               >
                 <IconTrash className="h-5 w-5" />
                 <span className="sr-only">Delete invoice #{invoice.invoiceNumber}</span>

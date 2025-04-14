@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import PDFDocument from 'pdfkit';
 
 const prisma = new PrismaClient();
 
@@ -245,5 +246,158 @@ export const deleteInvoice = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error deleting invoice:', error);
     res.status(500).json({ error: 'Failed to delete invoice' });
+  }
+};
+
+// Generate a PDF invoice
+export const generateInvoicePdf = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    
+    // Fetch invoice with customer and projects (including jobs)
+    const invoice = await prisma.invoice.findUnique({
+      where: { id: Number(id) },
+      include: {
+        customer: true,
+        projects: {
+          include: {
+            jobs: true
+          }
+        }
+      },
+    });
+
+    if (!invoice) {
+      return res.status(404).json({ error: 'Invoice not found' });
+    }
+
+    // Create PDF document
+    const doc = new PDFDocument({ margin: 50 });
+    
+    // Set response headers for PDF download
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=invoice-${invoice.invoiceNumber}.pdf`);
+
+    // Pipe PDF to response
+    doc.pipe(res);
+
+    // Add company info
+    doc.fontSize(20).text('INVOICE', { align: 'center' });
+    doc.moveDown();
+    
+    // Add invoice info
+    doc.fontSize(12).text(`Invoice Number: ${invoice.invoiceNumber}`);
+    doc.text(`Issue Date: ${new Date(invoice.issueDate).toLocaleDateString()}`);
+    doc.text(`Due Date: ${new Date(invoice.dueDate).toLocaleDateString()}`);
+    doc.text(`Status: ${invoice.status.toUpperCase()}`);
+    doc.moveDown();
+
+    // Add customer info
+    doc.fontSize(14).text('Customer Information', { underline: true });
+    doc.fontSize(12).text(`Name: ${invoice.customer.name}`);
+    doc.text(`Email: ${invoice.customer.email}`);
+    if (invoice.customer.phone) doc.text(`Phone: ${invoice.customer.phone}`);
+    if (invoice.customer.address) doc.text(`Address: ${invoice.customer.address}`);
+    doc.moveDown();
+
+    // Projects and Jobs Table
+    doc.fontSize(14).text('Projects and Jobs', { underline: true });
+    doc.moveDown();
+
+    let totalJobsCost = 0;
+
+    // Draw table headers
+    const tableTop = doc.y;
+    const tableHeaders = ['Project', 'Job', 'Description', 'Status', 'Price'];
+    const columnWidths = [100, 100, 150, 80, 70];
+    let currentY = tableTop;
+    
+    // Draw headers
+    doc.fontSize(10);
+    doc.font('Helvetica-Bold');
+    tableHeaders.forEach((header, i) => {
+      const x = 50 + columnWidths.slice(0, i).reduce((sum, width) => sum + width, 0);
+      doc.text(header, x, currentY);
+    });
+    
+    doc.font('Helvetica');
+    currentY += 20;
+    doc.moveTo(50, currentY).lineTo(500, currentY).stroke();
+    currentY += 10;
+
+    // Draw rows
+    if (invoice.projects && invoice.projects.length > 0) {
+      for (const project of invoice.projects) {
+        const projectName = project.name;
+        
+        if (project.jobs && project.jobs.length > 0) {
+          for (const job of project.jobs) {
+            // Check if we need a new page
+            if (currentY > 700) {
+              doc.addPage();
+              currentY = 50;
+            }
+            
+            const price = job.price || 0;
+            totalJobsCost += price;
+            
+            // Job row
+            let x = 50;
+            doc.text(projectName, x, currentY);
+            x += columnWidths[0];
+            doc.text(job.title, x, currentY);
+            x += columnWidths[1];
+            doc.text(job.description, x, currentY, { width: columnWidths[2] - 10 });
+            x += columnWidths[2];
+            doc.text(job.status, x, currentY);
+            x += columnWidths[3];
+            doc.text(`$${price.toFixed(2)}`, x, currentY);
+            
+            // Move down for next row, accounting for multi-line descriptions
+            const textHeight = doc.heightOfString(job.description, { width: columnWidths[2] - 10 });
+            currentY += Math.max(textHeight, 20) + 10;
+          }
+        } else {
+          // Project with no jobs
+          if (currentY > 700) {
+            doc.addPage();
+            currentY = 50;
+          }
+          
+          let x = 50;
+          doc.text(projectName, x, currentY);
+          x += columnWidths[0];
+          doc.text('No jobs', x, currentY);
+          currentY += 20;
+        }
+      }
+    } else {
+      doc.text('No projects or jobs found for this invoice', 50, currentY);
+      currentY += 20;
+    }
+
+    // Draw a line after the table
+    doc.moveTo(50, currentY).lineTo(500, currentY).stroke();
+    currentY += 20;
+
+    // Summary section
+    doc.fontSize(12).text(`Subtotal: $${totalJobsCost.toFixed(2)}`, 350, currentY);
+    currentY += 20;
+    doc.text(`Tax (${invoice.taxRate}%): $${invoice.taxAmount.toFixed(2)}`, 350, currentY);
+    currentY += 20;
+    doc.fontSize(14).font('Helvetica-Bold').text(`Total Amount: $${invoice.totalAmount.toFixed(2)}`, 350, currentY);
+    
+    // Add notes if present
+    if (invoice.notes) {
+      doc.addPage();
+      doc.fontSize(14).font('Helvetica-Bold').text('Notes', { underline: true });
+      doc.fontSize(12).font('Helvetica').text(invoice.notes);
+    }
+
+    // Finalize the PDF
+    doc.end();
+  } catch (error) {
+    console.error('Error generating invoice PDF:', error);
+    res.status(500).json({ error: 'Failed to generate invoice PDF' });
   }
 }; 
