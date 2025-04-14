@@ -22,20 +22,35 @@ interface Material {
 export default function Materials() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
   const [materialToDelete, setMaterialToDelete] = useState<{ id: number; name: string } | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const { data: materials, isLoading, error } = useQuery({
-    queryKey: ['materials', searchQuery],
+    queryKey: ['materials', searchQuery, selectedCategory],
     queryFn: async () => {
       const materials = await api.getMaterials();
-      return materials.filter(material => 
-        material.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        material.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        material.brand?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        material.supplier?.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+      
+      // Apply search filter
+      let filteredMaterials = searchQuery 
+        ? materials.filter(material => 
+            material.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            material.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            material.brand?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            material.supplier?.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+        : materials;
+      
+      // Apply category filter
+      if (selectedCategory !== 'All') {
+        filteredMaterials = filteredMaterials.filter(material => 
+          material.category === selectedCategory
+        );
+      }
+      
+      return filteredMaterials;
     },
   });
 
@@ -54,6 +69,17 @@ export default function Materials() {
       toast.error('Failed to delete material');
     }
   };
+
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      setSearchQuery(searchInput);
+    }
+  };
+
+  // Extract unique categories for the dropdown
+  const categoryOptions = materials 
+    ? ['All', ...new Set(materials.map(material => material.category))] 
+    : ['All'];
 
   if (isLoading) {
     return <div>Loading materials...</div>;
@@ -111,18 +137,40 @@ export default function Materials() {
       {/* Search */}
       <div className="mt-6">
         <label htmlFor="search" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Search
+          Search (press Enter to search)
         </label>
         <div className="mt-1">
           <input
             type="text"
             name="search"
             id="search"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyDown={handleSearch}
             className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
-            placeholder="Search materials..."
+            placeholder="Search materials... (press Enter to search)"
           />
+        </div>
+      </div>
+
+      {/* Category Filter */}
+      <div className="mt-6">
+        <label htmlFor="category-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Category
+        </label>
+        <div className="mt-1">
+          <select
+            id="category-filter"
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+          >
+            {categoryOptions.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 

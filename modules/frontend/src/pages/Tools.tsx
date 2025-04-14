@@ -19,20 +19,35 @@ interface Tool {
 export default function Tools() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
   const [toolToDelete, setToolToDelete] = useState<{ id: number; name: string } | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const { data: tools, isLoading, error } = useQuery({
-    queryKey: ['tools', searchQuery],
+    queryKey: ['tools', searchQuery, selectedCategory],
     queryFn: async () => {
       const tools = await api.getTools();
-      return tools.filter(tool => 
-        tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        tool.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        tool.brand?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        tool.model?.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+      
+      // Apply search filter
+      let filteredTools = searchQuery 
+        ? tools.filter(tool => 
+            tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            tool.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            tool.brand?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            tool.model?.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+        : tools;
+      
+      // Apply category filter
+      if (selectedCategory !== 'All') {
+        filteredTools = filteredTools.filter(tool => 
+          tool.category === selectedCategory
+        );
+      }
+      
+      return filteredTools;
     },
   });
 
@@ -51,6 +66,17 @@ export default function Tools() {
       toast.error('Failed to delete tool');
     }
   };
+
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      setSearchQuery(searchInput);
+    }
+  };
+
+  // Extract unique categories for the dropdown
+  const categoryOptions = tools 
+    ? ['All', ...new Set(tools.map(tool => tool.category))] 
+    : ['All'];
 
   if (isLoading) {
     return <div>Loading tools...</div>;
@@ -111,18 +137,40 @@ export default function Tools() {
       {/* Search */}
       <div className="mt-6">
         <label htmlFor="search" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Search
+          Search (press Enter to search)
         </label>
         <div className="mt-1">
           <input
             type="text"
             name="search"
             id="search"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyDown={handleSearch}
             className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
-            placeholder="Search tools..."
+            placeholder="Search tools... (press Enter to search)"
           />
+        </div>
+      </div>
+
+      {/* Category Filter */}
+      <div className="mt-6">
+        <label htmlFor="category-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Category
+        </label>
+        <div className="mt-1">
+          <select
+            id="category-filter"
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+          >
+            {categoryOptions.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 

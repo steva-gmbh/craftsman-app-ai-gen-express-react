@@ -25,28 +25,21 @@ export default function Jobs() {
   const queryClient = useQueryClient();
   const [selectedType, setSelectedType] = useState('All');
   const [selectedStatus, setSelectedStatus] = useState('All');
+  const [searchInput, setSearchInput] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [jobToDelete, setJobToDelete] = useState<{ id: number; title: string } | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const { data: jobs, isLoading, error } = useQuery({
-    queryKey: ['jobs', selectedType, selectedStatus],
+    queryKey: ['jobs', selectedType, selectedStatus, searchQuery],
     queryFn: async () => {
       const [jobs, customers] = await Promise.all([
         api.getJobs(),
         api.getCustomers(),
       ]);
 
-      // Filter jobs based on selected type and status
-      let filteredJobs = jobs;
-      if (selectedType !== 'All') {
-        filteredJobs = filteredJobs.filter(job => job.title === selectedType);
-      }
-      if (selectedStatus !== 'All') {
-        filteredJobs = filteredJobs.filter(job => job.status === selectedStatus);
-      }
-
       // Map jobs to include customer information
-      return filteredJobs.map(job => {
+      let mappedJobs = jobs.map(job => {
         const customer = customers.find(c => c.id === job.customerId);
         return {
           id: job.id,
@@ -58,6 +51,27 @@ export default function Jobs() {
           description: job.description,
         };
       });
+
+      // Filter jobs based on selected type and status
+      if (selectedType !== 'All') {
+        mappedJobs = mappedJobs.filter(job => job.type === selectedType);
+      }
+      if (selectedStatus !== 'All') {
+        mappedJobs = mappedJobs.filter(job => job.status === selectedStatus);
+      }
+
+      // Filter jobs based on search text
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        mappedJobs = mappedJobs.filter(job => 
+          job.customer.toLowerCase().includes(query) ||
+          job.project.toLowerCase().includes(query) ||
+          job.type.toLowerCase().includes(query) ||
+          job.description.toLowerCase().includes(query)
+        );
+      }
+
+      return mappedJobs;
     },
   });
 
@@ -75,6 +89,12 @@ export default function Jobs() {
       console.error('Failed to delete job:', error);
       setDeleteError(error instanceof Error ? error.message : 'Failed to delete job');
       toast.error('Failed to delete job');
+    }
+  };
+
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      setSearchQuery(searchInput);
     }
   };
 
@@ -131,6 +151,25 @@ export default function Jobs() {
             <IconPlus className="h-5 w-5 inline-block mr-2" stroke={1.5} />
             Add Job
           </button>
+        </div>
+      </div>
+
+      {/* Search */}
+      <div className="mt-6">
+        <label htmlFor="search" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Search (press Enter to search)
+        </label>
+        <div className="mt-1">
+          <input
+            type="text"
+            name="search"
+            id="search"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyDown={handleSearch}
+            className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
+            placeholder="Search jobs... (press Enter to search)"
+          />
         </div>
       </div>
 

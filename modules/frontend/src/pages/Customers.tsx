@@ -18,6 +18,7 @@ interface Customer {
 export default function Customers() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [customerToDelete, setCustomerToDelete] = useState<{ id: number; name: string } | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -28,10 +29,24 @@ export default function Customers() {
       const customers = await api.getCustomers();
       // Count jobs for each customer
       const jobs = await api.getJobs();
-      return customers.map(customer => ({
+      
+      let filteredCustomers = customers.map(customer => ({
         ...customer,
         jobs: jobs.filter(job => job.customerId === customer.id).length
       }));
+      
+      // Apply search filter if query exists
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        filteredCustomers = filteredCustomers.filter(customer => 
+          customer.name.toLowerCase().includes(query) ||
+          customer.email.toLowerCase().includes(query) ||
+          customer.phone.toLowerCase().includes(query) ||
+          customer.address.toLowerCase().includes(query)
+        );
+      }
+      
+      return filteredCustomers;
     },
   });
 
@@ -49,6 +64,12 @@ export default function Customers() {
       console.error('Failed to delete customer:', error);
       setDeleteError(error instanceof Error ? error.message : 'Failed to delete customer');
       toast.error('Failed to delete customer');
+    }
+  };
+
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      setSearchQuery(searchInput);
     }
   };
 
@@ -91,17 +112,18 @@ export default function Customers() {
       {/* Search */}
       <div className="mt-6">
         <label htmlFor="search" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Search
+          Search (press Enter to search)
         </label>
         <div className="mt-1">
           <input
             type="text"
             name="search"
             id="search"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyDown={handleSearch}
             className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
-            placeholder="Search customers..."
+            placeholder="Search customers... (press Enter to search)"
           />
         </div>
       </div>

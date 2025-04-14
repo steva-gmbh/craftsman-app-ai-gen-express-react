@@ -6,6 +6,9 @@ import { api } from '../services/api';
 import { toast } from 'react-hot-toast';
 import DataTable from '../components/DataTable';
 
+// Project statuses for filtering
+const projectStatuses = ['All', 'active', 'completed', 'pending'];
+
 interface Project {
   id: number;
   name: string;
@@ -19,20 +22,57 @@ interface Project {
 export default function Projects() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCustomer, setSelectedCustomer] = useState('All');
+  const [selectedStatus, setSelectedStatus] = useState('All');
   const [projectToDelete, setProjectToDelete] = useState<{ id: number; name: string } | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
+  // Get customers for the combobox
+  const { data: customers, isLoading: isLoadingCustomers } = useQuery({
+    queryKey: ['customers'],
+    queryFn: async () => {
+      return await api.getCustomers();
+    },
+  });
+
   const { data: projects, isLoading, error } = useQuery({
-    queryKey: ['projects', searchQuery],
+    queryKey: ['projects', searchQuery, selectedCustomer, selectedStatus],
     queryFn: async () => {
       const projects = await api.getProjects();
       // Count jobs for each project
       const jobs = await api.getJobs();
-      return projects.map(project => ({
+      
+      let filteredProjects = projects.map(project => ({
         ...project,
         jobCount: jobs.filter(job => job.projectId === project.id).length
       }));
+
+      // Apply text search filter
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        filteredProjects = filteredProjects.filter(project => 
+          project.name.toLowerCase().includes(query) ||
+          project.description?.toLowerCase().includes(query)
+        );
+      }
+
+      // Apply customer filter
+      if (selectedCustomer !== 'All') {
+        filteredProjects = filteredProjects.filter(project => 
+          project.customer?.name === selectedCustomer
+        );
+      }
+
+      // Apply status filter
+      if (selectedStatus !== 'All') {
+        filteredProjects = filteredProjects.filter(project => 
+          project.status === selectedStatus
+        );
+      }
+
+      return filteredProjects;
     },
   });
 
@@ -53,7 +93,18 @@ export default function Projects() {
     }
   };
 
-  if (isLoading) {
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      setSearchQuery(searchInput);
+    }
+  };
+
+  // Extract unique customer names for the dropdown
+  const customerOptions = customers 
+    ? ['All', ...new Set(customers.map(customer => customer.name))]
+    : ['All'];
+
+  if (isLoading || isLoadingCustomers) {
     return <div>Loading projects...</div>;
   }
 
@@ -114,18 +165,57 @@ export default function Projects() {
       {/* Search */}
       <div className="mt-6">
         <label htmlFor="search" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Search
+          Search (press Enter to search)
         </label>
         <div className="mt-1">
           <input
             type="text"
             name="search"
             id="search"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyDown={handleSearch}
             className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
-            placeholder="Search projects..."
+            placeholder="Search projects... (press Enter to search)"
           />
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="mt-6 flex flex-col sm:flex-row gap-4">
+        <div className="flex-1">
+          <label htmlFor="customer-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Customer
+          </label>
+          <select
+            id="customer-filter"
+            value={selectedCustomer}
+            onChange={(e) => setSelectedCustomer(e.target.value)}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+          >
+            {customerOptions.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex-1">
+          <label htmlFor="status-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Status
+          </label>
+          <select
+            id="status-filter"
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value)}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+          >
+            {projectStatuses.map((status) => (
+              <option key={status} value={status}>
+                {status === 'All' ? status : status.charAt(0).toUpperCase() + status.slice(1)}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
