@@ -1,6 +1,7 @@
 # CraftsmanApp
 
-A modern web application for craftsmen to manage their business, inspired by the "hero" application.
+A modern web application with AI assistant for craftsmen to manage their business.
+AI genrated.
 
 ## Features
 
@@ -25,8 +26,8 @@ A modern web application for craftsmen to manage their business, inspired by the
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/craftsman-app.git
-cd craftsman-app
+git clone https://github.com/steva-gmbh/craftsman-app-ai-gen-express-react.git
+cd craftsman-app-ai-gen-express-react
 ```
 
 2. Install dependencies:
@@ -57,7 +58,7 @@ The application will be available at http://localhost:5173.
 ## Project Structure
 
 ```
-craftsman-app/
+craftsman-app-ai-gen-express-react/
 ├── modules/
 │   ├── frontend/
 │   │   ├── src/
