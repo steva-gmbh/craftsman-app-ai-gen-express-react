@@ -23,12 +23,15 @@ export default function ProjectForm() {
   const [jobToDelete, setJobToDelete] = useState<{ id: number; title: string } | null>(null);
 
   // Fetch customers for dropdown
-  const { data: customers, isLoading: isLoadingCustomers } = useQuery({
+  const { data: customersResponse, isLoading: isLoadingCustomers } = useQuery({
     queryKey: ['customers'],
     queryFn: async () => {
       return await api.getCustomers();
     },
   });
+
+  // Get customers array from response
+  const customers = customersResponse?.data || [];
 
   // Fetch jobs for this project
   const { data: projectJobs, isLoading: isLoadingJobs } = useQuery({
@@ -36,7 +39,7 @@ export default function ProjectForm() {
     queryFn: async () => {
       if (!id) return [];
       const allJobs = await api.getJobs();
-      return allJobs.filter(job => job.projectId === Number(id));
+      return allJobs.data.filter(job => job.projectId === Number(id));
     },
     enabled: !!id,
   });
@@ -45,21 +48,16 @@ export default function ProjectForm() {
     if (id) {
       const fetchProject = async () => {
         try {
-          const projects = await api.getProjects();
-          const project = projects.find(p => p.id === Number(id));
-          if (project) {
-            setFormData({
-              name: project.name,
-              description: project.description,
-              status: project.status,
-              budget: project.budget ? project.budget.toString() : '',
-              startDate: project.startDate ? new Date(project.startDate).toISOString().split('T')[0] : '',
-              endDate: project.endDate ? new Date(project.endDate).toISOString().split('T')[0] : '',
-              customerId: project.customerId ? project.customerId.toString() : '',
-            });
-          } else {
-            setError('Project not found');
-          }
+          const project = await api.getProject(Number(id));
+          setFormData({
+            name: project.name,
+            description: project.description,
+            status: project.status,
+            budget: project.budget ? project.budget.toString() : '',
+            startDate: project.startDate ? new Date(project.startDate).toISOString().split('T')[0] : '',
+            endDate: project.endDate ? new Date(project.endDate).toISOString().split('T')[0] : '',
+            customerId: project.customerId ? project.customerId.toString() : '',
+          });
         } catch (err) {
           setError('Failed to load project data');
           console.error(err);

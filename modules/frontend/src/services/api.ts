@@ -473,6 +473,14 @@ export const api = {
     return response.json();
   },
 
+  getProject: async (id: number): Promise<Project> => {
+    const response = await fetch(`${API_BASE_URL}/projects/${id}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch project');
+    }
+    return response.json();
+  },
+
   createProject: async (project: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>): Promise<Project> => {
     const response = await fetch(`${API_BASE_URL}/projects`, {
       method: 'POST',
