@@ -149,6 +149,130 @@ const getMaterialTool = new DynamicStructuredTool({
   },
 }) as unknown as Tool;
 
+// Project-related tools
+const getProjectTool = new DynamicStructuredTool({
+  name: "getProject",
+  description: "Get project information by ID or search for projects by name, status, or customer ID",
+  schema: z.object({
+    id: z.number().optional(),
+    name: z.string().optional(),
+    status: z.string().optional(),
+    customerId: z.number().optional(),
+  }),
+  func: async ({ id, name, status, customerId }) => {
+    console.log(`[AI Agent] Searching for project: ${id ? `ID ${id}` : `with filters: ${JSON.stringify({ name, status, customerId })}`}`);
+    
+    if (id) {
+      const project = await prisma.project.findUnique({
+        where: { id },
+        include: {
+          customer: true,
+          jobs: true,
+        },
+      });
+      return JSON.stringify(project);
+    } else {
+      // Construct where clause based on provided parameters
+      const whereClause: any = {};
+      
+      if (name) {
+        whereClause.name = {
+          contains: name
+        };
+      }
+      
+      if (status) {
+        whereClause.status = status;
+      }
+      
+      if (customerId) {
+        whereClause.customerId = customerId;
+      }
+      
+      const projects = await prisma.project.findMany({
+        where: whereClause,
+        include: {
+          customer: true,
+          jobs: {
+            select: {
+              id: true,
+              title: true,
+              status: true,
+            }
+          },
+        },
+        take: 5  // Limit to top 5 matches
+      });
+
+      if (projects.length === 0) {
+        return "No projects found matching your search criteria";
+      }
+
+      return JSON.stringify(projects);
+    }
+  },
+}) as unknown as Tool;
+
+const createProjectTool = new DynamicStructuredTool({
+  name: "createProject",
+  description: "Create a new project",
+  schema: z.object({
+    name: z.string(),
+    description: z.string(),
+    customerId: z.number().optional(),
+    customerName: z.string().optional(),
+    status: z.string().optional(),
+    budget: z.number().optional(),
+    startDate: z.string().optional(), // ISO date string
+    endDate: z.string().optional(),   // ISO date string
+  }),
+  func: async ({ name, description, customerId, customerName, status, budget, startDate, endDate }) => {
+    console.log(`[AI Agent] Creating new project: ${name} for customer ${customerId || customerName}`);
+    
+    let customerIdToUse = customerId;
+    
+    // If no ID but name is provided, look up the customer by name
+    if (!customerId && customerName) {
+      const customer = await prisma.customer.findFirst({
+        where: {
+          name: {
+            contains: customerName,
+          },
+        },
+      });
+      
+      if (!customer) {
+        return `Customer "${customerName}" not found. Please provide a valid customer name or ID.`;
+      }
+      
+      customerIdToUse = customer.id;
+    }
+    
+    if (!customerIdToUse) {
+      return "You must provide either a customer ID or a customer name.";
+    }
+    
+    const project = await prisma.project.create({
+      data: {
+        name,
+        description,
+        status: status || "active",
+        budget,
+        startDate: startDate ? new Date(startDate) : null,
+        endDate: endDate ? new Date(endDate) : null,
+        customer: {
+          connect: { id: customerIdToUse },
+        },
+      },
+      include: {
+        customer: true,
+      },
+    });
+    
+    return JSON.stringify(project);
+  },
+}) as unknown as Tool;
+
 class OpenPageTool extends Tool {
   name = 'open_page';
   description = 'Opens a specific page in the frontend application. Use this to navigate to different sections of the app. This tool always executes successfully.';
@@ -190,6 +314,8 @@ export async function createAgent() {
     getJobTool,
     createJobTool,
     getMaterialTool,
+    getProjectTool,
+    createProjectTool,
     openPageTool
   ];
 
@@ -209,29 +335,38 @@ export async function createAgent() {
     1. Managing customers and their information
     2. Creating and tracking jobs
     3. Managing materials and inventory
-    4. Opening pages of the frontend application
-    ${tools.length > baseTools.length ? "5. Searching the web for relevant information" : ""}
+    4. Managing projects and associated jobs
+    5. Opening pages of the frontend application
+    ${tools.length > baseTools.length ? "6. Searching the web for relevant information" : ""}
     
     Cretae a plan for how to handle each of these tasks.
     Execute your plan step by step, and respond in clear, human-readable text.
     Immediately stop if you have finished your plan.   
 
     Follow these rules strictly:
-    1. When searching for materials:
-       - If you get a "No materials found" message, say "No materials found matching your search"
-       - If you get a valid JSON response, parse it and present each material's information
-       - For multiple results, list each material separately
+    1. When searching for materials or projects:
+       - If you get a "No materials found" or "No projects found" message, say so clearly
+       - If you get a valid JSON response, parse it and present each item's information
+       - For multiple results, list each item separately
     2. Format each material's information like this:
        Material:
        - Name: <name>
        - Description: <description>
        - Price: <price>
        - Stock: <stock>
-    3. Never repeat the same search
-    4. If information is not found in one attempt, say so immediately
-    5. Always respond in clear, human-readable text
-    6. One search is enough - if you get a response (even null), that's your final answer.
-    8. When you create an new domain object, always open the page with the list of all of those objects.`
+    3. Format each project's information like this:
+       Project:
+       - Name: <name>
+       - Description: <description>
+       - Status: <status>
+       - Budget: <budget>
+       - Customer: <customer name>
+    4. Never repeat the same search
+    5. If information is not found in one attempt, say so immediately
+    6. Always respond in clear, human-readable text
+    7. One search is enough - if you get a response (even null), that's your final answer.
+    8. When you create a new domain object, always open the page with the list of all of those objects.
+    9. When creating a new project, you can specify either a customer ID or a customer name.`
   );
 
   const humanMessage = HumanMessagePromptTemplate.fromTemplate("{input}");
