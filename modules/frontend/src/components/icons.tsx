@@ -11,6 +11,7 @@ import {
   IconTool,
   IconUsersGroup,
   IconHammer,
+  IconReceipt,
   
   // User profile
   IconDoorExit,
@@ -61,6 +62,7 @@ export {
   IconTool,
   IconUsersGroup,
   IconHammer,
+  IconReceipt,
   
   // User profile
   IconDoorExit,

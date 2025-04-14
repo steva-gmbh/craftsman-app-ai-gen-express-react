@@ -10,6 +10,7 @@ import toolsRoutes from './routes/tools';
 import jobToolsRoutes from './routes/jobTools';
 import aiRoutes from './routes/aiRoutes';
 import projectsRoutes from './routes/projects';
+import invoicesRoutes from './routes/invoices';
 
 const app = express();
 
@@ -27,5 +28,6 @@ app.use('/api/tools', toolsRoutes);
 app.use('/api/job-tools', jobToolsRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/projects', projectsRoutes);
+app.use('/api/invoices', invoicesRoutes);
 
 export default app; 

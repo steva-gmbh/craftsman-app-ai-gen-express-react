@@ -273,6 +273,115 @@ const createProjectTool = new DynamicStructuredTool({
   },
 }) as unknown as Tool;
 
+// Invoice-related tools
+const getInvoiceTool = new DynamicStructuredTool({
+  name: "getInvoice",
+  description: "Get invoice information by ID or search for invoices by status or customer ID",
+  schema: z.object({
+    id: z.number().optional(),
+    status: z.string().optional(),
+    customerId: z.number().optional(),
+  }),
+  func: async ({ id, status, customerId }) => {
+    console.log(`[AI Agent] Searching for invoice: ${id ? `ID ${id}` : `with filters: ${JSON.stringify({ status, customerId })}`}`);
+    
+    if (id) {
+      const invoice = await prisma.invoice.findUnique({
+        where: { id },
+        include: {
+          customer: true,
+          projects: true,
+        },
+      });
+      return JSON.stringify(invoice);
+    } else {
+      // Construct where clause based on provided parameters
+      const whereClause: any = {};
+      
+      if (status) {
+        whereClause.status = status;
+      }
+      
+      if (customerId) {
+        whereClause.customerId = customerId;
+      }
+      
+      const invoices = await prisma.invoice.findMany({
+        where: whereClause,
+        include: {
+          customer: true,
+          projects: {
+            select: {
+              id: true,
+              name: true,
+            }
+          },
+        },
+        take: 5  // Limit to top 5 matches
+      });
+
+      if (invoices.length === 0) {
+        return "No invoices found matching your search criteria";
+      }
+
+      return JSON.stringify(invoices);
+    }
+  },
+}) as unknown as Tool;
+
+const createInvoiceTool = new DynamicStructuredTool({
+  name: "createInvoice",
+  description: "Create a new invoice",
+  schema: z.object({
+    invoiceNumber: z.string(),
+    dueDate: z.string(), // ISO date string
+    status: z.string().optional(),
+    totalAmount: z.number(),
+    taxRate: z.number().optional(),
+    taxAmount: z.number(),
+    notes: z.string().optional(),
+    customerId: z.number(),
+    projectIds: z.array(z.number()).optional(),
+  }),
+  func: async ({ invoiceNumber, dueDate, status, totalAmount, taxRate, taxAmount, notes, customerId, projectIds }) => {
+    console.log(`[AI Agent] Creating new invoice: ${invoiceNumber} for customer ${customerId}`);
+    
+    const invoice = await prisma.invoice.create({
+      data: {
+        invoiceNumber,
+        dueDate: new Date(dueDate),
+        status: status || "draft",
+        totalAmount,
+        taxRate: taxRate || 0,
+        taxAmount,
+        notes,
+        customer: {
+          connect: { id: customerId },
+        },
+      },
+      include: {
+        customer: true,
+      },
+    });
+    
+    // Connect projects to the invoice if provided
+    if (projectIds && projectIds.length > 0) {
+      for (const projectId of projectIds) {
+        await prisma.project.update({
+          where: { id: projectId },
+          data: {
+            invoice: {
+              connect: { id: invoice.id },
+            },
+          },
+        });
+      }
+    }
+    
+    return JSON.stringify(invoice);
+  },
+}) as unknown as Tool;
+
 class OpenPageTool extends Tool {
   name = 'open_page';
   description = 'Opens a specific page in the frontend application. Use this to navigate to different sections of the app. This tool always executes successfully.';
@@ -316,6 +425,8 @@ export async function createAgent() {
     getMaterialTool,
     getProjectTool,
     createProjectTool,
+    getInvoiceTool,
+    createInvoiceTool,
     openPageTool
   ];
 
@@ -336,8 +447,9 @@ export async function createAgent() {
     2. Creating and tracking jobs
     3. Managing materials and inventory
     4. Managing projects and associated jobs
-    5. Opening pages of the frontend application
-    ${tools.length > baseTools.length ? "6. Searching the web for relevant information" : ""}
+    5. Managing invoices for customers and projects
+    6. Opening pages of the frontend application
+    ${tools.length > baseTools.length ? "7. Searching the web for relevant information" : ""}
     
     Cretae a plan for how to handle each of these tasks.
     Execute your plan step by step, and respond in clear, human-readable text.

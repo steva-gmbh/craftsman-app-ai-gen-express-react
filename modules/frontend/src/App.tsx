@@ -21,6 +21,8 @@ import Users from './pages/Users';
 import UserForm from './pages/UserForm';
 import Projects from './pages/Projects';
 import ProjectForm from './pages/ProjectForm';
+import Invoices from './pages/Invoices';
+import InvoiceForm from './pages/InvoiceForm';
 import UserSettingsDialog from './components/UserSettingsDialog';
 import { api, Customer, Job } from './services/api';
 
@@ -70,12 +72,14 @@ function App() {
 
       try {
         setLoading(true);
-        const [customersData, jobsData] = await Promise.all([
+        const [customersResponse, jobsResponse] = await Promise.all([
           api.getCustomers(),
           api.getJobs(),
         ]);
-        setCustomers(customersData);
-        setJobs(jobsData);
+        
+        setCustomers(customersResponse.data || []);
+        setJobs(jobsResponse.data || []);
+        
         setError(null);
       } catch (err) {
         setError('Failed to fetch data');
@@ -140,6 +144,10 @@ function App() {
                                   <Route path="/projects" element={<Projects />} />
                                   <Route path="/projects/new" element={<ProjectForm />} />
                                   <Route path="/projects/:id" element={<ProjectForm />} />
+                                  <Route path="/invoices" element={<Invoices />} />
+                                  <Route path="/invoices/new" element={<InvoiceForm />} />
+                                  <Route path="/invoices/:id" element={<InvoiceForm />} />
+                                  <Route path="/invoices/:id/edit" element={<InvoiceForm />} />
                                 </Routes>
                               )}
                             </div>

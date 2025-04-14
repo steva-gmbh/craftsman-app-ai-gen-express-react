@@ -12,6 +12,7 @@ import {
   IconTool,
   IconUsersGroup,
   IconHammer,
+  IconReceipt,
 } from './icons';
 
 interface SidebarProps {
@@ -39,6 +40,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open }) => {
     { name: 'Customers', href: '/customers', icon: IconUsersGroup },
     { name: 'Projects', href: '/projects', icon: IconHammer },
     { name: 'Jobs', href: '/jobs', icon: IconBriefcase },
+    { name: 'Invoices', href: '/invoices', icon: IconReceipt },
     { name: 'Materials', href: '/materials', icon: IconBox },
     { name: 'Tools', href: '/tools', icon: IconTool },
   ];

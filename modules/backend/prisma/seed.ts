@@ -599,12 +599,6 @@ async function main() {
   const projectIds: { [key: string]: number } = {};
   for (const project of projects) {
     try {
-      const customerId = customerIds[project.customerName];
-      if (!customerId) {
-        console.error(`Customer ${project.customerName} not found for project ${project.name}`);
-        continue;
-      }
-
       const createdProject = await prisma.project.create({
         data: {
           name: project.name,
@@ -613,7 +607,9 @@ async function main() {
           budget: project.budget,
           startDate: project.startDate,
           endDate: project.endDate,
-          customerId: customerId
+          customer: {
+            connect: { id: customerIds[project.customerName] },
+          }
         }
       });
       projectIds[project.name] = createdProject.id;
@@ -623,6 +619,123 @@ async function main() {
   }
 
   console.log('Demo projects created successfully');
+
+  // Create demo invoices
+  const invoices = [
+    {
+      invoiceNumber: "INV-2024-001",
+      issueDate: new Date('2024-02-15'),
+      dueDate: new Date('2024-03-15'),
+      status: "paid",
+      totalAmount: 15000.00,
+      taxRate: 0.07,
+      taxAmount: 1050.00,
+      notes: "Initial payment for Smith Residence Renovation",
+      customerName: "John Smith",
+      projectNames: ["Smith Residence Renovation"]
+    },
+    {
+      invoiceNumber: "INV-2024-002",
+      issueDate: new Date('2024-02-20'),
+      dueDate: new Date('2024-03-20'),
+      status: "paid",
+      totalAmount: 12000.00,
+      taxRate: 0.07,
+      taxAmount: 840.00,
+      notes: "Initial payment for Johnson House Remodel",
+      customerName: "Sarah Johnson",
+      projectNames: ["Johnson House Remodel"]
+    },
+    {
+      invoiceNumber: "INV-2024-003",
+      issueDate: new Date('2024-03-05'),
+      dueDate: new Date('2024-04-05'),
+      status: "sent",
+      totalAmount: 10000.00,
+      taxRate: 0.07,
+      taxAmount: 700.00,
+      notes: "Initial payment for Brown Kitchen Upgrade",
+      customerName: "Michael Brown",
+      projectNames: ["Brown Kitchen Upgrade"]
+    },
+    {
+      invoiceNumber: "INV-2024-004",
+      issueDate: new Date('2024-04-01'),
+      dueDate: new Date('2024-05-01'),
+      status: "draft",
+      totalAmount: 20000.00,
+      taxRate: 0.07,
+      taxAmount: 1400.00,
+      notes: "Second payment for Smith Residence Renovation",
+      customerName: "John Smith",
+      projectNames: ["Smith Residence Renovation"]
+    },
+    {
+      invoiceNumber: "INV-2024-005",
+      issueDate: new Date('2024-04-10'),
+      dueDate: new Date('2024-05-10'),
+      status: "draft",
+      totalAmount: 8000.00,
+      taxRate: 0.07,
+      taxAmount: 560.00,
+      notes: "Johnson Basement project progress payment",
+      customerName: "Sarah Johnson",
+      projectNames: ["Johnson Basement Conversion"]
+    }
+  ];
+
+  // Create invoices
+  const invoiceIds: { [key: string]: number } = {};
+  for (const invoice of invoices) {
+    try {
+      const createdInvoice = await prisma.invoice.upsert({
+        where: { invoiceNumber: invoice.invoiceNumber },
+        update: {
+          issueDate: invoice.issueDate,
+          dueDate: invoice.dueDate,
+          status: invoice.status,
+          totalAmount: invoice.totalAmount,
+          taxRate: invoice.taxRate,
+          taxAmount: invoice.taxAmount,
+          notes: invoice.notes,
+          customer: {
+            connect: { id: customerIds[invoice.customerName] }
+          }
+        },
+        create: {
+          invoiceNumber: invoice.invoiceNumber,
+          issueDate: invoice.issueDate,
+          dueDate: invoice.dueDate,
+          status: invoice.status,
+          totalAmount: invoice.totalAmount,
+          taxRate: invoice.taxRate,
+          taxAmount: invoice.taxAmount,
+          notes: invoice.notes,
+          customer: {
+            connect: { id: customerIds[invoice.customerName] }
+          }
+        }
+      });
+      
+      // Connect projects to invoice
+      for (const projectName of invoice.projectNames) {
+        await prisma.project.update({
+          where: { id: projectIds[projectName] },
+          data: {
+            invoice: {
+              connect: { id: createdInvoice.id }
+            }
+          }
+        });
+      }
+      
+      invoiceIds[invoice.invoiceNumber] = createdInvoice.id;
+    } catch (error) {
+      console.error(`Failed to create invoice ${invoice.invoiceNumber}:`, error);
+    }
+  }
+
+  console.log('Demo invoices created successfully');
 
   // Create demo jobs with proper customer connections
   const jobs = [

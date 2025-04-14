@@ -93,6 +93,25 @@ export interface Project {
   customerId: number;
   customer?: Customer;
   jobs?: Job[];
+  invoiceId?: number;
+  invoice?: Invoice;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface Invoice {
+  id: number;
+  invoiceNumber: string;
+  issueDate: Date;
+  dueDate: Date;
+  status: string; // draft, sent, paid, overdue, cancelled
+  totalAmount: number;
+  taxRate: number;
+  taxAmount: number;
+  notes?: string;
+  customerId: number;
+  customer?: Customer;
+  projects?: Project[];
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -563,5 +582,62 @@ export const api = {
       throw new Error('Failed to update user settings');
     }
     return response.json();
+  },
+
+  // Invoice endpoints
+  getInvoices: async (params?: PaginationParams): Promise<PaginatedResponse<Invoice>> => {
+    const queryParams = params 
+      ? `?page=${params.page}&limit=${params.limit}` 
+      : '';
+    const response = await fetch(`${API_BASE_URL}/invoices${queryParams}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch invoices');
+    }
+    return response.json();
+  },
+
+  getInvoice: async (id: number): Promise<Invoice> => {
+    const response = await fetch(`${API_BASE_URL}/invoices/${id}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch invoice');
+    }
+    return response.json();
+  },
+
+  createInvoice: async (invoice: Omit<Invoice, 'id'>): Promise<Invoice> => {
+    const response = await fetch(`${API_BASE_URL}/invoices`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(invoice),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to create invoice');
+    }
+    return response.json();
+  },
+
+  updateInvoice: async (id: number, invoice: Partial<Omit<Invoice, 'id'>>): Promise<Invoice> => {
+    const response = await fetch(`${API_BASE_URL}/invoices/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(invoice),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to update invoice');
+    }
+    return response.json();
+  },
+
+  deleteInvoice: async (id: number): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/invoices/${id}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      throw new Error('Failed to delete invoice');
+    }
   },
 }; 
