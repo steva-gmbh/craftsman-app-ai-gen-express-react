@@ -237,6 +237,14 @@ export const api = {
     return response.json();
   },
 
+  getMaterial: async (id: number): Promise<Material> => {
+    const response = await fetch(`${API_BASE_URL}/materials/${id}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch material');
+    }
+    return response.json();
+  },
+
   createMaterial: async (material: Omit<Material, 'id' | 'createdAt' | 'updatedAt'>): Promise<Material> => {
     const response = await fetch(`${API_BASE_URL}/materials`, {
       method: 'POST',

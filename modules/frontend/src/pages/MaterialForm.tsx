@@ -30,26 +30,21 @@ export default function MaterialForm() {
     if (id) {
       const fetchMaterial = async () => {
         try {
-          const materials = await api.getMaterials();
-          const material = materials.find(m => m.id === Number(id));
-          if (material) {
-            setFormData({
-              name: material.name,
-              description: material.description || '',
-              unit: material.unit,
-              costPerUnit: material.costPerUnit.toString(),
-              color: material.color || '',
-              brand: material.brand || '',
-              supplier: material.supplier || '',
-              category: material.category,
-              stock: material.stock.toString(),
-              minStock: material.minStock.toString(),
-              location: material.location || '',
-              notes: material.notes || '',
-            });
-          } else {
-            setError('Material not found');
-          }
+          const material = await api.getMaterial(Number(id));
+          setFormData({
+            name: material.name,
+            description: material.description || '',
+            unit: material.unit,
+            costPerUnit: material.costPerUnit.toString(),
+            color: material.color || '',
+            brand: material.brand || '',
+            supplier: material.supplier || '',
+            category: material.category,
+            stock: material.stock.toString(),
+            minStock: material.minStock.toString(),
+            location: material.location || '',
+            notes: material.notes || '',
+          });
         } catch (err) {
           setError('Failed to load material data');
           console.error(err);
