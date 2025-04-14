@@ -19,18 +19,13 @@ export default function CustomerForm() {
     if (id) {
       const fetchCustomer = async () => {
         try {
-          const customers = await api.getCustomers();
-          const customer = customers.find(c => c.id === Number(id));
-          if (customer) {
-            setFormData({
-              name: customer.name,
-              email: customer.email,
-              phone: customer.phone,
-              address: customer.address,
-            });
-          } else {
-            setError('Customer not found');
-          }
+          const customer = await api.getCustomer(Number(id));
+          setFormData({
+            name: customer.name,
+            email: customer.email,
+            phone: customer.phone,
+            address: customer.address,
+          });
         } catch (err) {
           setError('Failed to load customer data');
           console.error(err);

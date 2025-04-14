@@ -123,6 +123,14 @@ export const api = {
     return response.json();
   },
 
+  getCustomer: async (id: number): Promise<Customer> => {
+    const response = await fetch(`${API_BASE_URL}/customers/${id}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch customer');
+    }
+    return response.json();
+  },
+
   createCustomer: async (customer: Omit<Customer, 'id'>): Promise<Customer> => {
     const response = await fetch(`${API_BASE_URL}/customers`, {
       method: 'POST',
