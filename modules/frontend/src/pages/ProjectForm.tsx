@@ -136,7 +136,7 @@ export default function ProjectForm() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6 bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+      <form id="project-form" onSubmit={handleSubmit} className="space-y-6 bg-white dark:bg-gray-800 shadow rounded-lg p-6">
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             Project Name
@@ -251,23 +251,6 @@ export default function ProjectForm() {
             />
           </div>
         </div>
-
-        <div className="flex justify-end space-x-3">
-          <button
-            type="button"
-            onClick={() => navigate('/projects')}
-            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 h-10"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 h-10"
-          >
-            {isSubmitting ? 'Saving...' : id ? 'Save Changes' : 'Save Project'}
-          </button>
-        </div>
       </form>
 
       {/* Jobs List Section - Only show for existing projects */}
@@ -364,6 +347,25 @@ export default function ProjectForm() {
           )}
         </div>
       )}
+
+      {/* Form action buttons moved to the bottom */}
+      <div className="mt-8 flex justify-end space-x-3">
+        <button
+          type="button"
+          onClick={() => navigate('/projects')}
+          className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 h-10"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          form="project-form" 
+          disabled={isSubmitting}
+          className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 h-10"
+        >
+          {isSubmitting ? 'Saving...' : id ? 'Save Changes' : 'Save Project'}
+        </button>
+      </div>
 
       {/* Delete Job Confirmation Dialog */}
       {jobToDelete && (
