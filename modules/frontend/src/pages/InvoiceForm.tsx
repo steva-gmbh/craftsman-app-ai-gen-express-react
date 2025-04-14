@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api, Invoice, Customer, Project } from '../services/api';
 import { toast } from 'react-hot-toast';
+import { IconPlus, IconTrash } from '../components/icons';
 
 // Define a form state interface to use string dates for form inputs
 interface InvoiceFormState {
@@ -24,7 +25,9 @@ const InvoiceForm: React.FC = () => {
   const isEditMode = id !== 'new' && !!id;
   const [isLoading, setIsLoading] = useState(true);
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [selectedProject, setSelectedProject] = useState<string>('');
   const [availableProjects, setAvailableProjects] = useState<Project[]>([]);
+  const [assignedProjects, setAssignedProjects] = useState<Project[]>([]);
   const [formData, setFormData] = useState<InvoiceFormState>({
     invoiceNumber: '',
     issueDate: new Date().toISOString().split('T')[0],
@@ -66,9 +69,15 @@ const InvoiceForm: React.FC = () => {
           // If customer is selected, fetch their projects
           if (invoice.customerId) {
             const projectsResponse = await api.getProjects();
-            setAvailableProjects((projectsResponse.data || []).filter(
+            const customerProjects = (projectsResponse.data || []).filter(
               project => project.customerId === invoice.customerId
-            ));
+            );
+            setAvailableProjects(customerProjects);
+            
+            // Set assigned projects
+            if (invoice.projects && invoice.projects.length > 0) {
+              setAssignedProjects(invoice.projects);
+            }
           }
         }
       } catch (error) {
@@ -88,14 +97,29 @@ const InvoiceForm: React.FC = () => {
       if (formData.customerId) {
         try {
           const projectsResponse = await api.getProjects();
-          setAvailableProjects((projectsResponse.data || []).filter(
+          const customerProjects = (projectsResponse.data || []).filter(
             project => project.customerId === formData.customerId
-          ));
+          );
+          setAvailableProjects(customerProjects);
+          
+          // Filter assigned projects to only include this customer's projects
+          if (assignedProjects.length > 0) {
+            const filteredProjects = assignedProjects.filter(
+              project => project.customerId === formData.customerId
+            );
+            setAssignedProjects(filteredProjects);
+            setFormData(prev => ({
+              ...prev,
+              projectIds: filteredProjects.map(p => p.id)
+            }));
+          }
         } catch (error) {
           console.error('Error fetching projects:', error);
         }
       } else {
         setAvailableProjects([]);
+        setAssignedProjects([]);
+        setFormData(prev => ({ ...prev, projectIds: [] }));
       }
     };
 
@@ -164,6 +188,32 @@ const InvoiceForm: React.FC = () => {
       console.error('Error saving invoice:', error);
       toast.error('Failed to save invoice');
     }
+  };
+
+  const handleAddProject = () => {
+    if (!selectedProject) return;
+    
+    const projectId = parseInt(selectedProject);
+    const projectToAdd = availableProjects.find(p => p.id === projectId);
+    
+    if (projectToAdd && !formData.projectIds?.includes(projectId)) {
+      setAssignedProjects(prev => [...prev, projectToAdd]);
+      setFormData(prev => ({
+        ...prev,
+        projectIds: [...(prev.projectIds || []), projectId]
+      }));
+      setSelectedProject('');
+      toast.success('Project added');
+    }
+  };
+
+  const handleRemoveProject = (projectId: number) => {
+    setAssignedProjects(prev => prev.filter(p => p.id !== projectId));
+    setFormData(prev => ({
+      ...prev,
+      projectIds: (prev.projectIds || []).filter(id => id !== projectId)
+    }));
+    toast.success('Project removed');
   };
 
   if (isLoading) {
@@ -322,40 +372,76 @@ const InvoiceForm: React.FC = () => {
             Projects
           </label>
           {formData.customerId ? (
-            availableProjects.length > 0 ? (
-              <div className="mt-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-700 max-h-60 overflow-y-auto p-2">
-                {availableProjects.map(project => (
-                  <div key={project.id} className="flex items-start p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded">
-                    <input
-                      type="checkbox"
-                      id={`project-${project.id}`}
-                      checked={formData.projectIds?.includes(project.id) || false}
-                      onChange={(e) => {
-                        const isChecked = e.target.checked;
-                        setFormData(prev => {
-                          const currentProjects = prev.projectIds || [];
-                          return {
-                            ...prev,
-                            projectIds: isChecked
-                              ? [...currentProjects, project.id]
-                              : currentProjects.filter(id => id !== project.id)
-                          };
-                        });
-                      }}
-                      className="h-4 w-4 mt-1 text-indigo-600 border-gray-300 rounded"
-                    />
-                    <label htmlFor={`project-${project.id}`} className="ml-3 block text-sm text-gray-700 dark:text-gray-300">
-                      <div className="font-medium">{project.name}</div>
-                      <div className="text-gray-500 dark:text-gray-400 text-xs">{project.description}</div>
-                    </label>
-                  </div>
-                ))}
+            <>
+              <div className="flex gap-4 mb-4">
+                <select
+                  value={selectedProject}
+                  onChange={(e) => setSelectedProject(e.target.value)}
+                  className="flex-1 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
+                >
+                  <option value="">Select a project</option>
+                  {availableProjects
+                    .filter(project => !formData.projectIds?.includes(project.id))
+                    .map(project => (
+                      <option key={project.id} value={project.id}>
+                        {project.name}
+                      </option>
+                    ))}
+                </select>
+                
+                <button
+                  type="button"
+                  onClick={handleAddProject}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 h-10"
+                >
+                  <IconPlus className="h-5 w-5 mr-2" />
+                  Add
+                </button>
               </div>
-            ) : (
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                No projects found for this customer. <a href="/projects/new" className="text-indigo-600 dark:text-indigo-400 hover:underline">Create a new project</a>.
-              </p>
-            )
+
+              {assignedProjects.length > 0 ? (
+                <div className="mt-4">
+                  <table className="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
+                    <thead className="bg-gray-50 dark:bg-gray-700">
+                      <tr>
+                        <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Project</th>
+                        <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Status</th>
+                        <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Budget</th>
+                        <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 dark:divide-gray-600 bg-white dark:bg-gray-800">
+                      {assignedProjects.map((project) => (
+                        <tr key={project.id}>
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                            {project.name}
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                            {project.status}
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                            {project.budget ? `$${project.budget.toFixed(2)}` : 'N/A'}
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveProject(project.id)}
+                              className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                            >
+                              <IconTrash className="h-5 w-5" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  No projects assigned to this invoice yet.
+                </p>
+              )}
+            </>
           ) : (
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               Please select a customer to view available projects.
@@ -390,7 +476,7 @@ const InvoiceForm: React.FC = () => {
             type="submit"
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
           >
-            {isEditMode ? 'Update Invoice' : 'Create Invoice'}
+            {isEditMode ? 'Save Changes' : 'Create Invoice'}
           </button>
         </div>
       </form>
