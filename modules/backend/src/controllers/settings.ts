@@ -93,9 +93,6 @@ export const updateSettings = async (req: Request, res: Response) => {
     const { userId } = req.params;
     const { profile, business, billing, notifications, appearance, pagination } = req.body;
 
-    console.log('Updating settings for user:', userId);
-    console.log('Request body:', req.body);
-
     // First check if settings exist
     const existingSettings = await prisma.settings.findUnique({
       where: {
@@ -103,11 +100,8 @@ export const updateSettings = async (req: Request, res: Response) => {
       },
     });
 
-    console.log('Existing settings:', existingSettings);
-
     let settings;
     if (!existingSettings) {
-      console.log('Creating new settings for user:', userId);
       // If settings don't exist, create them
       settings = await prisma.settings.create({
         data: {
@@ -124,7 +118,6 @@ export const updateSettings = async (req: Request, res: Response) => {
         },
       });
     } else {
-      console.log('Updating existing settings for user:', userId);
       // If settings exist, update them
       settings = await prisma.settings.update({
         where: {
@@ -144,7 +137,6 @@ export const updateSettings = async (req: Request, res: Response) => {
       });
     }
 
-    console.log('Settings after update:', settings);
     res.json(settings);
   } catch (error) {
     console.error('Error updating settings:', error);
