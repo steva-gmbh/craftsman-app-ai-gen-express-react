@@ -27,8 +27,6 @@ export default function JobForm() {
     startDate: '',
     endDate: '',
   });
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [projects, setProjects] = useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedMaterial, setSelectedMaterial] = useState<string>('');
@@ -36,15 +34,49 @@ export default function JobForm() {
   const [selectedTool, setSelectedTool] = useState<string>('');
   const [toolAmount, setToolAmount] = useState<string>('');
 
-  const { data: materials } = useQuery({
-    queryKey: ['materials'],
-    queryFn: api.getMaterials,
+  // Fetch customers
+  const { data: customersResponse, isLoading: isLoadingCustomers } = useQuery({
+    queryKey: ['customers'],
+    queryFn: async () => {
+      return await api.getCustomers();
+    },
   });
 
-  const { data: tools } = useQuery({
-    queryKey: ['tools'],
-    queryFn: api.getTools,
+  // Get customers array from response
+  const customers = customersResponse?.data || [];
+
+  // Fetch projects
+  const { data: projectsResponse, isLoading: isLoadingProjects } = useQuery({
+    queryKey: ['projects'],
+    queryFn: async () => {
+      return await api.getProjects();
+    },
   });
+
+  // Get projects array from response
+  const projects = projectsResponse?.data || [];
+
+  // Fetch materials
+  const { data: materialsResponse, isLoading: isLoadingMaterials } = useQuery({
+    queryKey: ['materials'],
+    queryFn: async () => {
+      return await api.getMaterials();
+    },
+  });
+
+  // Get materials array from response
+  const materials = materialsResponse?.data || [];
+
+  // Fetch tools
+  const { data: toolsResponse, isLoading: isLoadingTools } = useQuery({
+    queryKey: ['tools'],
+    queryFn: async () => {
+      return await api.getTools();
+    },
+  });
+
+  // Get tools array from response
+  const tools = toolsResponse?.data || [];
 
   const { data: jobMaterials } = useQuery({
     queryKey: ['jobMaterials', id],
@@ -59,48 +91,20 @@ export default function JobForm() {
   });
 
   useEffect(() => {
-    const fetchCustomers = async () => {
-      try {
-        const customersData = await api.getCustomers();
-        setCustomers(customersData);
-      } catch (err) {
-        setError('Failed to load customers');
-        console.error(err);
-      }
-    };
-
-    const fetchProjects = async () => {
-      try {
-        const projectsData = await api.getProjects();
-        setProjects(projectsData);
-      } catch (err) {
-        setError('Failed to load projects');
-        console.error(err);
-      }
-    };
-
-    fetchCustomers();
-    fetchProjects();
-
     if (id) {
       const fetchJob = async () => {
         try {
-          const jobs = await api.getJobs();
-          const job = jobs.find(j => j.id === Number(id));
-          if (job) {
-            setFormData({
-              title: job.title,
-              description: job.description,
-              status: job.status,
-              customerId: job.customerId.toString(),
-              projectId: job.projectId ? job.projectId.toString() : '',
-              price: job.price?.toString() || '',
-              startDate: job.startDate ? new Date(job.startDate).toISOString().split('T')[0] : '',
-              endDate: job.endDate ? new Date(job.endDate).toISOString().split('T')[0] : '',
-            });
-          } else {
-            setError('Job not found');
-          }
+          const job = await api.getJob(Number(id));
+          setFormData({
+            title: job.title,
+            description: job.description,
+            status: job.status,
+            customerId: job.customerId.toString(),
+            projectId: job.projectId ? job.projectId.toString() : '',
+            price: job.price?.toString() || '',
+            startDate: job.startDate ? new Date(job.startDate).toISOString().split('T')[0] : '',
+            endDate: job.endDate ? new Date(job.endDate).toISOString().split('T')[0] : '',
+          });
         } catch (err) {
           setError('Failed to load job data');
           console.error(err);

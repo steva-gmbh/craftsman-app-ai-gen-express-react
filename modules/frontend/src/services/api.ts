@@ -180,6 +180,14 @@ export const api = {
     return response.json();
   },
 
+  getJob: async (id: number): Promise<Job> => {
+    const response = await fetch(`${API_BASE_URL}/jobs/${id}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch job');
+    }
+    return response.json();
+  },
+
   createJob: async (job: Omit<Job, 'id'>): Promise<Job> => {
     const response = await fetch(`${API_BASE_URL}/jobs`, {
       method: 'POST',
