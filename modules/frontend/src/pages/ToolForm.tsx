@@ -26,23 +26,18 @@ export default function ToolForm() {
     if (id) {
       const fetchTool = async () => {
         try {
-          const tools = await api.getTools();
-          const tool = tools.find(t => t.id === Number(id));
-          if (tool) {
-            setFormData({
-              name: tool.name,
-              description: tool.description || '',
-              category: tool.category,
-              brand: tool.brand || '',
-              model: tool.model || '',
-              purchaseDate: tool.purchaseDate ? new Date(tool.purchaseDate).toISOString().split('T')[0] : '',
-              purchasePrice: tool.purchasePrice?.toString() || '',
-              location: tool.location || '',
-              notes: tool.notes || '',
-            });
-          } else {
-            setError('Tool not found');
-          }
+          const tool = await api.getTool(Number(id));
+          setFormData({
+            name: tool.name,
+            description: tool.description || '',
+            category: tool.category,
+            brand: tool.brand || '',
+            model: tool.model || '',
+            purchaseDate: tool.purchaseDate ? new Date(tool.purchaseDate).toISOString().split('T')[0] : '',
+            purchasePrice: tool.purchasePrice?.toString() || '',
+            location: tool.location || '',
+            notes: tool.notes || '',
+          });
         } catch (err) {
           setError('Failed to load tool data');
           console.error(err);

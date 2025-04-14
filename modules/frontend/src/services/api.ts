@@ -340,6 +340,14 @@ export const api = {
     return response.json();
   },
 
+  getTool: async (id: number): Promise<Tool> => {
+    const response = await fetch(`${API_BASE_URL}/tools/${id}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch tool');
+    }
+    return response.json();
+  },
+
   createTool: async (tool: Omit<Tool, 'id' | 'createdAt' | 'updatedAt'>): Promise<Tool> => {
     const response = await fetch(`${API_BASE_URL}/tools`, {
       method: 'POST',
