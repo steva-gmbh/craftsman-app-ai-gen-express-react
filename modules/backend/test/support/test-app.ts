@@ -1,4 +1,4 @@
-import express, { Router } from 'express';
+import express, { Router, Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 
 // Import controllers
@@ -45,6 +45,14 @@ import {
   getJobTools,
   addJobTool
 } from '../../src/controllers/jobs';
+
+import {
+  getProjects,
+  getProjectById,
+  createProject,
+  updateProject,
+  deleteProject
+} from '../../src/controllers/projects';
 
 // Initialize PrismaClient with connection to test database
 const prismaOptions = {
@@ -123,6 +131,110 @@ jobRouter.get('/:id/tools', getJobTools);
 jobRouter.post('/:id/tools', addJobTool);
 
 app.use('/api/jobs', jobRouter);
+
+// Setup project routes
+const projectRouter = Router();
+projectRouter.get('/', getProjects);
+projectRouter.get('/:id', getProjectById);
+projectRouter.post('/', createProject);
+projectRouter.put('/:id', updateProject);
+projectRouter.delete('/:id', deleteProject);
+
+// Project-Job relationship routes
+projectRouter.post('/:id/jobs', async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { jobId } = req.body;
+  
+  try {
+    // Check if project exists
+    const project = await prisma.project.findUnique({
+      where: { id: Number(id) },
+      include: { jobs: true }
+    });
+    
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+    
+    // Check if job exists
+    const job = await prisma.job.findUnique({
+      where: { id: Number(jobId) }
+    });
+    
+    if (!job) {
+      return res.status(404).json({ error: 'Job not found' });
+    }
+    
+    // Update the job to belong to this project
+    await prisma.job.update({
+      where: { id: Number(jobId) },
+      data: { projectId: Number(id) }
+    });
+    
+    // Return the updated project with jobs
+    const updatedProject = await prisma.project.findUnique({
+      where: { id: Number(id) },
+      include: {
+        customer: true,
+        jobs: true
+      }
+    });
+    
+    res.json(updatedProject);
+  } catch (error) {
+    console.error('Error adding job to project:', error);
+    res.status(500).json({ error: 'Failed to add job to project' });
+  }
+});
+
+projectRouter.delete('/:id/jobs/:jobId', async (req: Request, res: Response) => {
+  const { id, jobId } = req.params;
+  
+  try {
+    // Check if project exists
+    const project = await prisma.project.findUnique({
+      where: { id: Number(id) }
+    });
+    
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+    
+    // Check if job exists and belongs to the project
+    const job = await prisma.job.findFirst({
+      where: { 
+        id: Number(jobId),
+        projectId: Number(id)
+      }
+    });
+    
+    if (!job) {
+      return res.status(404).json({ error: 'Job not found' });
+    }
+    
+    // Update job to remove project reference
+    await prisma.job.update({
+      where: { id: Number(jobId) },
+      data: { projectId: null }
+    });
+    
+    // Return the updated project with jobs
+    const updatedProject = await prisma.project.findUnique({
+      where: { id: Number(id) },
+      include: {
+        customer: true,
+        jobs: true
+      }
+    });
+    
+    res.json(updatedProject);
+  } catch (error) {
+    console.error('Error removing job from project:', error);
+    res.status(500).json({ error: 'Failed to remove job from project' });
+  }
+});
+
+app.use('/api/projects', projectRouter);
 
 // Export prisma client for use in tests
 export const prisma = new PrismaClient(prismaOptions); 
