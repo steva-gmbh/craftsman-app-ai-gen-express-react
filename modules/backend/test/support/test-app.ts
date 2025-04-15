@@ -26,6 +26,14 @@ import {
   deleteTool
 } from '../../src/controllers/tools';
 
+import {
+  getMaterials,
+  getMaterial,
+  createMaterial,
+  updateMaterial,
+  deleteMaterial
+} from '../../src/controllers/materials';
+
 // Create Express app with customer routes
 export const app = express();
 app.use(express.json());
@@ -64,6 +72,16 @@ toolRouter.put('/:id', updateTool);
 toolRouter.delete('/:id', deleteTool);
 
 app.use('/api/tools', toolRouter);
+
+// Setup material routes
+const materialRouter = Router();
+materialRouter.get('/', getMaterials);
+materialRouter.get('/:id', getMaterial);
+materialRouter.post('/', createMaterial);
+materialRouter.put('/:id', updateMaterial);
+materialRouter.delete('/:id', deleteMaterial);
+
+app.use('/api/materials', materialRouter);
 
 // Export prisma client for use in tests
 export const prisma = new PrismaClient(); 

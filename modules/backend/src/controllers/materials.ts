@@ -146,11 +146,34 @@ export const updateMaterial = async (req: Request, res: Response) => {
 export const deleteMaterial = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    await prisma.material.delete({
-      where: {
-        id: Number(id),
-      },
+    const materialId = Number(id);
+    
+    // First check if the material exists
+    const material = await prisma.material.findUnique({
+      where: { id: materialId },
+      include: {
+        jobs: true // Include associated job-material relationships
+      }
     });
+    
+    if (!material) {
+      return res.status(404).json({ error: 'Material not found' });
+    }
+    
+    // Delete any job-material associations first
+    if (material.jobs.length > 0) {
+      await prisma.jobMaterial.deleteMany({
+        where: { 
+          materialId: materialId 
+        }
+      });
+    }
+    
+    // Now delete the material
+    await prisma.material.delete({
+      where: { id: materialId },
+    });
+    
     res.status(204).send();
   } catch (error) {
     console.error('Error deleting material:', error);
