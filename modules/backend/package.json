@@ -11,8 +11,8 @@
     "generate": "prisma generate",
     "studio": "prisma studio",
     "seed": "ts-node prisma/seed.ts",
-    "test": "jest",
-    "test:cucumber": "cucumber-js",
+    "test": "NODE_ENV=test TEST_TYPE=unit jest",
+    "test:cucumber": "NODE_ENV=test TEST_TYPE=integration cucumber-js",
     "test:all": "npm run test && npm run test:cucumber"
   },
   "keywords": [],

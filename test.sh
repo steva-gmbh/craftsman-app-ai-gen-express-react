@@ -18,7 +18,24 @@ if [ ! -f "package.json" ]; then
   exit 1
 fi
 
+echo -e "${YELLOW}=== Setting up test database ===${NC}"
+# Set DATABASE_URL to test.db for migrations
+export DATABASE_URL="file:./test.db"
+# Create or reset the test database (for integration tests)
+npx prisma db push --accept-data-loss > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+  echo -e "${GREEN}Test database setup successful${NC}"
+else
+  echo -e "${RED}Failed to set up test database${NC}"
+  exit 1
+fi
+
+# Set common test environment variables
+export NODE_ENV=test
+
+echo
 echo -e "${YELLOW}=== Running Jest Unit Tests ===${NC}"
+# For unit tests, we're using mocks so we don't need the actual DB
 npm test
 JEST_RESULT=$?
 

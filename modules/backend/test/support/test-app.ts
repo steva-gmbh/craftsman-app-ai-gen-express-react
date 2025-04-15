@@ -46,6 +46,17 @@ import {
   addJobTool
 } from '../../src/controllers/jobs';
 
+// Initialize PrismaClient with connection to test database
+const prismaOptions = {
+  datasources: {
+    db: {
+      url: "file:./test.db"
+    }
+  },
+  // Log queries only when debugging is needed
+  log: process.env.DEBUG ? ['query', 'error', 'warn'] : ['error']
+};
+
 // Create Express app with customer routes
 export const app = express();
 app.use(express.json());
@@ -114,4 +125,4 @@ jobRouter.post('/:id/tools', addJobTool);
 app.use('/api/jobs', jobRouter);
 
 // Export prisma client for use in tests
-export const prisma = new PrismaClient(); 
+export const prisma = new PrismaClient(prismaOptions); 

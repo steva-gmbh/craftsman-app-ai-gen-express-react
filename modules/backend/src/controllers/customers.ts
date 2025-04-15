@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
+// Export the prisma instance so it can be mocked in tests
+export const prisma = new PrismaClient();
 
 export const getCustomers = async (req: Request, res: Response) => {
   try {
