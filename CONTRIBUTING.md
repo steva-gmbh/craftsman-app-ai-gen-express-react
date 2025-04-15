@@ -56,6 +56,42 @@ The backend exposes a RESTful API with the following characteristics:
 - Input validation
 - Authentication and authorization where required
 
+### Testing Framework
+
+The backend testing infrastructure uses a combined approach of unit testing with Jest and behavior-driven development (BDD) with Cucumber.js:
+
+1. **Jest for Unit Testing**:
+   - Located in `modules/backend/test/unit`
+   - Tests individual components and functions in isolation
+   - Fast execution for TDD workflows
+   - Mocking capabilities for external dependencies
+   - Coverage reporting
+
+2. **Cucumber.js for BDD Testing**:
+   - Located in `modules/backend/test/features`
+   - Written in Gherkin syntax for human-readable specifications
+   - Step definitions in `modules/backend/test/steps`
+   - Support hooks in `modules/backend/test/support`
+   - Focuses on testing behavior from user perspective
+
+3. **Testing Structure**:
+   - `features/`: Contains Gherkin feature files (.feature)
+   - `steps/`: Contains step definitions implementing the Gherkin steps
+   - `support/`: Contains hooks and world setup for test environment
+   - `unit/`: Contains Jest unit tests
+
+4. **Running Tests**:
+   - `npm test`: Runs Jest unit tests
+   - `npm run test:cucumber`: Runs Cucumber BDD tests
+   - `npm run test:all`: Runs both test suites
+
+5. **Test Conventions**:
+   - Write unit tests for all controllers and services
+   - Use Cucumber for API and integration tests
+   - Maintain isolated test environments
+   - Mock external dependencies
+   - Use descriptive test and feature names
+
 ## Frontend Architecture
 
 ### Implementation Overview
@@ -131,6 +167,10 @@ When contributing to the project, please follow these guidelines:
    - Write tests for new features
    - Maintain test coverage
    - Test both frontend and backend changes
+   - Use appropriate testing methodologies:
+     - Unit tests for isolated functions and components
+     - BDD tests for user-facing features
+     - Integration tests for API endpoints
 
 3. **Documentation**:
    - Update relevant documentation

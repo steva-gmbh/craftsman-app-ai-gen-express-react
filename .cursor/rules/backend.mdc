@@ -10,6 +10,8 @@ You follow these additional rules when working on this project:
 # Domain objects
 - when you need a new domain object, create a migration and modify the rest api
 - when you need to change the attributes of a domain object, create a migration and possibly modify the rest api
+- when you add new functionality to the backend, always create some test for it first
+- when you modify existing functionality in the backend, always create or modify some test for it first
 
 # New domain object
 - for a new domain object you also create an ai agent tool which lets the ai agent search for these objects 
@@ -17,3 +19,4 @@ You follow these additional rules when working on this project:
 - for a new domain object you also add some demo data creation to the seed file [seed.ts](mdc:modules/backend/prisma/seed.ts) you may also need 
   to modify the seed creation of old domain objects if the new domain object has references to them or vice versa
   * you don't add a log message that logs the creation of each individual instance
+
