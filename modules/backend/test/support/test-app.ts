@@ -18,6 +18,14 @@ import {
   deleteVehicle
 } from '../../src/controllers/vehicles';
 
+import {
+  getTools,
+  getTool,
+  createTool,
+  updateTool,
+  deleteTool
+} from '../../src/controllers/tools';
+
 // Create Express app with customer routes
 export const app = express();
 app.use(express.json());
@@ -46,6 +54,16 @@ vehicleRouter.put('/:id', updateVehicle);
 vehicleRouter.delete('/:id', deleteVehicle);
 
 app.use('/api/vehicles', vehicleRouter);
+
+// Setup tool routes
+const toolRouter = Router();
+toolRouter.get('/', getTools);
+toolRouter.get('/:id', getTool);
+toolRouter.post('/', createTool);
+toolRouter.put('/:id', updateTool);
+toolRouter.delete('/:id', deleteTool);
+
+app.use('/api/tools', toolRouter);
 
 // Export prisma client for use in tests
 export const prisma = new PrismaClient(); 

@@ -82,9 +82,34 @@ export const updateTool = async (req: Request, res: Response) => {
 export const deleteTool = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    await prisma.tool.delete({
-      where: { id: Number(id) },
+    const toolId = Number(id);
+    
+    // First check if the tool exists
+    const tool = await prisma.tool.findUnique({
+      where: { id: toolId },
+      include: {
+        jobs: true // Include associated job-tool relationships
+      }
     });
+    
+    if (!tool) {
+      return res.status(404).json({ error: 'Tool not found' });
+    }
+    
+    // Delete any job-tool associations first
+    if (tool.jobs.length > 0) {
+      await prisma.jobTool.deleteMany({
+        where: { 
+          toolId: toolId 
+        }
+      });
+    }
+    
+    // Now delete the tool
+    await prisma.tool.delete({
+      where: { id: toolId },
+    });
+    
     res.status(204).send();
   } catch (error) {
     console.error('Error deleting tool:', error);
