@@ -39,6 +39,18 @@ Given('there is a material with ID {int} in the database', async function(id: nu
 Given('the database is reset for material tests', async function() {
   // Delete all materials created for tests
   try {
+    // First delete any job-material associations
+    await prisma.jobMaterial.deleteMany({
+      where: {
+        material: {
+          name: {
+            contains: 'Test Material'
+          }
+        }
+      }
+    });
+    
+    // Then delete the materials
     await prisma.material.deleteMany({
       where: {
         name: {

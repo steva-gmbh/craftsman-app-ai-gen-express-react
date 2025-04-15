@@ -37,6 +37,18 @@ Given('there is a tool with ID {int} in the database', async function(id: number
 Given('the database is reset for tool tests', async function() {
   // Delete all tools created for tests
   try {
+    // First delete any job-tool associations
+    await prisma.jobTool.deleteMany({
+      where: {
+        tool: {
+          name: {
+            contains: 'Test Tool'
+          }
+        }
+      }
+    });
+    
+    // Then delete the tools
     await prisma.tool.deleteMany({
       where: {
         name: {

@@ -34,6 +34,18 @@ import {
   deleteMaterial
 } from '../../src/controllers/materials';
 
+import {
+  getJobs,
+  getJob,
+  createJob,
+  updateJob,
+  deleteJob,
+  getJobMaterials,
+  addJobMaterial,
+  getJobTools,
+  addJobTool
+} from '../../src/controllers/jobs';
+
 // Create Express app with customer routes
 export const app = express();
 app.use(express.json());
@@ -82,6 +94,24 @@ materialRouter.put('/:id', updateMaterial);
 materialRouter.delete('/:id', deleteMaterial);
 
 app.use('/api/materials', materialRouter);
+
+// Setup job routes
+const jobRouter = Router();
+jobRouter.get('/', getJobs);
+jobRouter.get('/:id', getJob);
+jobRouter.post('/', createJob);
+jobRouter.put('/:id', updateJob);
+jobRouter.delete('/:id', deleteJob);
+
+// Job material routes
+jobRouter.get('/:id/materials', getJobMaterials);
+jobRouter.post('/:id/materials', addJobMaterial);
+
+// Job tool routes
+jobRouter.get('/:id/tools', getJobTools);
+jobRouter.post('/:id/tools', addJobTool);
+
+app.use('/api/jobs', jobRouter);
 
 // Export prisma client for use in tests
 export const prisma = new PrismaClient(); 
