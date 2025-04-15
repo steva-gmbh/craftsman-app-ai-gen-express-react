@@ -6,6 +6,10 @@ RED='\033[0;31m'
 YELLOW='\033[0;33m'
 NC='\033[0m' # No Color
 
+# Save original directory
+ORIGINAL_DIR=$(pwd)
+
+# Backend tests
 echo -e "${YELLOW}=== Running CraftsmanApp Backend Tests ===${NC}"
 echo
 
@@ -44,8 +48,35 @@ echo -e "${YELLOW}=== Running Cucumber BDD Tests ===${NC}"
 npm run test:cucumber
 CUCUMBER_RESULT=$?
 
-# Check results
-if [ $JEST_RESULT -eq 0 ] && [ $CUCUMBER_RESULT -eq 0 ]; then
+# Return to the original directory for frontend tests
+cd $ORIGINAL_DIR
+
+# Frontend tests
+echo
+echo -e "${YELLOW}=== Running CraftsmanApp Frontend Tests ===${NC}"
+echo
+
+# Move to frontend directory
+cd modules/frontend
+
+# Check if we're in the right directory
+if [ ! -f "package.json" ]; then
+  echo -e "${RED}Error: Could not find frontend package.json${NC}"
+  exit 1
+fi
+
+echo
+echo -e "${YELLOW}=== Running Cucumber Frontend Tests ===${NC}"
+# Run frontend tests with auto-start enabled
+export AUTO_START_FRONTEND=true
+npm test
+FRONTEND_TEST_RESULT=$?
+
+# Return to the original directory
+cd $ORIGINAL_DIR
+
+# Check all results
+if [ $JEST_RESULT -eq 0 ] && [ $CUCUMBER_RESULT -eq 0 ] && [ $FRONTEND_TEST_RESULT -eq 0 ]; then
   echo
   echo -e "${GREEN}=== All tests passed successfully! ===${NC}"
   exit 0

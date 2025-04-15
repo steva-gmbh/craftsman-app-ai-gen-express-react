@@ -7,7 +7,11 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "AUTO_START_FRONTEND=true npx cucumber-js src/tests/features/homepage.feature --require src/tests/step_definitions/homepage.steps.cjs --require src/tests/support/hooks.cjs --require src/tests/support/custom-world.cjs --format @cucumber/pretty-formatter --publish-quiet",
+    "test:no-autostart": "AUTO_START_FRONTEND=false npx cucumber-js src/tests/features/homepage.feature --require src/tests/step_definitions/homepage.steps.cjs --require src/tests/support/hooks.cjs --require src/tests/support/custom-world.cjs --format @cucumber/pretty-formatter --publish-quiet",
+    "test:generate-report": "AUTO_START_FRONTEND=true npx cucumber-js src/tests/features/homepage.feature --require src/tests/step_definitions/homepage.steps.cjs --require src/tests/support/hooks.cjs --require src/tests/support/custom-world.cjs --format @cucumber/pretty-formatter --format html:reports/cucumber-report.html --publish-quiet",
+    "test:debug": "AUTO_START_FRONTEND=true NODE_OPTIONS=--inspect npx cucumber-js src/tests/features/homepage.feature --require src/tests/step_definitions/homepage.steps.cjs --require src/tests/support/hooks.cjs --require src/tests/support/custom-world.cjs --format @cucumber/pretty-formatter --publish-quiet"
   },
   "dependencies": {
     "@headlessui/react": "^1.7.18",
@@ -24,6 +28,10 @@
     "zustand": "^4.5.1"
   },
   "devDependencies": {
+    "@cucumber/cucumber": "^7.3.2",
+    "@cucumber/playwright": "^3.1.0",
+    "@cucumber/pretty-formatter": "^1.0.0",
+    "@playwright/test": "^1.51.1",
     "@tailwindcss/typography": "^0.5.16",
     "@types/react": "^18.2.55",
     "@types/react-dom": "^18.2.19",
@@ -31,11 +39,16 @@
     "@typescript-eslint/parser": "^6.21.0",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.17",
+    "dotenv-cli": "^8.0.0",
     "eslint": "^8.56.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
+    "node-fetch": "^2.7.0",
+    "playwright": "^1.51.1",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.2.2",
     "vite": "^5.1.4"
   }

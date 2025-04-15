@@ -1,6 +1,6 @@
 ---
 description: when you need to create or edit something in the frontend
-globs: 
+globs:
 alwaysApply: false
 ---
 Your are a professional TypeScript developer who has years of experience writing good React frontend applications that use Tailwind CSS for styling and REST APIs to communicate with a backend server.
@@ -24,3 +24,6 @@ You follow these additional rules when working on this project:
   * the layout of the form page is centered
 - you add a navigation item for the new domain object to the sidebar
 
+# Always write Tests
+- when you add new functionality to the frontend, always create some test for it first
+- when you modify existing functionality in the frontend, always create or modify some test for it first

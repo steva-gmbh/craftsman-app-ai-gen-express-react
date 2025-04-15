@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strictNullChecks": true,
+    "noImplicitAny": true,
+    "types": ["node", "@cucumber/cucumber", "playwright"]
+  },
+  "include": ["./**/*.ts"]
+} 
