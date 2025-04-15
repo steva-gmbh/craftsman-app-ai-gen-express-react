@@ -54,6 +54,14 @@ import {
   deleteProject
 } from '../../src/controllers/projects';
 
+import {
+  getSettings,
+  getSettingsByUserId,
+  createSettings,
+  updateSettings,
+  deleteSettings
+} from '../../src/controllers/settings';
+
 // Initialize PrismaClient with connection to test database
 const prismaOptions = {
   datasources: {
@@ -235,6 +243,16 @@ projectRouter.delete('/:id/jobs/:jobId', async (req: Request, res: Response) => 
 });
 
 app.use('/api/projects', projectRouter);
+
+// Setup settings routes
+const settingsRouter = Router();
+settingsRouter.get('/', getSettings);
+settingsRouter.get('/:userId', getSettingsByUserId);
+settingsRouter.post('/', createSettings);
+settingsRouter.put('/:userId', updateSettings);
+settingsRouter.delete('/:userId', deleteSettings);
+
+app.use('/api/settings', settingsRouter);
 
 // Export prisma client for use in tests
 export const prisma = new PrismaClient(prismaOptions); 
