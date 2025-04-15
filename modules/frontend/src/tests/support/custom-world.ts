@@ -1,20 +1,17 @@
-import { World, IWorldOptions, setWorldConstructor } from '@cucumber/cucumber';
-import { Browser, BrowserContext, Page } from 'playwright';
+// @ts-nocheck
+const { World, setWorldConstructor } = require('@cucumber/cucumber');
+const { Browser, BrowserContext, Page } = require('playwright');
 
-export interface ICustomWorld extends World {
-  browser?: Browser;
-  context?: BrowserContext;
-  page?: Page;
-}
-
-export class CustomWorld extends World implements ICustomWorld {
-  browser?: Browser;
-  context?: BrowserContext;
-  page?: Page;
-
-  constructor(options: IWorldOptions) {
+class CustomWorld extends World {
+  constructor(options) {
     super(options);
+    this.browser = undefined;
+    this.context = undefined;
+    this.page = undefined;
+    this.apiResponse = null;
   }
 }
 
-setWorldConstructor(CustomWorld); 
+setWorldConstructor(CustomWorld);
+
+module.exports = { CustomWorld }; 
