@@ -100,11 +100,65 @@ export const updateCustomer = async (req: Request, res: Response) => {
 export const deleteCustomer = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const customerId = Number(id);
+
+    // Check if customer exists
+    const customerExists = await prisma.customer.findUnique({
+      where: { id: customerId },
+      include: {
+        jobs: true,
+        projects: true,
+        invoices: true
+      }
+    });
+
+    if (!customerExists) {
+      return res.status(404).json({ error: 'Customer not found' });
+    }
+
+    // For test environment: Delete related records before deleting the customer
+    // Handle jobs first
+    if (customerExists.jobs.length > 0) {
+      for (const job of customerExists.jobs) {
+        // Delete job materials and job tools related to this job
+        await prisma.jobMaterial.deleteMany({
+          where: { jobId: job.id }
+        });
+        
+        await prisma.jobTool.deleteMany({
+          where: { jobId: job.id }
+        });
+      }
+      
+      // Now delete all jobs
+      await prisma.job.deleteMany({
+        where: { customerId }
+      });
+    }
+
+    // Handle projects (which might have jobs within them)
+    if (customerExists.projects.length > 0) {
+      // Delete all projects
+      await prisma.project.deleteMany({
+        where: { customerId }
+      });
+    }
+
+    // Handle invoices
+    if (customerExists.invoices.length > 0) {
+      // Delete all invoices
+      await prisma.invoice.deleteMany({
+        where: { customerId }
+      });
+    }
+
+    // Now it's safe to delete the customer
     await prisma.customer.delete({
       where: {
-        id: Number(id),
+        id: customerId,
       },
     });
+    
     res.status(204).send();
   } catch (error) {
     console.error('Error deleting customer:', error);
