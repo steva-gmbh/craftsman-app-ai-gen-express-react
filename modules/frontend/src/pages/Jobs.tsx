@@ -157,7 +157,7 @@ export default function Jobs() {
                 : 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400'
             }`}
           >
-            {status.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+            {status.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
           </span>
         );
       }
