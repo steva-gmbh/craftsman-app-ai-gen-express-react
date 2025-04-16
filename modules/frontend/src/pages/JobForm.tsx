@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { api, Customer, Material, JobMaterial, Tool, JobTool } from '../services/api';
+import { api } from '../services/api';
 import { toast } from 'react-hot-toast';
 import { IconPlus, IconTrash } from '../components/icons';
 
@@ -10,13 +10,13 @@ export default function JobForm() {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const queryClient = useQueryClient();
-  
+
   // Parse query parameters
   const queryParams = new URLSearchParams(location.search);
   const prefilledCustomerId = queryParams.get('customerId');
   const prefilledProjectId = queryParams.get('projectId');
   const returnToProject = prefilledProjectId || (queryParams.get('returnToProject') === 'true');
-  
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -35,7 +35,7 @@ export default function JobForm() {
   const [toolAmount, setToolAmount] = useState<string>('');
 
   // Fetch customers
-  const { data: customersResponse, isLoading: isLoadingCustomers } = useQuery({
+  const { data: customersResponse} = useQuery({
     queryKey: ['customers'],
     queryFn: async () => {
       return await api.getCustomers();
@@ -46,7 +46,7 @@ export default function JobForm() {
   const customers = customersResponse?.data || [];
 
   // Fetch projects
-  const { data: projectsResponse, isLoading: isLoadingProjects } = useQuery({
+  const { data: projectsResponse} = useQuery({
     queryKey: ['projects'],
     queryFn: async () => {
       return await api.getProjects();
@@ -57,7 +57,7 @@ export default function JobForm() {
   const projects = projectsResponse?.data || [];
 
   // Fetch materials
-  const { data: materialsResponse, isLoading: isLoadingMaterials } = useQuery({
+  const { data: materialsResponse} = useQuery({
     queryKey: ['materials'],
     queryFn: async () => {
       return await api.getMaterials();
@@ -68,7 +68,7 @@ export default function JobForm() {
   const materials = materialsResponse?.data || [];
 
   // Fetch tools
-  const { data: toolsResponse, isLoading: isLoadingTools } = useQuery({
+  const { data: toolsResponse} = useQuery({
     queryKey: ['tools'],
     queryFn: async () => {
       return await api.getTools();
@@ -235,7 +235,7 @@ export default function JobForm() {
       if (id) {
         await api.updateJob(Number(id), jobData);
         toast.success('Job updated successfully');
-        
+
         // After updating, navigate back to the appropriate page
         if (returnToProject) {
           await queryClient.invalidateQueries({ queryKey: ['jobs', 'project', formData.projectId || prefilledProjectId] });
@@ -244,9 +244,9 @@ export default function JobForm() {
           navigate('/jobs');
         }
       } else {
-        const newJob = await api.createJob(jobData);
+        await api.createJob(jobData);
         toast.success('Job created successfully');
-        
+
         // After creating, navigate back to the appropriate page
         if (returnToProject) {
           await queryClient.invalidateQueries({ queryKey: ['jobs', 'project', formData.projectId || prefilledProjectId] });
@@ -433,7 +433,7 @@ export default function JobForm() {
               <>
                 <div className="space-y-4">
                   <h2 className="text-lg font-medium text-gray-900 dark:text-white">Materials</h2>
-                  
+
                   <div className="flex gap-4">
                     <select
                       value={selectedMaterial}
@@ -447,7 +447,7 @@ export default function JobForm() {
                         </option>
                       ))}
                     </select>
-                    
+
                     <input
                       type="number"
                       value={materialAmount}
@@ -455,7 +455,7 @@ export default function JobForm() {
                       placeholder="Amount"
                       className="w-32 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
                     />
-                    
+
                     <button
                       type="button"
                       onClick={handleAddMaterial}
@@ -511,7 +511,7 @@ export default function JobForm() {
 
                 <div className="space-y-4 mt-8">
                   <h2 className="text-lg font-medium text-gray-900 dark:text-white">Tools</h2>
-                  
+
                   <div className="flex gap-4">
                     <select
                       value={selectedTool}
@@ -525,7 +525,7 @@ export default function JobForm() {
                         </option>
                       ))}
                     </select>
-                    
+
                     <input
                       type="number"
                       value={toolAmount}
@@ -533,7 +533,7 @@ export default function JobForm() {
                       placeholder="Amount"
                       className="w-32 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
                     />
-                    
+
                     <button
                       type="button"
                       onClick={handleAddTool}
@@ -610,4 +610,4 @@ export default function JobForm() {
       </div>
     </div>
   );
-} 
+}

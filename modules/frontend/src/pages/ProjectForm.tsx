@@ -23,7 +23,7 @@ export default function ProjectForm() {
   const [jobToDelete, setJobToDelete] = useState<{ id: number; title: string } | null>(null);
 
   // Fetch customers for dropdown
-  const { data: customersResponse, isLoading: isLoadingCustomers } = useQuery({
+  const { data: customersResponse} = useQuery({
     queryKey: ['customers'],
     queryFn: async () => {
       return await api.getCustomers();
@@ -272,7 +272,7 @@ export default function ProjectForm() {
             {id && (
               <div className="space-y-4 mt-8">
                 <h2 className="text-lg font-medium text-gray-900 dark:text-white">Project Jobs</h2>
-                
+
                 <div className="flex justify-end">
                   <button
                     type="button"
@@ -315,10 +315,10 @@ export default function ProjectForm() {
                                     : 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400'
                                 }`}
                               >
-                                {job.status === 'PENDING' 
-                                  ? 'Pending' 
-                                  : job.status === 'IN_PROGRESS' 
-                                  ? 'In Progress' 
+                                {job.status === 'PENDING'
+                                  ? 'Pending'
+                                  : job.status === 'IN_PROGRESS'
+                                  ? 'In Progress'
                                   : 'Completed'}
                               </span>
                             </td>
@@ -411,4 +411,4 @@ export default function ProjectForm() {
       )}
     </div>
   );
-} 
+}

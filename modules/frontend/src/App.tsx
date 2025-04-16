@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
@@ -33,7 +33,9 @@ import { api, Customer, Job } from './services/api';
 const queryClient = new QueryClient();
 
 function App() {
+  // @ts-ignore
   const [customers, setCustomers] = useState<Customer[]>([]);
+  // @ts-ignore
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,6 +43,7 @@ function App() {
     const saved = localStorage.getItem('sidebarOpen');
     return saved ? JSON.parse(saved) : true;
   });
+  // @ts-ignore
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return !!localStorage.getItem('user');
   });
@@ -80,10 +83,10 @@ function App() {
           api.getCustomers(),
           api.getJobs(),
         ]);
-        
+
         setCustomers(customersResponse.data || []);
         setJobs(jobsResponse.data || []);
-        
+
         setError(null);
       } catch (err) {
         setError('Failed to fetch data');
@@ -112,10 +115,10 @@ function App() {
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
               {isAuthenticated ? (
                 <div className="flex h-screen">
-                  <Navbar 
-                    sidebarOpen={sidebarOpen} 
-                    setSidebarOpen={setSidebarOpen} 
-                    onOpenUserSettings={() => setIsUserSettingsOpen(true)} 
+                  <Navbar
+                    sidebarOpen={sidebarOpen}
+                    setSidebarOpen={setSidebarOpen}
+                    onOpenUserSettings={() => setIsUserSettingsOpen(true)}
                   />
                   <Sidebar open={sidebarOpen} />
                   <div className="flex flex-col flex-1 overflow-hidden">
@@ -166,9 +169,9 @@ function App() {
                       </div>
                     </div>
                   </div>
-                  <UserSettingsDialog 
-                    isOpen={isUserSettingsOpen} 
-                    onClose={() => setIsUserSettingsOpen(false)} 
+                  <UserSettingsDialog
+                    isOpen={isUserSettingsOpen}
+                    onClose={() => setIsUserSettingsOpen(false)}
                   />
                 </div>
               ) : (
@@ -186,4 +189,4 @@ function App() {
   );
 }
 
-export default App; 
+export default App;

@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
-import { api, User } from '../services/api';
+import { api } from '../services/api';
 
 export default function UserForm() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const isNewUser = !id;
-  
+
   // Get current user to check if they have admin role
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const isAdmin = currentUser?.role === 'admin';
@@ -63,7 +63,7 @@ export default function UserForm() {
         if (!formData.name || !formData.email || !formData.password) {
           throw new Error('Please fill in all required fields');
         }
-        
+
         await api.createUser(formData);
         toast.success('User created successfully');
       } else {
@@ -74,7 +74,7 @@ export default function UserForm() {
           role: formData.role,
           ...(formData.password ? { password: formData.password } : {}),
         };
-        
+
         await api.updateUser(parseInt(id as string), updateData);
         toast.success('User updated successfully');
       }
@@ -201,4 +201,4 @@ export default function UserForm() {
       </form>
     </div>
   );
-} 
+}

@@ -1,4 +1,4 @@
-import React, { ReactNode, useState, useEffect } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import Pagination from './Pagination';
 
 interface Column<T> {
@@ -21,12 +21,11 @@ interface DataTableProps<T> {
   rowsPerPage?: number;
 }
 
-export default function DataTable<T>({ 
+export default function DataTable<T>({
   columns,
   data,
   keyField,
   actions,
-  totalCount,
   currentPage = 1,
   totalPages = 1,
   onPageChange,
@@ -70,8 +69,8 @@ export default function DataTable<T>({
           <thead className="bg-gray-50 dark:bg-gray-700">
             <tr>
               {columns.map((column, index) => (
-                <th 
-                  key={index} 
+                <th
+                  key={index}
                   className={`py-3.5 ${index === 0 ? 'pl-4 pr-3 sm:pl-6' : 'px-3'} text-left text-sm font-semibold text-gray-900 dark:text-white ${column.className || ''}`}
                 >
                   {column.header}
@@ -89,13 +88,13 @@ export default function DataTable<T>({
             {paginatedData.map((item) => (
               <tr key={String(item[keyField])}>
                 {columns.map((column, index) => {
-                  const value = typeof column.accessor === 'function' 
+                  const value = typeof column.accessor === 'function'
                     ? column.accessor(item)
                     : String(item[column.accessor]);
-                  
+
                   return (
-                    <td 
-                      key={index} 
+                    <td
+                      key={index}
                       className={`whitespace-nowrap ${index === 0 ? 'py-4 pl-4 pr-3 sm:pl-6 font-medium text-gray-900 dark:text-white' : 'px-3 py-4 text-sm text-gray-500 dark:text-gray-400'} ${column.className || ''}`}
                     >
                       {value}
@@ -131,4 +130,4 @@ export default function DataTable<T>({
       )}
     </div>
   );
-} 
+}

@@ -1,13 +1,10 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useTheme } from '../providers/ThemeProvider';
 import {
   IconHome,
   IconUsers,
   IconBriefcase,
   IconSettings,
-  IconChevronLeft,
-  IconChevronRight,
   IconBox,
   IconTool,
   IconUsersGroup,
@@ -32,7 +29,6 @@ const getCurrentUser = () => {
 
 const Sidebar: React.FC<SidebarProps> = ({ open }) => {
   const location = useLocation();
-  const { theme } = useTheme();
   const currentUser = getCurrentUser();
   const isAdmin = currentUser?.role === 'admin';
 
@@ -98,4 +94,4 @@ const Sidebar: React.FC<SidebarProps> = ({ open }) => {
   );
 };
 
-export default Sidebar; 
+export default Sidebar;

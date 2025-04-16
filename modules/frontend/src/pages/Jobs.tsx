@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { IconPlus, IconFilter, IconEdit, IconTrash } from '../components/icons';
+import { IconPlus, IconEdit, IconTrash } from '../components/icons';
 import { api } from '../services/api';
 import { settingsService } from '../services/settingsService';
 import { toast } from 'react-hot-toast';
@@ -43,7 +43,7 @@ export default function Jobs() {
         console.error('Error loading rows per page setting:', error);
       }
     };
-    
+
     loadRowsPerPage();
   }, []);
 
@@ -84,7 +84,7 @@ export default function Jobs() {
         // Filter jobs based on search text
         if (searchQuery) {
           const query = searchQuery.toLowerCase();
-          mappedJobs = mappedJobs.filter(job => 
+          mappedJobs = mappedJobs.filter(job =>
             job.customer.toLowerCase().includes(query) ||
             job.project.toLowerCase().includes(query) ||
             job.type.toLowerCase().includes(query) ||
@@ -105,7 +105,7 @@ export default function Jobs() {
 
   const handleDelete = async () => {
     if (!jobToDelete) return;
-    
+
     try {
       await api.deleteJob(jobToDelete.id);
       // Invalidate and refetch jobs to update the list
@@ -143,12 +143,12 @@ export default function Jobs() {
     { header: 'Customer', accessor: 'customer' as keyof Job },
     { header: 'Project', accessor: 'project' as keyof Job },
     { header: 'Type', accessor: 'type' as keyof Job },
-    { 
-      header: 'Status', 
+    {
+      header: 'Status',
       accessor: (job: Job) => {
         const status = job.status.toLowerCase();
         return (
-          <span 
+          <span
             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
               status === 'completed' 
                 ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400' 
@@ -252,7 +252,7 @@ export default function Jobs() {
 
       {/* Jobs List */}
       <div className="mt-8 shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-        <DataTable 
+        <DataTable
           columns={columns}
           data={data?.data || []}
           keyField="id"
@@ -318,4 +318,4 @@ export default function Jobs() {
       )}
     </div>
   );
-} 
+}

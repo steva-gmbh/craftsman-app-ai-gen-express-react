@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { api, Invoice, Customer, Project } from '../services/api';
+import { api, Customer, Project } from '../services/api';
 import { toast } from 'react-hot-toast';
 import { IconPlus, IconTrash } from '../components/icons';
 
@@ -54,11 +54,11 @@ const InvoiceForm: React.FC = () => {
         if (isEditMode) {
           // If editing, fetch the invoice data
           const invoice = await api.getInvoice(parseInt(id as string));
-          
+
           setFormData({
             ...invoice,
             // Convert dates to string format for form inputs
-            issueDate: invoice.issueDate instanceof Date 
+            issueDate: invoice.issueDate instanceof Date
               ? invoice.issueDate.toISOString().split('T')[0]
               : new Date(invoice.issueDate).toISOString().split('T')[0],
             dueDate: invoice.dueDate instanceof Date
@@ -75,7 +75,7 @@ const InvoiceForm: React.FC = () => {
               project => project.customerId === invoice.customerId
             );
             setAvailableProjects(customerProjects);
-            
+
             // Set assigned projects
             if (invoice.projects && invoice.projects.length > 0) {
               setAssignedProjects(invoice.projects);
@@ -104,7 +104,7 @@ const InvoiceForm: React.FC = () => {
             project => project.customerId === formData.customerId
           );
           setAvailableProjects(customerProjects);
-          
+
           // Filter assigned projects to only include this customer's projects
           if (assignedProjects.length > 0) {
             const filteredProjects = assignedProjects.filter(
@@ -139,7 +139,7 @@ const InvoiceForm: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
-    
+
     // Convert number inputs to actual numbers
     if (type === 'number') {
       setFormData(prev => ({ ...prev, [name]: parseFloat(value) || 0 }));
@@ -152,7 +152,7 @@ const InvoiceForm: React.FC = () => {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
-    
+
     try {
       if (isEditMode) {
         // Prepare update data with proper date objects for the API
@@ -166,7 +166,7 @@ const InvoiceForm: React.FC = () => {
           notes: formData.notes,
           projectIds: formData.projectIds,
         };
-        
+
         await api.updateInvoice(parseInt(id as string), updateData);
         toast.success('Invoice updated successfully');
       } else {
@@ -183,11 +183,11 @@ const InvoiceForm: React.FC = () => {
           notes: formData.notes,
           projectIds: formData.projectIds,
         };
-        
+
         await api.createInvoice(createData);
         toast.success('Invoice created successfully');
       }
-      
+
       navigate('/invoices');
     } catch (error) {
       console.error('Error saving invoice:', error);
@@ -200,10 +200,10 @@ const InvoiceForm: React.FC = () => {
 
   const handleAddProject = () => {
     if (!selectedProject) return;
-    
+
     const projectId = parseInt(selectedProject);
     const projectToAdd = availableProjects.find(p => p.id === projectId);
-    
+
     if (projectToAdd && !formData.projectIds?.includes(projectId)) {
       setAssignedProjects(prev => [...prev, projectToAdd]);
       setFormData(prev => ({
@@ -241,7 +241,7 @@ const InvoiceForm: React.FC = () => {
       <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
         {isEditMode ? 'Edit Invoice' : 'Create New Invoice'}
       </h1>
-      
+
       {error && (
         <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-md">
           {error}
@@ -268,7 +268,7 @@ const InvoiceForm: React.FC = () => {
                   />
                 </div>
               </div>
-              
+
               <div className="sm:col-span-3">
                 <label htmlFor="customerId" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Customer
@@ -291,7 +291,7 @@ const InvoiceForm: React.FC = () => {
                   </select>
                 </div>
               </div>
-              
+
               <div className="sm:col-span-3">
                 <label htmlFor="issueDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Issue Date
@@ -308,7 +308,7 @@ const InvoiceForm: React.FC = () => {
                   />
                 </div>
               </div>
-              
+
               <div className="sm:col-span-3">
                 <label htmlFor="dueDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Due Date
@@ -325,7 +325,7 @@ const InvoiceForm: React.FC = () => {
                   />
                 </div>
               </div>
-              
+
               <div className="sm:col-span-3">
                 <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Status
@@ -346,7 +346,7 @@ const InvoiceForm: React.FC = () => {
                   </select>
                 </div>
               </div>
-              
+
               <div className="sm:col-span-3">
                 <label htmlFor="totalAmount" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Total Amount (€)
@@ -365,7 +365,7 @@ const InvoiceForm: React.FC = () => {
                   />
                 </div>
               </div>
-              
+
               <div className="sm:col-span-3">
                 <label htmlFor="taxRate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Tax Rate (%)
@@ -384,7 +384,7 @@ const InvoiceForm: React.FC = () => {
                   />
                 </div>
               </div>
-              
+
               <div className="sm:col-span-3">
                 <label htmlFor="taxAmount" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Tax Amount (€)
@@ -400,7 +400,7 @@ const InvoiceForm: React.FC = () => {
                   />
                 </div>
               </div>
-              
+
               <div className="sm:col-span-6">
                 <label htmlFor="notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Notes
@@ -422,7 +422,7 @@ const InvoiceForm: React.FC = () => {
             {formData.customerId ? (
               <div className="space-y-4">
                 <h2 className="text-lg font-medium text-gray-900 dark:text-white">Projects</h2>
-                
+
                 <div className="flex gap-4">
                   <select
                     value={selectedProject}
@@ -438,7 +438,7 @@ const InvoiceForm: React.FC = () => {
                         </option>
                       ))}
                   </select>
-                  
+
                   <button
                     type="button"
                     onClick={handleAddProject}
@@ -526,4 +526,4 @@ const InvoiceForm: React.FC = () => {
   );
 };
 
-export default InvoiceForm; 
+export default InvoiceForm;

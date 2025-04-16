@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { IconPlus, IconEdit, IconTrash, IconCar } from '@tabler/icons-react';
+import { IconPlus, IconEdit, IconTrash } from '@tabler/icons-react';
 import { api } from '../services/api';
 import { settingsService } from '../services/settingsService';
 import { toast } from 'react-hot-toast';
@@ -60,7 +60,7 @@ export default function Vehicles() {
         console.error('Error loading rows per page setting:', error);
       }
     };
-    
+
     loadRowsPerPage();
   }, []);
 
@@ -78,14 +78,14 @@ export default function Vehicles() {
           page: currentPage,
           limit: rowsPerPage
         });
-        
+
         // Apply filters
         let filteredVehicles = response.data;
-        
+
         // Apply search filter if query exists
         if (searchQuery) {
           const query = searchQuery.toLowerCase();
-          filteredVehicles = filteredVehicles.filter((vehicle: Vehicle) => 
+          filteredVehicles = filteredVehicles.filter((vehicle: Vehicle) =>
             vehicle.name.toLowerCase().includes(query) ||
             vehicle.make.toLowerCase().includes(query) ||
             vehicle.model.toLowerCase().includes(query) ||
@@ -93,28 +93,28 @@ export default function Vehicles() {
             vehicle.type.toLowerCase().includes(query)
           );
         }
-        
+
         // Apply status filter
         if (statusFilter) {
-          filteredVehicles = filteredVehicles.filter((vehicle: Vehicle) => 
+          filteredVehicles = filteredVehicles.filter((vehicle: Vehicle) =>
             vehicle.status === statusFilter
           );
         }
-        
+
         // Apply type filter
         if (typeFilter) {
-          filteredVehicles = filteredVehicles.filter((vehicle: Vehicle) => 
+          filteredVehicles = filteredVehicles.filter((vehicle: Vehicle) =>
             vehicle.type === typeFilter
           );
         }
-        
+
         // Apply fuel type filter
         if (fuelTypeFilter) {
-          filteredVehicles = filteredVehicles.filter((vehicle: Vehicle) => 
+          filteredVehicles = filteredVehicles.filter((vehicle: Vehicle) =>
             vehicle.fuelType === fuelTypeFilter
           );
         }
-        
+
         return {
           ...response,
           data: filteredVehicles
@@ -167,24 +167,24 @@ export default function Vehicles() {
     { header: 'Make', accessor: 'make' as keyof Vehicle },
     { header: 'Model', accessor: 'model' as keyof Vehicle },
     { header: 'Year', accessor: 'year' as keyof Vehicle },
-    { 
-      header: 'Type', 
+    {
+      header: 'Type',
       accessor: (vehicle: Vehicle) => {
         return vehicle.type.charAt(0).toUpperCase() + vehicle.type.slice(1);
       }
     },
-    { 
-      header: 'Status', 
+    {
+      header: 'Status',
       accessor: (vehicle: Vehicle) => {
         const statusColors = {
           active: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
           maintenance: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
           retired: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
         };
-        
+
         const color = statusColors[vehicle.status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
         const displayStatus = vehicle.status.charAt(0).toUpperCase() + vehicle.status.slice(1);
-        
+
         return (
           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${color}`}>
             {displayStatus}
@@ -328,7 +328,7 @@ export default function Vehicles() {
 
       {/* Vehicles List */}
       <div className="mt-4 shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-        <DataTable 
+        <DataTable
           columns={columns}
           data={data?.data || []}
           keyField="id"
@@ -394,4 +394,4 @@ export default function Vehicles() {
       )}
     </div>
   );
-} 
+}

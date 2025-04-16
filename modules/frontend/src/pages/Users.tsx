@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { IconPlus, IconMail, IconUser, IconEdit, IconTrash } from '../components/icons';
+import { IconPlus, IconEdit, IconTrash } from '../components/icons';
 import { api, User } from '../services/api';
 import { toast } from 'react-hot-toast';
 
@@ -11,7 +11,7 @@ export default function Users() {
   const [searchQuery, setSearchQuery] = useState('');
   const [userToDelete, setUserToDelete] = useState<{ id: number; name: string } | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  
+
   // Get current user to check if they have admin role
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const isAdmin = currentUser?.role === 'admin';
@@ -20,15 +20,15 @@ export default function Users() {
     queryKey: ['users', searchQuery],
     queryFn: async () => {
       const users = await api.getUsers();
-      
+
       if (searchQuery.trim()) {
-        return users.filter((user: User) => 
+        return users.filter((user: User) =>
           user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
           user.role.toLowerCase().includes(searchQuery.toLowerCase())
         );
       }
-      
+
       return users;
     },
     enabled: isAdmin, // Only fetch if user is admin
@@ -206,4 +206,4 @@ export default function Users() {
       </div>
     </div>
   );
-} 
+}

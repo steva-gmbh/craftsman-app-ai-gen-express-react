@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { IconPlus, IconPhone, IconMail, IconMapPin, IconEdit, IconTrash, IconBriefcase, IconUser } from '../components/icons';
+import { IconPlus, IconEdit, IconTrash, IconBriefcase } from '../components/icons';
 import { api } from '../services/api';
 import { settingsService } from '../services/settingsService';
 import { toast } from 'react-hot-toast';
@@ -42,7 +42,7 @@ export default function Projects() {
         console.error('Error loading rows per page setting:', error);
       }
     };
-    
+
     loadRowsPerPage();
   }, []);
 
@@ -65,11 +65,11 @@ export default function Projects() {
           page: currentPage,
           limit: rowsPerPage
         });
-        
+
         // Count jobs for each project
         const jobsResponse = await api.getJobs();
         const jobs = jobsResponse.data || [];
-        
+
         let filteredProjects = projectsResponse.data.map(project => ({
           ...project,
           jobCount: jobs.filter(job => job.projectId === project.id).length
@@ -78,7 +78,7 @@ export default function Projects() {
         // Apply text search filter
         if (searchQuery) {
           const query = searchQuery.toLowerCase();
-          filteredProjects = filteredProjects.filter(project => 
+          filteredProjects = filteredProjects.filter(project =>
             project.name.toLowerCase().includes(query) ||
             project.description?.toLowerCase().includes(query)
           );
@@ -86,14 +86,14 @@ export default function Projects() {
 
         // Apply customer filter
         if (selectedCustomer !== 'All') {
-          filteredProjects = filteredProjects.filter(project => 
+          filteredProjects = filteredProjects.filter(project =>
             project.customer?.name === selectedCustomer
           );
         }
 
         // Apply status filter
         if (selectedStatus !== 'All') {
-          filteredProjects = filteredProjects.filter(project => 
+          filteredProjects = filteredProjects.filter(project =>
             project.status === selectedStatus
           );
         }
@@ -138,7 +138,7 @@ export default function Projects() {
   };
 
   // Extract unique customer names for the dropdown
-  const customerOptions = customers 
+  const customerOptions = customers
     ? ['All', ...new Set(customers.map(customer => customer.name))]
     : ['All'];
 
@@ -152,14 +152,14 @@ export default function Projects() {
 
   const columns = [
     { header: 'Name', accessor: 'name' as keyof Project },
-    { 
-      header: 'Customer', 
+    {
+      header: 'Customer',
       accessor: (project: Project) => project.customer?.name || '-'
     },
-    { 
-      header: 'Status', 
+    {
+      header: 'Status',
       accessor: (project: Project) => (
-        <span 
+        <span
           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
             project.status === 'active' 
               ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400' 
@@ -173,8 +173,8 @@ export default function Projects() {
       )
     },
     { header: 'Jobs', accessor: 'jobCount' as keyof Project },
-    { 
-      header: 'Budget', 
+    {
+      header: 'Budget',
       accessor: (project: Project) => project.budget ? `$${project.budget.toFixed(2)}` : '-'
     },
   ];
@@ -265,7 +265,7 @@ export default function Projects() {
 
       {/* Projects List */}
       <div className="mt-8 shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-        <DataTable 
+        <DataTable
           columns={columns}
           data={data?.data || []}
           keyField="id"
@@ -339,4 +339,4 @@ export default function Projects() {
       )}
     </div>
   );
-} 
+}

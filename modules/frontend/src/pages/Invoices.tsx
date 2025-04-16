@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link, useNavigate } from 'react-router-dom';
-import { IconEdit, IconPlus, IconFilter, IconTrash, IconFileDownload } from '../components/icons';
+import { useNavigate } from 'react-router-dom';
+import { IconEdit, IconPlus, IconTrash, IconFileDownload } from '../components/icons';
 import { api, Invoice } from '../services/api';
 import { settingsService } from '../services/settingsService';
 import { toast } from 'react-hot-toast';
 import DataTable from '../components/DataTable';
-import Pagination from '../components/Pagination';
 import './invoices.css'; // Will create this file later
 
 const Invoices: React.FC = () => {
@@ -29,7 +28,7 @@ const Invoices: React.FC = () => {
         console.error('Error loading rows per page setting:', error);
       }
     };
-    
+
     loadRowsPerPage();
   }, []);
 
@@ -42,22 +41,22 @@ const Invoices: React.FC = () => {
           limit: rowsPerPage
         };
         const response = await api.getInvoices(params);
-        
+
         // Apply search filter if query exists
         if (searchQuery) {
           const query = searchQuery.toLowerCase();
-          const filteredInvoices = response.data.filter((invoice) => 
+          const filteredInvoices = response.data.filter((invoice) =>
             invoice.invoiceNumber.toLowerCase().includes(query) ||
             (invoice.customer?.name && invoice.customer.name.toLowerCase().includes(query)) ||
             invoice.status.toLowerCase().includes(query)
           );
-          
+
           return {
             ...response,
             data: filteredInvoices
           };
         }
-        
+
         return response;
       } catch (error) {
         console.error('Error fetching invoices:', error);
@@ -104,33 +103,33 @@ const Invoices: React.FC = () => {
 
   const columns = [
     { header: 'Invoice #', accessor: 'invoiceNumber' as keyof Invoice },
-    { 
-      header: 'Customer', 
+    {
+      header: 'Customer',
       accessor: (invoice: Invoice) => invoice.customer?.name || 'N/A'
     },
-    { 
-      header: 'Issue Date', 
-      accessor: (invoice: Invoice) => 
+    {
+      header: 'Issue Date',
+      accessor: (invoice: Invoice) =>
         invoice.issueDate ? new Date(invoice.issueDate).toLocaleDateString() : 'N/A'
     },
-    { 
-      header: 'Due Date', 
-      accessor: (invoice: Invoice) => 
+    {
+      header: 'Due Date',
+      accessor: (invoice: Invoice) =>
         invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : 'N/A'
     },
-    { 
-      header: 'Status', 
+    {
+      header: 'Status',
       accessor: (invoice: Invoice) => (
-        <span 
+        <span
           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(invoice.status)}`}
         >
           {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
         </span>
       )
     },
-    { 
-      header: 'Total Amount', 
-      accessor: (invoice: Invoice) => 
+    {
+      header: 'Total Amount',
+      accessor: (invoice: Invoice) =>
         `$${invoice.totalAmount.toFixed(2)}`
     },
   ];
@@ -194,7 +193,7 @@ const Invoices: React.FC = () => {
 
       {/* Invoices List */}
       <div className="mt-8 shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-        <DataTable 
+        <DataTable
           columns={columns}
           data={data?.data || []}
           keyField="id"
@@ -281,4 +280,4 @@ const Invoices: React.FC = () => {
   );
 };
 
-export default Invoices; 
+export default Invoices;

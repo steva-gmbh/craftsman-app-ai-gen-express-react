@@ -1,4 +1,3 @@
-import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { IconBriefcase, IconUsers, IconCurrencyEuro, IconClock, IconTool, IconBox, IconFilter } from '../components/icons';
 import { api } from '../services/api';
@@ -76,7 +75,7 @@ export default function Dashboard() {
   return (
     <div>
       <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
-      
+
       {/* Stats */}
       <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {dashboardData?.stats.map((stat) => (
@@ -154,7 +153,7 @@ export default function Dashboard() {
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">{job.customer}</td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">{job.type}</td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
-                      <span 
+                      <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                           job.status.toLowerCase() === 'completed' 
                             ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400' 
@@ -175,4 +174,4 @@ export default function Dashboard() {
       </div>
     </div>
   );
-} 
+}

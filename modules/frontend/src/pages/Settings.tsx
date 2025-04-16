@@ -1,27 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { IconUser, IconBuilding, IconCreditCard, IconBell, IconSun, IconMoon, IconTable } from '../components/icons';
 import { useTheme } from '../providers/ThemeProvider';
 import { toast } from 'react-hot-toast';
 import { settingsService, UserSettings } from '../services/settingsService';
-
-interface FormData {
-  profile: {
-    name: string;
-    email: string;
-  };
-  business: {
-    name: string;
-    services: string[];
-  };
-  notifications: {
-    email: boolean;
-    sms: boolean;
-  };
-}
-
-type FormSection = keyof FormData;
-type FormField<T extends FormSection> = keyof FormData[T];
-
 const settingsMenu = [
   {
     name: 'Profile',
@@ -58,7 +39,6 @@ const settingsMenu = [
 export default function Settings() {
   const [activeTab, setActiveTab] = useState('Profile');
   const { theme, toggleTheme } = useTheme();
-  const [settingsData, setSettingsData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState<UserSettings>({
@@ -78,7 +58,7 @@ export default function Settings() {
       setIsLoading(true);
       const settings = await settingsService.getUserSettings();
       setFormData(settings);
-      
+
       // Handle appearance settings separately to sync with theme provider
       if (settings.appearance && settings.appearance.theme !== theme) {
         if (settings.appearance.theme === 'dark' && theme === 'light') {
@@ -94,29 +74,18 @@ export default function Settings() {
       setIsLoading(false);
     }
   };
-
-  const handleInputChange = <T extends FormSection>(section: T, field: FormField<T>, value: FormData[T][FormField<T>]) => {
-    setFormData(prev => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [field]: value,
-      },
-    }));
-  };
-
   const handleSave = async () => {
     try {
       setIsSaving(true);
       await settingsService.updateUserSettings(formData);
-      
+
       // Update appearance separately if needed
       if (formData.appearance?.theme === 'dark' && theme === 'light') {
         toggleTheme();
       } else if (formData.appearance?.theme === 'light' && theme === 'dark') {
         toggleTheme();
       }
-      
+
       toast.success('Settings saved successfully');
     } catch (error) {
       console.error('Error saving settings:', error);
@@ -134,7 +103,7 @@ export default function Settings() {
     return (
       <div>
         <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Table Pagination Settings</h2>
-        
+
         <div className="space-y-6">
           <div>
             <label htmlFor="rowsPerPage" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -510,4 +479,4 @@ export default function Settings() {
       </div>
     </div>
   );
-} 
+}

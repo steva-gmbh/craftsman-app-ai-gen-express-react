@@ -1,4 +1,3 @@
-import React from 'react';
 import { IconTool } from './icons';
 
 export default function Logo() {
@@ -9,4 +8,4 @@ export default function Logo() {
       </div>
     </div>
   );
-} 
+}

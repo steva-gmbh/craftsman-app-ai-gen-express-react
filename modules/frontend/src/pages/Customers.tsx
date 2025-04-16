@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { IconPlus, IconPhone, IconMail, IconMapPin, IconEdit, IconTrash } from '../components/icons';
+import { IconPlus, IconEdit, IconTrash } from '../components/icons';
 import { api } from '../services/api';
 import { settingsService } from '../services/settingsService';
 import { toast } from 'react-hot-toast';
@@ -36,7 +36,7 @@ export default function Customers() {
         console.error('Error loading rows per page setting:', error);
       }
     };
-    
+
     loadRowsPerPage();
   }, []);
 
@@ -49,32 +49,32 @@ export default function Customers() {
           page: currentPage,
           limit: rowsPerPage
         });
-        
+
         // Get all jobs to count for each customer
         const jobs = await api.getJobs();
-        
+
         // Add job count to each customer
         const customersWithJobs = response.data.map(customer => ({
           ...customer,
           jobs: jobs.data ? jobs.data.filter(job => job.customerId === customer.id).length : 0
         }));
-        
+
         // Apply search filter if query exists
         if (searchQuery) {
           const query = searchQuery.toLowerCase();
-          const filteredCustomers = customersWithJobs.filter(customer => 
+          const filteredCustomers = customersWithJobs.filter(customer =>
             customer.name.toLowerCase().includes(query) ||
             customer.email.toLowerCase().includes(query) ||
             customer.phone.toLowerCase().includes(query) ||
             customer.address.toLowerCase().includes(query)
           );
-          
+
           return {
             ...response,
             data: filteredCustomers
           };
         }
-        
+
         return {
           ...response,
           data: customersWithJobs
@@ -171,7 +171,7 @@ export default function Customers() {
 
       {/* Customers List */}
       <div className="mt-8 shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-        <DataTable 
+        <DataTable
           columns={columns}
           data={data?.data || []}
           keyField="id"
