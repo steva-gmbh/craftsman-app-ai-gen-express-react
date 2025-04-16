@@ -67,8 +67,9 @@ fi
 
 echo
 echo -e "${YELLOW}=== Running Cucumber Frontend Tests ===${NC}"
-# Run frontend tests with auto-start enabled
+# Run frontend tests with auto-start enabled (make sure it's explicitly set to true)
 export AUTO_START_FRONTEND=true
+echo -e "${YELLOW}Auto-starting frontend server: AUTO_START_FRONTEND=${AUTO_START_FRONTEND}${NC}"
 npm test
 FRONTEND_TEST_RESULT=$?
 
