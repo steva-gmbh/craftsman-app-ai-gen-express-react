@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { api, Template } from '../services/api';
 import DataTable from '../components/DataTable';
-import Pagination from '../components/Pagination';
 import { IconEdit, IconTrash, IconPlus } from '../components/icons';
 
 const Templates: React.FC = () => {
@@ -17,14 +16,19 @@ const Templates: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [templateToDelete, setTemplateToDelete] = useState<{ id: number, title: string } | null>(null);
   const [filterType, setFilterType] = useState<string>('all');
+  const [searchInput, setSearchInput] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
 
-  const fetchTemplates = async (page: number = 1, type?: string) => {
+  const fetchTemplates = async (page: number = 1, type?: string, query?: string) => {
     setIsLoading(true);
     try {
-      const params: { page: number; limit: number; type?: string } = { page, limit: 10 };
+      const params: { page: number; limit: number; type?: string; search?: string } = { page, limit: 10 };
       if (type && type !== 'all') {
         params.type = type;
+      }
+      if (query) {
+        params.search = query;
       }
       const response = await api.getTemplates(params);
       setData(response);
@@ -38,8 +42,8 @@ const Templates: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchTemplates(currentPage, filterType === 'all' ? undefined : filterType);
-  }, [currentPage, filterType]);
+    fetchTemplates(currentPage, filterType === 'all' ? undefined : filterType, searchQuery);
+  }, [currentPage, filterType, searchQuery]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -52,7 +56,7 @@ const Templates: React.FC = () => {
       await api.deleteTemplate(templateToDelete.id);
       setTemplateToDelete(null);
       toast.success(`Template "${templateToDelete.title}" deleted successfully`);
-      fetchTemplates(currentPage, filterType === 'all' ? undefined : filterType);
+      fetchTemplates(currentPage, filterType === 'all' ? undefined : filterType, searchQuery);
     } catch (error) {
       toast.error('Failed to delete template');
       console.error('Error deleting template:', error);
@@ -62,6 +66,13 @@ const Templates: React.FC = () => {
   const handleTypeFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setFilterType(e.target.value);
     setCurrentPage(1);
+  };
+
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      setSearchQuery(searchInput);
+      setCurrentPage(1); // Reset to first page on new search
+    }
   };
 
   const columns = [
@@ -88,31 +99,60 @@ const Templates: React.FC = () => {
   ];
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Templates</h1>
-        <button
-          onClick={() => navigate('/templates/new')}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center"
-        >
-          <IconPlus className="w-5 h-5 mr-1" />
-          Add Template
-        </button>
+    <div className="h-full">
+      <div className="sm:flex sm:items-center">
+        <div className="sm:flex-auto">
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Templates</h1>
+          <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
+            A list of all templates including their contact information.
+          </p>
+        </div>
+        <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+          <button
+            type="button"
+            onClick={() => navigate('/templates/new')}
+            className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+          >
+            <IconPlus className="h-5 w-5 inline-block mr-2" />
+            Add Template
+          </button>
+        </div>
       </div>
 
-      <div className="mb-4">
-        <label htmlFor="type-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+      {/* Search */}
+      <div className="mt-6">
+        <label htmlFor="search" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Search (press Enter to search)
+        </label>
+        <div className="mt-1">
+          <input
+            type="text"
+            name="search"
+            id="search"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyDown={handleSearch}
+            className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
+            placeholder="Search templates... (press Enter to search)"
+          />
+        </div>
+      </div>
+
+      <div className="mt-6">
+        <label htmlFor="type-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
           Filter by Type
         </label>
-        <select
-          id="type-filter"
-          value={filterType}
-          onChange={handleTypeFilterChange}
-          className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-        >
-          <option value="all">All Types</option>
-          <option value="invoice">Invoice</option>
-        </select>
+        <div className="mt-1">
+          <select
+            id="type-filter"
+            value={filterType}
+            onChange={handleTypeFilterChange}
+            className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
+          >
+            <option value="all">All Types</option>
+            <option value="invoice">Invoice</option>
+          </select>
+        </div>
       </div>
 
       {isLoading ? (
@@ -120,66 +160,61 @@ const Templates: React.FC = () => {
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
       ) : (
-        <>
-          <div className="mt-4 shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-            <DataTable 
-              columns={columns}
-              data={data?.data || []}
-              keyField="id"
-              actions={(template) => (
-                <div className="flex justify-end space-x-2">
-                  <button
-                    onClick={() => navigate(`/templates/${template.id}/edit`)}
-                    className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
-                    title="Edit template"
-                  >
-                    <IconEdit className="h-5 w-5" />
-                    <span className="sr-only">Edit template</span>
-                  </button>
-                  <button
-                    onClick={() => setTemplateToDelete({ id: template.id, title: template.title })}
-                    className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                    title="Delete template"
-                  >
-                    <IconTrash className="h-5 w-5" />
-                    <span className="sr-only">Delete template</span>
-                  </button>
-                </div>
-              )}
-              totalCount={data?.totalCount || 0}
-              currentPage={currentPage}
-              rowsPerPage={10}
-            />
-          </div>
-
-          <div className="mt-4">
-            <Pagination 
-              currentPage={currentPage}
-              totalPages={data?.totalPages || 1}
-              onPageChange={handlePageChange}
-            />
-          </div>
-        </>
+        <div className="mt-8 shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+          <DataTable 
+            columns={columns}
+            data={data?.data || []}
+            keyField="id"
+            actions={(template) => (
+              <div className="flex justify-end space-x-2">
+                <button
+                  onClick={() => navigate(`/templates/${template.id}/edit`)}
+                  className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                  title="Edit template"
+                >
+                  <IconEdit className="h-5 w-5" />
+                  <span className="sr-only">Edit template</span>
+                </button>
+                <button
+                  onClick={() => setTemplateToDelete({ id: template.id, title: template.title })}
+                  className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                  title="Delete template"
+                >
+                  <IconTrash className="h-5 w-5" />
+                  <span className="sr-only">Delete template</span>
+                </button>
+              </div>
+            )}
+            totalCount={data?.totalCount || 0}
+            currentPage={currentPage}
+            totalPages={data?.totalPages || 1}
+            onPageChange={handlePageChange}
+            isPaginated={true}
+            rowsPerPage={10}
+          />
+        </div>
       )}
 
       {/* Delete Confirmation Modal */}
       {templateToDelete && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Confirm deletion</h3>
-            <p className="text-gray-500 dark:text-gray-400 mb-4">
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm w-full">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white">Delete Template</h3>
+            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
               Are you sure you want to delete the template "{templateToDelete.title}"? This action cannot be undone.
             </p>
-            <div className="flex justify-end space-x-3">
+            <div className="mt-4 flex justify-end space-x-3">
               <button
+                type="button"
                 onClick={() => setTemplateToDelete(null)}
-                className="px-4 py-2 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={handleDeleteTemplate}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700"
               >
                 Delete
               </button>

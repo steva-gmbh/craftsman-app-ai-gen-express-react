@@ -787,13 +787,14 @@ export const api = {
   },
 
   // Template endpoints
-  getTemplates: async (params: { page?: number; limit?: number; type?: string } = {}) => {
-    const { page, limit, type } = params;
+  getTemplates: async (params: { page?: number; limit?: number; type?: string; search?: string } = {}) => {
+    const { page, limit, type, search } = params;
     const queryParams = new URLSearchParams();
 
     if (page) queryParams.append('page', page.toString());
     if (limit) queryParams.append('limit', limit.toString());
     if (type) queryParams.append('type', type);
+    if (search) queryParams.append('search', search);
 
     const queryString = queryParams.toString();
     const response = await fetch(`${API_BASE_URL}/templates${queryString ? `?${queryString}` : ''}`);

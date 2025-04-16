@@ -6,12 +6,26 @@ const prisma = new PrismaClient();
 // Get all templates with optional filtering by type
 export const getTemplates = async (req: Request, res: Response) => {
   try {
-    const { type } = req.query;
+    const { type, search } = req.query;
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 10;
     const skip = (page - 1) * limit;
     
-    const where = type ? { type: String(type) } : {};
+    let where: any = {};
+    
+    // Filter by type if provided
+    if (type) {
+      where.type = String(type);
+    }
+    
+    // Filter by search term if provided
+    if (search) {
+      const searchTerm = String(search).toLowerCase();
+      where.OR = [
+        { title: { contains: searchTerm } },
+        { description: { contains: searchTerm } }
+      ];
+    }
     
     const [templates, totalCount] = await Promise.all([
       prisma.template.findMany({
@@ -25,12 +39,23 @@ export const getTemplates = async (req: Request, res: Response) => {
       prisma.template.count({ where }),
     ]);
     
+    // If search is specified and case-insensitive search isn't supported by the DB,
+    // we can filter the results in-memory for small datasets
+    let filteredTemplates = templates;
+    if (search && templates.length > 0) {
+      const searchTerm = String(search).toLowerCase();
+      filteredTemplates = templates.filter(template => 
+        template.title.toLowerCase().includes(searchTerm) || 
+        (template.description && template.description.toLowerCase().includes(searchTerm))
+      );
+    }
+    
     const totalPages = Math.ceil(totalCount / limit);
     
     res.json({
-      data: templates,
-      totalCount,
-      totalPages,
+      data: filteredTemplates,
+      totalCount: search ? filteredTemplates.length : totalCount,
+      totalPages: search ? Math.ceil(filteredTemplates.length / limit) : totalPages,
       currentPage: page,
       limit,
     });
