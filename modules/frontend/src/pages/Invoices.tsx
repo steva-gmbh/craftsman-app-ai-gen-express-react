@@ -6,7 +6,6 @@ import { api, Invoice } from '../services/api';
 import { settingsService } from '../services/settingsService';
 import { toast } from 'react-hot-toast';
 import DataTable from '../components/DataTable';
-import './invoices.css'; // Will create this file later
 
 const Invoices: React.FC = () => {
   const navigate = useNavigate();

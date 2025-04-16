@@ -1,9 +1,0 @@
-/* Invoice table styles */
-.invoice-table-wrapper tr:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-}
-
-/* Dark mode support */
-:root.dark .invoice-table-wrapper tr:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-} 
