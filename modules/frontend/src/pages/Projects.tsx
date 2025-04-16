@@ -168,7 +168,7 @@ export default function Projects() {
               : 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400'
           }`}
         >
-          {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
+          {project.status.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
         </span>
       )
     },
