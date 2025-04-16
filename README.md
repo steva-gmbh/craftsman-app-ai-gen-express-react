@@ -1,7 +1,9 @@
-# CraftsmanApp
+# CraftsmanApp (AI generated)
 
 A modern web application with AI assistant for craftsmen to manage their business.
-AI genrated.
+
+This APP was build in a simple (no comprehensive rule files were used) AI development process 
+using Cursor IDE and Claude Sonnet 3.7
 
 ## Features
 
@@ -64,24 +66,50 @@ craftsman-app-ai-gen-express-react/
 │   │   ├── src/
 │   │   │   ├── components/
 │   │   │   ├── pages/
+│   │   │   ├── contexts/
+│   │   │   ├── providers/
+│   │   │   ├── services/
+│   │   │   ├── tests/
 │   │   │   ├── App.tsx
-│   │   │   └── index.css
+│   │   │   ├── main.tsx
+│   │   │   ├── index.css
+│   │   │   └── vite-env.d.ts
+│   │   ├── screenshots/
+│   │   ├── reports/
 │   │   ├── package.json
 │   │   ├── tsconfig.json
 │   │   ├── tsconfig.node.json
+│   │   ├── tsconfig.test.json
 │   │   ├── vite.config.ts
 │   │   ├── tailwind.config.js
 │   │   ├── postcss.config.js
 │   │   └── index.html
 │   └── backend/
 │       ├── src/
+│       │   ├── controllers/
+│       │   ├── routes/
+│       │   ├── ai/
+│       │   ├── app.ts
+│       │   ├── server.ts
+│       │   ├── socket.ts
+│       │   └── index.ts
 │       ├── prisma/
+│       ├── test/
+│       │   ├── features/
+│       │   ├── steps/
+│       │   ├── support/
+│       │   └── unit/
 │       ├── package.json
-│       └── tsconfig.json
+│       ├── tsconfig.json
+│       ├── tsconfig.test.json
+│       ├── jest.config.js
+│       └── cucumber.js
 ├── package.json
 ├── package-lock.json
 ├── turbo.json
 ├── start.sh
+├── test.sh
+├── CONTRIBUTING.md
 └── .gitignore
 ```
 
@@ -102,4 +130,4 @@ craftsman-app-ai-gen-express-react/
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+This project is licensed under the MIT License - see the LICENSE file for details.
