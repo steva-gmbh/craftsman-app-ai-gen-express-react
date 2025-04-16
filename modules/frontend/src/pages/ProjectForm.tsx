@@ -19,7 +19,8 @@ export default function ProjectForm() {
     customerId: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showErrors, setShowErrors] = useState(false);
   const [jobToDelete, setJobToDelete] = useState<{ id: number; title: string } | null>(null);
 
   // Fetch customers for dropdown
@@ -59,7 +60,8 @@ export default function ProjectForm() {
             customerId: project.customerId ? project.customerId.toString() : '',
           });
         } catch (err) {
-          setError('Failed to load project data');
+          setErrors({ general: 'Failed to load project data' });
+          setShowErrors(true);
           console.error(err);
         }
       };
@@ -76,6 +78,42 @@ export default function ProjectForm() {
       ...prev,
       [name]: value,
     }));
+
+    // Clear error for this field when user changes it
+    if (errors[name]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  };
+
+  const validateFormData = (data: typeof formData) => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!data.name.trim()) {
+      newErrors.name = 'Project name is required';
+    }
+    
+    if (!data.description.trim()) {
+      newErrors.description = 'Description is required';
+    }
+    
+    if (!data.customerId) {
+      newErrors.customerId = 'Customer is required';
+    }
+    
+    if (data.budget && isNaN(parseFloat(data.budget))) {
+      newErrors.budget = 'Budget must be a valid number';
+    }
+    
+    if (data.startDate && data.endDate && new Date(data.startDate) > new Date(data.endDate)) {
+      newErrors.endDate = 'End date must be after start date';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleDeleteJob = async () => {
@@ -95,8 +133,16 @@ export default function ProjectForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setShowErrors(true);
+    
+    // Validate the form data
+    const isValid = validateFormData(formData);
+    
+    if (!isValid) {
+      return;
+    }
+    
     setIsSubmitting(true);
-    setError(null);
 
     try {
       const projectData = {
@@ -116,7 +162,9 @@ export default function ProjectForm() {
       }
       navigate('/projects');
     } catch (err) {
-      setError(id ? 'Failed to update project. Please try again.' : 'Failed to create project. Please try again.');
+      setErrors({ 
+        general: id ? 'Failed to update project. Please try again.' : 'Failed to create project. Please try again.' 
+      });
       toast.error(id ? 'Failed to update project' : 'Failed to create project');
       console.error(err);
     } finally {
@@ -130,9 +178,15 @@ export default function ProjectForm() {
         {id ? 'Edit Project' : 'Create New Project'}
       </h1>
 
-      {error && (
+      {Object.keys(errors).length > 0 && showErrors && errors.general && (
         <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-md">
-          {error}
+          {errors.general}
+        </div>
+      )}
+
+      {Object.keys(errors).length > 0 && showErrors && !errors.general && (
+        <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-md">
+          Please fix the errors below to continue.
         </div>
       )}
 
@@ -149,11 +203,13 @@ export default function ProjectForm() {
                     type="text"
                     name="name"
                     id="name"
-                    required
                     value={formData.name}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   />
+                  {showErrors && errors.name && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.name}</p>
+                  )}
                 </div>
               </div>
 
@@ -166,11 +222,13 @@ export default function ProjectForm() {
                     name="description"
                     id="description"
                     rows={3}
-                    required
                     value={formData.description}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.description ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2`}
                   />
+                  {showErrors && errors.description && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.description}</p>
+                  )}
                 </div>
               </div>
 
@@ -182,10 +240,9 @@ export default function ProjectForm() {
                   <select
                     id="customerId"
                     name="customerId"
-                    required
                     value={formData.customerId}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.customerId ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   >
                     <option value="">Select Customer</option>
                     {customers?.map((customer) => (
@@ -194,6 +251,9 @@ export default function ProjectForm() {
                       </option>
                     ))}
                   </select>
+                  {showErrors && errors.customerId && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.customerId}</p>
+                  )}
                 </div>
               </div>
 
@@ -205,15 +265,17 @@ export default function ProjectForm() {
                   <select
                     id="status"
                     name="status"
-                    required
                     value={formData.status}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.status ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   >
                     <option value="active">Active</option>
                     <option value="on_hold">On Hold</option>
                     <option value="completed">Completed</option>
                   </select>
+                  {showErrors && errors.status && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.status}</p>
+                  )}
                 </div>
               </div>
 
@@ -230,8 +292,11 @@ export default function ProjectForm() {
                     min="0"
                     value={formData.budget}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.budget ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   />
+                  {showErrors && errors.budget && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.budget}</p>
+                  )}
                 </div>
               </div>
 
@@ -246,8 +311,11 @@ export default function ProjectForm() {
                     id="startDate"
                     value={formData.startDate}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.startDate ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   />
+                  {showErrors && errors.startDate && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.startDate}</p>
+                  )}
                 </div>
               </div>
 
@@ -262,8 +330,11 @@ export default function ProjectForm() {
                     id="endDate"
                     value={formData.endDate}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.endDate ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   />
+                  {showErrors && errors.endDate && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.endDate}</p>
+                  )}
                 </div>
               </div>
             </div>

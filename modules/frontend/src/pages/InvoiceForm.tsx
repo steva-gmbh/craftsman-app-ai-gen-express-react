@@ -29,7 +29,8 @@ const InvoiceForm: React.FC = () => {
   const [availableProjects, setAvailableProjects] = useState<Project[]>([]);
   const [assignedProjects, setAssignedProjects] = useState<Project[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showErrors, setShowErrors] = useState(false);
   const [formData, setFormData] = useState<InvoiceFormState>({
     invoiceNumber: '',
     issueDate: new Date().toISOString().split('T')[0],
@@ -85,7 +86,8 @@ const InvoiceForm: React.FC = () => {
       } catch (error) {
         console.error('Error fetching data:', error);
         toast.error('Failed to load data');
-        setError('Failed to load invoice data');
+        setErrors({ general: 'Failed to load invoice data' });
+        setShowErrors(true);
       } finally {
         setIsLoading(false);
       }
@@ -146,12 +148,64 @@ const InvoiceForm: React.FC = () => {
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
+    
+    // Clear error for this field when user changes it
+    if (errors[name]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  };
+
+  const validateFormData = (data: InvoiceFormState) => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!data.invoiceNumber.trim()) {
+      newErrors.invoiceNumber = 'Invoice number is required';
+    }
+    
+    if (!data.customerId) {
+      newErrors.customerId = 'Customer is required';
+    }
+    
+    if (!data.issueDate) {
+      newErrors.issueDate = 'Issue date is required';
+    }
+    
+    if (!data.dueDate) {
+      newErrors.dueDate = 'Due date is required';
+    }
+    
+    if (data.issueDate && data.dueDate && new Date(data.issueDate) > new Date(data.dueDate)) {
+      newErrors.dueDate = 'Due date must be after issue date';
+    }
+    
+    if (data.totalAmount <= 0) {
+      newErrors.totalAmount = 'Total amount must be greater than zero';
+    }
+    
+    if (data.taxRate < 0 || data.taxRate > 100) {
+      newErrors.taxRate = 'Tax rate must be between 0 and 100';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setShowErrors(true);
+    
+    // Validate the form data
+    const isValid = validateFormData(formData);
+    
+    if (!isValid) {
+      return;
+    }
+    
     setIsSubmitting(true);
-    setError(null);
 
     try {
       if (isEditMode) {
@@ -192,7 +246,8 @@ const InvoiceForm: React.FC = () => {
     } catch (error) {
       console.error('Error saving invoice:', error);
       toast.error('Failed to save invoice');
-      setError('Failed to save invoice. Please try again.');
+      setErrors({ general: 'Failed to save invoice. Please try again.' });
+      setShowErrors(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -242,9 +297,15 @@ const InvoiceForm: React.FC = () => {
         {isEditMode ? 'Edit Invoice' : 'Create New Invoice'}
       </h1>
 
-      {error && (
+      {Object.keys(errors).length > 0 && showErrors && errors.general && (
         <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-md">
-          {error}
+          {errors.general}
+        </div>
+      )}
+
+      {Object.keys(errors).length > 0 && showErrors && !errors.general && (
+        <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-md">
+          Please fix the errors below to continue.
         </div>
       )}
 
@@ -263,9 +324,11 @@ const InvoiceForm: React.FC = () => {
                     id="invoiceNumber"
                     value={formData.invoiceNumber || ''}
                     onChange={handleChange}
-                    required
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.invoiceNumber ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   />
+                  {showErrors && errors.invoiceNumber && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.invoiceNumber}</p>
+                  )}
                 </div>
               </div>
 
@@ -279,8 +342,7 @@ const InvoiceForm: React.FC = () => {
                     name="customerId"
                     value={formData.customerId || ''}
                     onChange={handleChange}
-                    required
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.customerId ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   >
                     <option value="">Select Customer</option>
                     {customers.map(customer => (
@@ -289,6 +351,9 @@ const InvoiceForm: React.FC = () => {
                       </option>
                     ))}
                   </select>
+                  {showErrors && errors.customerId && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.customerId}</p>
+                  )}
                 </div>
               </div>
 
@@ -303,9 +368,11 @@ const InvoiceForm: React.FC = () => {
                     id="issueDate"
                     value={formData.issueDate}
                     onChange={handleChange}
-                    required
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.issueDate ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   />
+                  {showErrors && errors.issueDate && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.issueDate}</p>
+                  )}
                 </div>
               </div>
 
@@ -320,9 +387,11 @@ const InvoiceForm: React.FC = () => {
                     id="dueDate"
                     value={formData.dueDate}
                     onChange={handleChange}
-                    required
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.dueDate ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   />
+                  {showErrors && errors.dueDate && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.dueDate}</p>
+                  )}
                 </div>
               </div>
 
@@ -336,7 +405,7 @@ const InvoiceForm: React.FC = () => {
                     name="status"
                     value={formData.status || 'draft'}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.status ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   >
                     <option value="draft">Draft</option>
                     <option value="sent">Sent</option>
@@ -344,6 +413,9 @@ const InvoiceForm: React.FC = () => {
                     <option value="overdue">Overdue</option>
                     <option value="cancelled">Cancelled</option>
                   </select>
+                  {showErrors && errors.status && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.status}</p>
+                  )}
                 </div>
               </div>
 
@@ -360,9 +432,11 @@ const InvoiceForm: React.FC = () => {
                     onChange={handleChange}
                     min="0"
                     step="0.01"
-                    required
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.totalAmount ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   />
+                  {showErrors && errors.totalAmount && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.totalAmount}</p>
+                  )}
                 </div>
               </div>
 
@@ -380,8 +454,11 @@ const InvoiceForm: React.FC = () => {
                     min="0"
                     max="100"
                     step="0.01"
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.taxRate ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   />
+                  {showErrors && errors.taxRate && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.taxRate}</p>
+                  )}
                 </div>
               </div>
 
@@ -412,8 +489,11 @@ const InvoiceForm: React.FC = () => {
                     rows={3}
                     value={formData.notes || ''}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.notes ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2`}
                   />
+                  {showErrors && errors.notes && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.notes}</p>
+                  )}
                 </div>
               </div>
             </div>

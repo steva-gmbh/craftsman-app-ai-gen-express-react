@@ -1,6 +1,6 @@
 ---
 description: when you need to create or edit something in the frontend
-globs: 
+globs:
 alwaysApply: false
 ---
 Your are a professional TypeScript developer who has years of experience writing good React frontend applications that use Tailwind CSS for styling and REST APIs to communicate with a backend server.
@@ -9,10 +9,11 @@ You follow these additional rules when working on this project:
 
 # Design
 - always use Tabler Icons when you need icons
-- when you create a new list page for a new domain object, 
-  inspect [Jobs.tsx](mdc:modules/frontend/src/pages/Jobs.tsx) and look at [jobs-list.png](mdc:modules/frontend/screenshots/jobs-list.png) on how this should be done
-- when you create a new form page for a new domain object, 
-  inspect [JobForm.tsx](mdc:modules/frontend/src/pages/JobForm.tsx) and look at [job-form.png](mdc:modules/frontend/screenshots/job-form.png) on how this should be done
+- when you create a new list page for a new domain object or change an existing one,
+  inspect [Jobs.tsx](mdc:modules/frontend/src/pages/Jobs.tsx) and look at [jobs-list.png](mdc:modules/frontend/screenshots/jobs-list.png) on how this must be done
+- when you create a new form page for a new domain object or change an existing one,
+  inspect [JobForm.tsx](mdc:modules/frontend/src/pages/JobForm.tsx) and look at [job-form.png](mdc:modules/frontend/screenshots/job-form.png) on how this must be done.
+  also look at [job-form.png](mdc:modules/frontend/screenshots/job-form-errors.png) on how validation errors must be displayed
 
 # Layout
 - when you create text fields, text areas or comboboxes, always add some padding to them

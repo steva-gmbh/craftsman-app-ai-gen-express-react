@@ -28,7 +28,8 @@ export default function JobForm() {
     endDate: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showErrors, setShowErrors] = useState(false);
   const [selectedMaterial, setSelectedMaterial] = useState<string>('');
   const [materialAmount, setMaterialAmount] = useState<string>('');
   const [selectedTool, setSelectedTool] = useState<string>('');
@@ -106,7 +107,8 @@ export default function JobForm() {
             endDate: job.endDate ? new Date(job.endDate).toISOString().split('T')[0] : '',
           });
         } catch (err) {
-          setError('Failed to load job data');
+          setErrors({ general: 'Failed to load job data' });
+          setShowErrors(true);
           console.error(err);
         }
       };
@@ -121,6 +123,42 @@ export default function JobForm() {
       ...prev,
       [name]: value,
     }));
+    
+    // Clear error for this field when user changes it
+    if (errors[name]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  };
+
+  const validateFormData = (data: typeof formData) => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!data.title.trim()) {
+      newErrors.title = 'Title is required';
+    }
+    
+    if (!data.description.trim()) {
+      newErrors.description = 'Description is required';
+    }
+    
+    if (!data.customerId) {
+      newErrors.customerId = 'Customer is required';
+    }
+    
+    if (data.price && isNaN(parseFloat(data.price))) {
+      newErrors.price = 'Price must be a valid number';
+    }
+    
+    if (data.startDate && data.endDate && new Date(data.startDate) > new Date(data.endDate)) {
+      newErrors.endDate = 'End date must be after start date';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleAddMaterial = async () => {
@@ -217,8 +255,16 @@ export default function JobForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setShowErrors(true);
+    
+    // Validate the form data
+    const isValid = validateFormData(formData);
+    
+    if (!isValid) {
+      return;
+    }
+    
     setIsSubmitting(true);
-    setError(null);
 
     try {
       const jobData = {
@@ -256,7 +302,7 @@ export default function JobForm() {
         }
       }
     } catch (err) {
-      setError('Failed to save job. Please try again.');
+      setErrors({ general: 'Failed to save job. Please try again.' });
       toast.error(id ? 'Failed to update job' : 'Failed to create job');
       console.error(err);
     } finally {
@@ -270,9 +316,15 @@ export default function JobForm() {
         {id ? 'Edit Job' : 'Create New Job'}
       </h1>
 
-      {error && (
+      {Object.keys(errors).length > 0 && showErrors && errors.general && (
         <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-md">
-          {error}
+          {errors.general}
+        </div>
+      )}
+
+      {Object.keys(errors).length > 0 && showErrors && !errors.general && (
+        <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-md">
+          Please fix the errors below to continue.
         </div>
       )}
 
@@ -291,9 +343,11 @@ export default function JobForm() {
                     id="title"
                     value={formData.title}
                     onChange={handleChange}
-                    required
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.title ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   />
+                  {showErrors && errors.title && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.title}</p>
+                  )}
                 </div>
               </div>
 
@@ -308,9 +362,11 @@ export default function JobForm() {
                     rows={3}
                     value={formData.description}
                     onChange={handleChange}
-                    required
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.description ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2`}
                   />
+                  {showErrors && errors.description && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.description}</p>
+                  )}
                 </div>
               </div>
 
@@ -324,8 +380,7 @@ export default function JobForm() {
                     name="customerId"
                     value={formData.customerId}
                     onChange={handleChange}
-                    required
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.customerId ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   >
                     <option value="">Select a customer</option>
                     {customers.map(customer => (
@@ -334,6 +389,9 @@ export default function JobForm() {
                       </option>
                     ))}
                   </select>
+                  {showErrors && errors.customerId && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.customerId}</p>
+                  )}
                 </div>
               </div>
 
@@ -347,7 +405,7 @@ export default function JobForm() {
                     name="projectId"
                     value={formData.projectId}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.projectId ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   >
                     <option value="">None</option>
                     {projects.map(project => (
@@ -356,6 +414,9 @@ export default function JobForm() {
                       </option>
                     ))}
                   </select>
+                  {showErrors && errors.projectId && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.projectId}</p>
+                  )}
                 </div>
               </div>
 
@@ -369,13 +430,15 @@ export default function JobForm() {
                     name="status"
                     value={formData.status}
                     onChange={handleChange}
-                    required
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.status ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   >
                     <option value="PENDING">Pending</option>
                     <option value="IN_PROGRESS">In Progress</option>
                     <option value="COMPLETED">Completed</option>
                   </select>
+                  {showErrors && errors.status && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.status}</p>
+                  )}
                 </div>
               </div>
 
@@ -391,8 +454,11 @@ export default function JobForm() {
                     step="0.01"
                     value={formData.price}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.price ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   />
+                  {showErrors && errors.price && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.price}</p>
+                  )}
                 </div>
               </div>
 
@@ -407,8 +473,11 @@ export default function JobForm() {
                     id="startDate"
                     value={formData.startDate}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.startDate ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   />
+                  {showErrors && errors.startDate && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.startDate}</p>
+                  )}
                 </div>
               </div>
 
@@ -423,8 +492,11 @@ export default function JobForm() {
                     id="endDate"
                     value={formData.endDate}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.endDate ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   />
+                  {showErrors && errors.endDate && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.endDate}</p>
+                  )}
                 </div>
               </div>
             </div>

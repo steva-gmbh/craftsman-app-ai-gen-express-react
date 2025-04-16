@@ -24,7 +24,8 @@ export default function MaterialForm() {
     notes: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showErrors, setShowErrors] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -46,7 +47,8 @@ export default function MaterialForm() {
             notes: material.notes || '',
           });
         } catch (err) {
-          setError('Failed to load material data');
+          setErrors({ general: 'Failed to load material data' });
+          setShowErrors(true);
           console.error(err);
         }
       };
@@ -61,12 +63,66 @@ export default function MaterialForm() {
       ...prev,
       [name]: value,
     }));
+    
+    // Clear error for this field when user changes it
+    if (errors[name]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  };
+
+  const validateFormData = (data: typeof formData) => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!data.name.trim()) {
+      newErrors.name = 'Name is required';
+    }
+    
+    if (!data.unit) {
+      newErrors.unit = 'Unit is required';
+    }
+    
+    if (!data.costPerUnit.trim()) {
+      newErrors.costPerUnit = 'Cost per unit is required';
+    } else if (isNaN(parseFloat(data.costPerUnit)) || parseFloat(data.costPerUnit) < 0) {
+      newErrors.costPerUnit = 'Cost per unit must be a positive number';
+    }
+    
+    if (!data.category) {
+      newErrors.category = 'Category is required';
+    }
+    
+    if (!data.stock.trim()) {
+      newErrors.stock = 'Current stock is required';
+    } else if (isNaN(parseInt(data.stock)) || parseInt(data.stock) < 0) {
+      newErrors.stock = 'Current stock must be a non-negative number';
+    }
+    
+    if (!data.minStock.trim()) {
+      newErrors.minStock = 'Minimum stock is required';
+    } else if (isNaN(parseInt(data.minStock)) || parseInt(data.minStock) < 0) {
+      newErrors.minStock = 'Minimum stock must be a non-negative number';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setShowErrors(true);
+    
+    // Validate the form data
+    const isValid = validateFormData(formData);
+    
+    if (!isValid) {
+      return;
+    }
+    
     setIsSubmitting(true);
-    setError(null);
 
     try {
       const materialData = {
@@ -93,7 +149,8 @@ export default function MaterialForm() {
       }
       navigate('/materials');
     } catch (err) {
-      setError('Failed to save material. Please try again.');
+      setErrors({ general: 'Failed to save material. Please try again.' });
+      setShowErrors(true);
       toast.error(id ? 'Failed to update material' : 'Failed to create material');
       console.error(err);
     } finally {
@@ -107,9 +164,15 @@ export default function MaterialForm() {
         {id ? 'Edit Material' : 'Add New Material'}
       </h1>
 
-      {error && (
+      {Object.keys(errors).length > 0 && showErrors && errors.general && (
         <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-md">
-          {error}
+          {errors.general}
+        </div>
+      )}
+
+      {Object.keys(errors).length > 0 && showErrors && !errors.general && (
+        <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-md">
+          Please fix the errors below to continue.
         </div>
       )}
 
@@ -126,11 +189,13 @@ export default function MaterialForm() {
                     type="text"
                     name="name"
                     id="name"
-                    required
                     value={formData.name}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   />
+                  {showErrors && errors.name && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.name}</p>
+                  )}
                 </div>
               </div>
 
@@ -145,8 +210,11 @@ export default function MaterialForm() {
                     rows={3}
                     value={formData.description}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.description ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2`}
                   />
+                  {showErrors && errors.description && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.description}</p>
+                  )}
                 </div>
               </div>
 
@@ -158,16 +226,18 @@ export default function MaterialForm() {
                   <select
                     name="unit"
                     id="unit"
-                    required
                     value={formData.unit}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.unit ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   >
                     <option value="">Select a unit</option>
                     {UNITS.map(unit => (
                       <option key={unit} value={unit}>{unit}</option>
                     ))}
                   </select>
+                  {showErrors && errors.unit && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.unit}</p>
+                  )}
                 </div>
               </div>
 
@@ -180,13 +250,15 @@ export default function MaterialForm() {
                     type="number"
                     name="costPerUnit"
                     id="costPerUnit"
-                    required
                     min="0"
                     step="0.01"
                     value={formData.costPerUnit}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.costPerUnit ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   />
+                  {showErrors && errors.costPerUnit && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.costPerUnit}</p>
+                  )}
                 </div>
               </div>
 
@@ -198,16 +270,18 @@ export default function MaterialForm() {
                   <select
                     name="category"
                     id="category"
-                    required
                     value={formData.category}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.category ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   >
                     <option value="">Select a category</option>
                     {CATEGORIES.map(category => (
                       <option key={category} value={category}>{category}</option>
                     ))}
                   </select>
+                  {showErrors && errors.category && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.category}</p>
+                  )}
                 </div>
               </div>
 
@@ -222,8 +296,11 @@ export default function MaterialForm() {
                     id="color"
                     value={formData.color}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.color ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   />
+                  {showErrors && errors.color && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.color}</p>
+                  )}
                 </div>
               </div>
 
@@ -238,8 +315,11 @@ export default function MaterialForm() {
                     id="brand"
                     value={formData.brand}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.brand ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   />
+                  {showErrors && errors.brand && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.brand}</p>
+                  )}
                 </div>
               </div>
 
@@ -254,8 +334,11 @@ export default function MaterialForm() {
                     id="supplier"
                     value={formData.supplier}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.supplier ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   />
+                  {showErrors && errors.supplier && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.supplier}</p>
+                  )}
                 </div>
               </div>
 
@@ -268,12 +351,14 @@ export default function MaterialForm() {
                     type="number"
                     name="stock"
                     id="stock"
-                    required
                     min="0"
                     value={formData.stock}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.stock ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   />
+                  {showErrors && errors.stock && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.stock}</p>
+                  )}
                 </div>
               </div>
 
@@ -286,12 +371,14 @@ export default function MaterialForm() {
                     type="number"
                     name="minStock"
                     id="minStock"
-                    required
                     min="0"
                     value={formData.minStock}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.minStock ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   />
+                  {showErrors && errors.minStock && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.minStock}</p>
+                  )}
                 </div>
               </div>
 
@@ -306,8 +393,11 @@ export default function MaterialForm() {
                     id="location"
                     value={formData.location}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.location ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   />
+                  {showErrors && errors.location && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.location}</p>
+                  )}
                 </div>
               </div>
 
@@ -322,8 +412,11 @@ export default function MaterialForm() {
                     rows={3}
                     value={formData.notes}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.notes ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2`}
                   />
+                  {showErrors && errors.notes && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.notes}</p>
+                  )}
                 </div>
               </div>
             </div>

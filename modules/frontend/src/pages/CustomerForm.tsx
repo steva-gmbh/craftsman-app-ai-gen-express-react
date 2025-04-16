@@ -13,7 +13,8 @@ export default function CustomerForm() {
     address: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showErrors, setShowErrors] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -27,7 +28,8 @@ export default function CustomerForm() {
             address: customer.address,
           });
         } catch (err) {
-          setError('Failed to load customer data');
+          setErrors({ general: 'Failed to load customer data' });
+          setShowErrors(true);
           console.error(err);
         }
       };
@@ -42,12 +44,54 @@ export default function CustomerForm() {
       ...prev,
       [name]: value,
     }));
+    
+    // Clear error for this field when user changes it
+    if (errors[name]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  };
+
+  const validateFormData = (data: typeof formData) => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!data.name.trim()) {
+      newErrors.name = 'Name is required';
+    }
+    
+    if (!data.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(data.email)) {
+      newErrors.email = 'Email is invalid';
+    }
+    
+    if (!data.phone.trim()) {
+      newErrors.phone = 'Phone is required';
+    }
+    
+    if (!data.address.trim()) {
+      newErrors.address = 'Address is required';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setShowErrors(true);
+    
+    // Validate the form data
+    const isValid = validateFormData(formData);
+    
+    if (!isValid) {
+      return;
+    }
+    
     setIsSubmitting(true);
-    setError(null);
 
     try {
       if (id) {
@@ -59,7 +103,9 @@ export default function CustomerForm() {
       }
       navigate('/customers');
     } catch (err) {
-      setError(id ? 'Failed to update customer. Please try again.' : 'Failed to create customer. Please try again.');
+      setErrors({ 
+        general: id ? 'Failed to update customer. Please try again.' : 'Failed to create customer. Please try again.' 
+      });
       toast.error(id ? 'Failed to update customer' : 'Failed to create customer');
       console.error(err);
     } finally {
@@ -73,9 +119,15 @@ export default function CustomerForm() {
         {id ? 'Edit Customer' : 'Add New Customer'}
       </h1>
 
-      {error && (
+      {Object.keys(errors).length > 0 && showErrors && errors.general && (
         <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-md">
-          {error}
+          {errors.general}
+        </div>
+      )}
+
+      {Object.keys(errors).length > 0 && showErrors && !errors.general && (
+        <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-md">
+          Please fix the errors below to continue.
         </div>
       )}
 
@@ -92,11 +144,13 @@ export default function CustomerForm() {
                     type="text"
                     name="name"
                     id="name"
-                    required
                     value={formData.name}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   />
+                  {showErrors && errors.name && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.name}</p>
+                  )}
                 </div>
               </div>
 
@@ -109,11 +163,13 @@ export default function CustomerForm() {
                     type="email"
                     name="email"
                     id="email"
-                    required
                     value={formData.email}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   />
+                  {showErrors && errors.email && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.email}</p>
+                  )}
                 </div>
               </div>
 
@@ -126,11 +182,13 @@ export default function CustomerForm() {
                     type="tel"
                     name="phone"
                     id="phone"
-                    required
                     value={formData.phone}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.phone ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   />
+                  {showErrors && errors.phone && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.phone}</p>
+                  )}
                 </div>
               </div>
 
@@ -143,11 +201,13 @@ export default function CustomerForm() {
                     type="text"
                     name="address"
                     id="address"
-                    required
                     value={formData.address}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.address ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   />
+                  {showErrors && errors.address && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.address}</p>
+                  )}
                 </div>
               </div>
             </div>

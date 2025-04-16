@@ -23,7 +23,8 @@ export default function VehicleForm() {
     notes: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showErrors, setShowErrors] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -54,7 +55,8 @@ export default function VehicleForm() {
           });
         } catch (err) {
           console.error('Failed to load vehicle data:', err);
-          setError(err instanceof Error ? err.message : 'Failed to load vehicle data');
+          setErrors({ general: err instanceof Error ? err.message : 'Failed to load vehicle data' });
+          setShowErrors(true);
         }
       };
 
@@ -68,12 +70,72 @@ export default function VehicleForm() {
       ...prev,
       [name]: type === 'number' ? Number(value) : value,
     }));
+    
+    // Clear error for this field when user changes it
+    if (errors[name]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  };
+
+  const validateFormData = (data: typeof formData) => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!data.name.trim()) {
+      newErrors.name = 'Name is required';
+    }
+    
+    if (!data.make.trim()) {
+      newErrors.make = 'Make is required';
+    }
+    
+    if (!data.model.trim()) {
+      newErrors.model = 'Model is required';
+    }
+    
+    if (!data.year || data.year < 1900 || data.year > new Date().getFullYear() + 1) {
+      newErrors.year = 'Valid year is required (1900 - present)';
+    }
+    
+    if (!data.type) {
+      newErrors.type = 'Vehicle type is required';
+    }
+    
+    if (!data.status) {
+      newErrors.status = 'Status is required';
+    }
+    
+    if (data.purchasePrice < 0) {
+      newErrors.purchasePrice = 'Purchase price cannot be negative';
+    }
+    
+    if (data.mileage < 0) {
+      newErrors.mileage = 'Mileage cannot be negative';
+    }
+    
+    if (data.purchaseDate && !/^\d{4}-\d{2}-\d{2}$/.test(data.purchaseDate)) {
+      newErrors.purchaseDate = 'Invalid date format';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setShowErrors(true);
+    
+    // Validate the form data
+    const isValid = validateFormData(formData);
+    
+    if (!isValid) {
+      return;
+    }
+    
     setIsSubmitting(true);
-    setError(null);
 
     try {
       // Create a copy of the form data with parsed dates
@@ -92,7 +154,8 @@ export default function VehicleForm() {
       }
       navigate('/vehicles');
     } catch (err) {
-      setError(id ? 'Failed to update vehicle. Please try again.' : 'Failed to create vehicle. Please try again.');
+      setErrors({ general: id ? 'Failed to update vehicle. Please try again.' : 'Failed to create vehicle. Please try again.' });
+      setShowErrors(true);
       toast.error(id ? 'Failed to update vehicle' : 'Failed to create vehicle');
       console.error(err);
     } finally {
@@ -106,9 +169,15 @@ export default function VehicleForm() {
         {id ? 'Edit Vehicle' : 'Create New Vehicle'}
       </h1>
 
-      {error && (
+      {Object.keys(errors).length > 0 && showErrors && errors.general && (
         <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-md">
-          {error}
+          {errors.general}
+        </div>
+      )}
+
+      {Object.keys(errors).length > 0 && showErrors && !errors.general && (
+        <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-md">
+          Please fix the errors below to continue.
         </div>
       )}
 
@@ -125,11 +194,13 @@ export default function VehicleForm() {
                     type="text"
                     name="name"
                     id="name"
-                    required
                     value={formData.name}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   />
+                  {showErrors && errors.name && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.name}</p>
+                  )}
                 </div>
               </div>
 
@@ -142,11 +213,13 @@ export default function VehicleForm() {
                     type="text"
                     name="make"
                     id="make"
-                    required
                     value={formData.make}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.make ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   />
+                  {showErrors && errors.make && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.make}</p>
+                  )}
                 </div>
               </div>
 
@@ -159,11 +232,13 @@ export default function VehicleForm() {
                     type="text"
                     name="model"
                     id="model"
-                    required
                     value={formData.model}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.model ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   />
+                  {showErrors && errors.model && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.model}</p>
+                  )}
                 </div>
               </div>
 
@@ -176,13 +251,15 @@ export default function VehicleForm() {
                     type="number"
                     name="year"
                     id="year"
-                    required
                     min="1900"
                     max={new Date().getFullYear() + 1}
                     value={formData.year}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.year ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   />
+                  {showErrors && errors.year && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.year}</p>
+                  )}
                 </div>
               </div>
 
@@ -194,10 +271,9 @@ export default function VehicleForm() {
                   <select
                     name="type"
                     id="type"
-                    required
                     value={formData.type}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.type ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   >
                     <option value="">Select a type</option>
                     <option value="car">Car</option>
@@ -207,6 +283,9 @@ export default function VehicleForm() {
                     <option value="motorcycle">Motorcycle</option>
                     <option value="other">Other</option>
                   </select>
+                  {showErrors && errors.type && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.type}</p>
+                  )}
                 </div>
               </div>
 
@@ -218,15 +297,17 @@ export default function VehicleForm() {
                   <select
                     name="status"
                     id="status"
-                    required
                     value={formData.status}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.status ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   >
                     <option value="active">Active</option>
                     <option value="maintenance">Maintenance</option>
                     <option value="retired">Retired</option>
                   </select>
+                  {showErrors && errors.status && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.status}</p>
+                  )}
                 </div>
               </div>
 
@@ -241,8 +322,11 @@ export default function VehicleForm() {
                     id="licensePlate"
                     value={formData.licensePlate}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.licensePlate ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   />
+                  {showErrors && errors.licensePlate && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.licensePlate}</p>
+                  )}
                 </div>
               </div>
 
@@ -257,8 +341,11 @@ export default function VehicleForm() {
                     id="vin"
                     value={formData.vin}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.vin ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   />
+                  {showErrors && errors.vin && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.vin}</p>
+                  )}
                 </div>
               </div>
 
@@ -273,8 +360,11 @@ export default function VehicleForm() {
                     id="color"
                     value={formData.color}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.color ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   />
+                  {showErrors && errors.color && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.color}</p>
+                  )}
                 </div>
               </div>
 
@@ -288,7 +378,7 @@ export default function VehicleForm() {
                     id="fuelType"
                     value={formData.fuelType}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.fuelType ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   >
                     <option value="">Select a fuel type</option>
                     <option value="gasoline">Gasoline</option>
@@ -297,6 +387,9 @@ export default function VehicleForm() {
                     <option value="hybrid">Hybrid</option>
                     <option value="other">Other</option>
                   </select>
+                  {showErrors && errors.fuelType && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.fuelType}</p>
+                  )}
                 </div>
               </div>
 
@@ -312,8 +405,11 @@ export default function VehicleForm() {
                     min="0"
                     value={formData.mileage}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.mileage ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   />
+                  {showErrors && errors.mileage && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.mileage}</p>
+                  )}
                 </div>
               </div>
 
@@ -328,8 +424,11 @@ export default function VehicleForm() {
                     id="purchaseDate"
                     value={formData.purchaseDate}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.purchaseDate ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   />
+                  {showErrors && errors.purchaseDate && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.purchaseDate}</p>
+                  )}
                 </div>
               </div>
 
@@ -346,8 +445,11 @@ export default function VehicleForm() {
                     step="0.01"
                     value={formData.purchasePrice}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.purchasePrice ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
                   />
+                  {showErrors && errors.purchasePrice && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.purchasePrice}</p>
+                  )}
                 </div>
               </div>
 
@@ -362,8 +464,11 @@ export default function VehicleForm() {
                     rows={4}
                     value={formData.notes}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2"
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.notes ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2`}
                   />
+                  {showErrors && errors.notes && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.notes}</p>
+                  )}
                 </div>
               </div>
             </div>
