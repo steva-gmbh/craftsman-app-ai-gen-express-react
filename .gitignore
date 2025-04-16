@@ -1,5 +1,4 @@
 node_modules
-modules/backend/prisma/dev.db
 /.idea/
 *.iml
 .env
@@ -7,4 +6,10 @@ modules/backend/prisma/dev.db
 .env.development
 .env.production
 test-results
+modules/backend/prisma/dev.db
+modules/backend/prisma/test.db
 modules/backend/test-results/
+modules/backend/dist/
+modules/backend/.turbo/
+modules/frontend/dist/
+modules/frontend/.turbo/
