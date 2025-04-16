@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useImperativeHandle, forwardRef } from 'react
 import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
 
-// Add custom CSS for larger font size
+// Add custom CSS for larger font size and dark mode compatibility
 const editorStyles = `
   .ql-editor {
     font-size: 16px;
@@ -32,6 +32,146 @@ const editorStyles = `
   }
   .ql-variables {
     font-size: 14px !important;
+  }
+  
+  /* Dark mode styles */
+  .dark .ql-snow.ql-toolbar button,
+  .dark .ql-snow .ql-toolbar button {
+    color: #e2e8f0;
+  }
+  
+  .dark .ql-snow.ql-toolbar button:hover,
+  .dark .ql-snow .ql-toolbar button:hover,
+  .dark .ql-snow.ql-toolbar button.ql-active, 
+  .dark .ql-snow .ql-toolbar button.ql-active {
+    color: #818cf8; 
+  }
+  
+  .dark .ql-snow.ql-toolbar button:hover .ql-fill,
+  .dark .ql-snow .ql-toolbar button:hover .ql-fill,
+  .dark .ql-snow.ql-toolbar button.ql-active .ql-fill,
+  .dark .ql-snow .ql-toolbar button.ql-active .ql-fill {
+    fill: #818cf8;
+  }
+  
+  .dark .ql-snow.ql-toolbar button:hover .ql-stroke,
+  .dark .ql-snow .ql-toolbar button:hover .ql-stroke,
+  .dark .ql-snow.ql-toolbar button.ql-active .ql-stroke,
+  .dark .ql-snow .ql-toolbar button.ql-active .ql-stroke,
+  .dark .ql-snow.ql-toolbar .ql-picker-label:hover .ql-stroke,
+  .dark .ql-snow .ql-toolbar .ql-picker-label:hover .ql-stroke {
+    stroke: #818cf8;
+  }
+  
+  .dark .ql-snow .ql-stroke {
+    stroke: #e2e8f0;
+  }
+  
+  .dark .ql-snow .ql-fill,
+  .dark .ql-snow .ql-stroke.ql-fill {
+    fill: #e2e8f0;
+  }
+  
+  .dark .ql-snow .ql-picker {
+    color: #e2e8f0;
+  }
+  
+  .dark .ql-snow .ql-picker-options {
+    background-color: #1f2937;
+    border-color: #4b5563;
+  }
+  
+  .dark .ql-snow .ql-picker.ql-expanded .ql-picker-label {
+    border-color: #4b5563;
+  }
+  
+  .dark .ql-snow .ql-picker-options .ql-picker-item {
+    color: #e2e8f0;
+  }
+  
+  .dark .ql-snow .ql-picker-options .ql-picker-item:hover {
+    background-color: #374151;
+    color: #818cf8;
+  }
+  
+  /* Make the header dropdown match Variables dropdown styles in both light and dark modes */
+  .ql-snow .ql-picker.ql-header .ql-picker-label {
+    color: inherit;
+  }
+  
+  .ql-snow .ql-picker.ql-header .ql-picker-label svg .ql-stroke {
+    stroke: currentColor;
+  }
+  
+  .ql-snow .ql-picker.ql-header .ql-picker-label:hover {
+    color: #06c;
+  }
+  
+  .ql-snow .ql-picker.ql-header .ql-picker-label:hover svg .ql-stroke {
+    stroke: #06c;
+  }
+  
+  /* Dark mode styles for header dropdown */
+  .dark .ql-snow .ql-picker.ql-header .ql-picker-label {
+    color: #f8fafc;
+  }
+  
+  .dark .ql-snow .ql-picker.ql-header .ql-picker-label:hover {
+    color: #818cf8;
+  }
+  
+  .dark .ql-snow .ql-picker.ql-header .ql-picker-label svg .ql-stroke {
+    stroke: #f8fafc;
+  }
+  
+  .dark .ql-snow .ql-picker.ql-header .ql-picker-label:hover svg .ql-stroke {
+    stroke: #818cf8;
+  }
+  
+  .dark .ql-snow .ql-tooltip {
+    background-color: #1f2937;
+    border-color: #4b5563;
+    color: #e2e8f0;
+  }
+  
+  .dark .ql-snow .ql-tooltip input[type=text] {
+    background-color: #374151;
+    border-color: #4b5563;
+    color: #e2e8f0;
+  }
+  
+  .dark .ql-snow.ql-toolbar, 
+  .dark .ql-snow .ql-toolbar {
+    border-color: #4b5563;
+    background-color: #1f2937;
+  }
+  
+  .dark .ql-container.ql-snow {
+    border-color: #4b5563;
+  }
+  
+  .dark .ql-editor {
+    color: #e2e8f0;
+    background-color: #1f2937;
+  }
+  
+  .dark .ql-variables-dropdown {
+    background-color: #1f2937;
+    border-color: #4b5563;
+    color: #e2e8f0;
+  }
+  
+  .dark .ql-variables-dropdown div {
+    color: #e2e8f0;
+  }
+  
+  .dark .ql-variables-dropdown div:hover {
+    background-color: #374151;
+  }
+  
+  .dark .ql-variables-dropdown div[style*="backgroundColor: #f0f0f0"] {
+    background-color: #374151 !important;
+    border-color: #4b5563 !important;
   }
 `;
 
@@ -140,6 +280,29 @@ class VariablesModule {
         this.hideDropdown();
       }
     });
+    
+    // Watch for theme changes using MutationObserver
+    this.setupThemeObserver();
+  }
+  
+  // Setup observer to watch for dark mode changes
+  setupThemeObserver() {
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'class' && 
+            mutation.target === document.documentElement) {
+          // Theme has changed, recreate the dropdown with updated styles
+          if (this.variablesDropdown) {
+            document.body.removeChild(this.variablesDropdown);
+          }
+          this.variablesDropdown = this.createDropdown();
+          document.body.appendChild(this.variablesDropdown);
+        }
+      });
+    });
+    
+    // Start observing changes to html element's class
+    observer.observe(document.documentElement, { attributes: true });
   }
   
   createDropdown() {
@@ -150,10 +313,17 @@ class VariablesModule {
     dropdown.style.width = '200px';
     dropdown.style.maxHeight = '300px';
     dropdown.style.overflow = 'auto';
-    dropdown.style.backgroundColor = 'white';
-    dropdown.style.border = '1px solid #ccc';
+    
+    // Add dark mode detection
+    const isDarkMode = document.documentElement.classList.contains('dark');
+    
+    // Set styles based on theme
+    dropdown.style.backgroundColor = isDarkMode ? '#1f2937' : 'white';
+    dropdown.style.border = isDarkMode ? '1px solid #4b5563' : '1px solid #ccc';
+    dropdown.style.color = isDarkMode ? '#e2e8f0' : 'inherit';
     dropdown.style.borderRadius = '4px';
-    dropdown.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+    dropdown.style.boxShadow = isDarkMode ? 
+      '0 2px 8px rgba(0,0,0,0.3)' : '0 2px 8px rgba(0,0,0,0.1)';
     dropdown.style.zIndex = '9999';
     
     // Add variables groups and items
@@ -163,8 +333,8 @@ class VariablesModule {
       groupHeader.innerHTML = group.title;
       groupHeader.style.padding = '8px 12px';
       groupHeader.style.fontWeight = 'bold';
-      groupHeader.style.backgroundColor = '#f0f0f0';
-      groupHeader.style.borderBottom = '1px solid #ccc';
+      groupHeader.style.backgroundColor = isDarkMode ? '#374151' : '#f0f0f0';
+      groupHeader.style.borderBottom = isDarkMode ? '1px solid #4b5563' : '1px solid #ccc';
       dropdown.appendChild(groupHeader);
       
       // Create variable items
@@ -175,16 +345,16 @@ class VariablesModule {
         itemElement.style.cursor = 'pointer';
         
         if (index < group.items.length - 1) {
-          itemElement.style.borderBottom = '1px solid #eee';
+          itemElement.style.borderBottom = isDarkMode ? '1px solid #374151' : '1px solid #eee';
         }
         
         // Hover effect
         itemElement.addEventListener('mouseover', () => {
-          itemElement.style.backgroundColor = '#f5f5f5';
+          itemElement.style.backgroundColor = isDarkMode ? '#374151' : '#f5f5f5';
         });
         
         itemElement.addEventListener('mouseout', () => {
-          itemElement.style.backgroundColor = 'white';
+          itemElement.style.backgroundColor = isDarkMode ? '#1f2937' : 'white';
         });
         
         // Click event to insert variable
