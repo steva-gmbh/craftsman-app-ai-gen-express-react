@@ -14,3 +14,4 @@ test-results
 /modules/backend/prisma/:memory:
 /modules/frontend/dist/
 /modules/frontend/.turbo/
+/modules/frontend/reports/
