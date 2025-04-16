@@ -180,7 +180,30 @@ function App() {
                   <Route path="*" element={<Navigate to="/login" replace />} />
                 </Routes>
               )}
-              <Toaster position="top-right" />
+              <Toaster 
+                position="top-right" 
+                toastOptions={{
+                  style: {
+                    background: 'var(--toast-bg)',
+                    color: 'var(--toast-text)',
+                    borderRadius: '0.375rem',
+                    boxShadow: 'var(--toast-shadow)',
+                    border: '1px solid var(--toast-border)',
+                  },
+                  success: {
+                    iconTheme: {
+                      primary: '#10B981',
+                      secondary: 'white',
+                    },
+                  },
+                  error: {
+                    iconTheme: {
+                      primary: '#EF4444',
+                      secondary: 'white',
+                    },
+                  },
+                }}
+              />
             </div>
           </WebSocketProvider>
         </Router>

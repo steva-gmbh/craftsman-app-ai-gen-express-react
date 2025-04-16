@@ -3,6 +3,20 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --toast-bg: #ffffff;
+    --toast-text: #1f2937;
+    --toast-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --toast-border: rgba(229, 231, 235, 1);
+  }
+
+  .dark {
+    --toast-bg: #1f2937;
+    --toast-text: #f9fafb;
+    --toast-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.18);
+    --toast-border: rgba(55, 65, 81, 1);
+  }
+
   body {
     @apply bg-gray-50 text-gray-900;
   }
