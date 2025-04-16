@@ -28,6 +28,8 @@ const InvoiceForm: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<string>('');
   const [availableProjects, setAvailableProjects] = useState<Project[]>([]);
   const [assignedProjects, setAssignedProjects] = useState<Project[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<InvoiceFormState>({
     invoiceNumber: '',
     issueDate: new Date().toISOString().split('T')[0],
@@ -83,6 +85,7 @@ const InvoiceForm: React.FC = () => {
       } catch (error) {
         console.error('Error fetching data:', error);
         toast.error('Failed to load data');
+        setError('Failed to load invoice data');
       } finally {
         setIsLoading(false);
       }
@@ -147,6 +150,8 @@ const InvoiceForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
     
     try {
       if (isEditMode) {
@@ -187,6 +192,9 @@ const InvoiceForm: React.FC = () => {
     } catch (error) {
       console.error('Error saving invoice:', error);
       toast.error('Failed to save invoice');
+      setError('Failed to save invoice. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -216,6 +224,10 @@ const InvoiceForm: React.FC = () => {
     toast.success('Project removed');
   };
 
+  const handleCancel = () => {
+    navigate('/invoices');
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -225,181 +237,218 @@ const InvoiceForm: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">
+    <div className="max-w-5xl mx-auto">
+      <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
         {isEditMode ? 'Edit Invoice' : 'Create New Invoice'}
       </h1>
       
-      <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Invoice Number */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Invoice Number
-            </label>
-            <input
-              type="text"
-              name="invoiceNumber"
-              value={formData.invoiceNumber || ''}
-              onChange={handleChange}
-              className="w-full p-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              required
-            />
-          </div>
-          
-          {/* Customer */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Customer
-            </label>
-            <select
-              name="customerId"
-              value={formData.customerId || ''}
-              onChange={handleChange}
-              className="w-full p-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              required
-            >
-              <option value="">Select Customer</option>
-              {customers.map(customer => (
-                <option key={customer.id} value={customer.id}>
-                  {customer.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          
-          {/* Issue Date */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Issue Date
-            </label>
-            <input
-              type="date"
-              name="issueDate"
-              value={formData.issueDate}
-              onChange={handleChange}
-              className="w-full p-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              required
-            />
-          </div>
-          
-          {/* Due Date */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Due Date
-            </label>
-            <input
-              type="date"
-              name="dueDate"
-              value={formData.dueDate}
-              onChange={handleChange}
-              className="w-full p-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              required
-            />
-          </div>
-          
-          {/* Status */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Status
-            </label>
-            <select
-              name="status"
-              value={formData.status || 'draft'}
-              onChange={handleChange}
-              className="w-full p-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-            >
-              <option value="draft">Draft</option>
-              <option value="sent">Sent</option>
-              <option value="paid">Paid</option>
-              <option value="overdue">Overdue</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-          </div>
-          
-          {/* Total Amount */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Total Amount
-            </label>
-            <input
-              type="number"
-              name="totalAmount"
-              value={formData.totalAmount || ''}
-              onChange={handleChange}
-              className="w-full p-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              min="0"
-              step="0.01"
-              required
-            />
-          </div>
-          
-          {/* Tax Rate */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Tax Rate (%)
-            </label>
-            <input
-              type="number"
-              name="taxRate"
-              value={formData.taxRate || ''}
-              onChange={handleChange}
-              className="w-full p-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              min="0"
-              max="100"
-              step="0.01"
-            />
-          </div>
-          
-          {/* Tax Amount (calculated) */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Tax Amount
-            </label>
-            <input
-              type="number"
-              name="taxAmount"
-              value={formData.taxAmount?.toFixed(2) || '0.00'}
-              readOnly
-              className="w-full p-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-600"
-            />
-          </div>
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-md">
+          {error}
         </div>
-        
-        {/* Projects */}
-        <div className="mt-6">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Projects
-          </label>
-          {formData.customerId ? (
-            <>
-              <div className="flex gap-4 mb-4">
-                <select
-                  value={selectedProject}
-                  onChange={(e) => setSelectedProject(e.target.value)}
-                  className="flex-1 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
-                >
-                  <option value="">Select a project</option>
-                  {availableProjects
-                    .filter(project => !formData.projectIds?.includes(project.id))
-                    .map(project => (
-                      <option key={project.id} value={project.id}>
-                        {project.name}
+      )}
+
+      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+        <form onSubmit={handleSubmit}>
+          <div className="border-b border-gray-200 dark:border-gray-700 p-6 space-y-6">
+            <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+              <div className="sm:col-span-3">
+                <label htmlFor="invoiceNumber" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Invoice Number
+                </label>
+                <div className="mt-1">
+                  <input
+                    type="text"
+                    name="invoiceNumber"
+                    id="invoiceNumber"
+                    value={formData.invoiceNumber || ''}
+                    onChange={handleChange}
+                    required
+                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                  />
+                </div>
+              </div>
+              
+              <div className="sm:col-span-3">
+                <label htmlFor="customerId" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Customer
+                </label>
+                <div className="mt-1">
+                  <select
+                    id="customerId"
+                    name="customerId"
+                    value={formData.customerId || ''}
+                    onChange={handleChange}
+                    required
+                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                  >
+                    <option value="">Select Customer</option>
+                    {customers.map(customer => (
+                      <option key={customer.id} value={customer.id}>
+                        {customer.name}
                       </option>
                     ))}
-                </select>
-                
-                <button
-                  type="button"
-                  onClick={handleAddProject}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 h-10"
-                >
-                  <IconPlus className="h-5 w-5 mr-2" />
-                  Add
-                </button>
+                  </select>
+                </div>
               </div>
+              
+              <div className="sm:col-span-3">
+                <label htmlFor="issueDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Issue Date
+                </label>
+                <div className="mt-1">
+                  <input
+                    type="date"
+                    name="issueDate"
+                    id="issueDate"
+                    value={formData.issueDate}
+                    onChange={handleChange}
+                    required
+                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                  />
+                </div>
+              </div>
+              
+              <div className="sm:col-span-3">
+                <label htmlFor="dueDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Due Date
+                </label>
+                <div className="mt-1">
+                  <input
+                    type="date"
+                    name="dueDate"
+                    id="dueDate"
+                    value={formData.dueDate}
+                    onChange={handleChange}
+                    required
+                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                  />
+                </div>
+              </div>
+              
+              <div className="sm:col-span-3">
+                <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Status
+                </label>
+                <div className="mt-1">
+                  <select
+                    id="status"
+                    name="status"
+                    value={formData.status || 'draft'}
+                    onChange={handleChange}
+                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                  >
+                    <option value="draft">Draft</option>
+                    <option value="sent">Sent</option>
+                    <option value="paid">Paid</option>
+                    <option value="overdue">Overdue</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div className="sm:col-span-3">
+                <label htmlFor="totalAmount" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Total Amount (€)
+                </label>
+                <div className="mt-1">
+                  <input
+                    type="number"
+                    name="totalAmount"
+                    id="totalAmount"
+                    value={formData.totalAmount || ''}
+                    onChange={handleChange}
+                    min="0"
+                    step="0.01"
+                    required
+                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                  />
+                </div>
+              </div>
+              
+              <div className="sm:col-span-3">
+                <label htmlFor="taxRate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Tax Rate (%)
+                </label>
+                <div className="mt-1">
+                  <input
+                    type="number"
+                    name="taxRate"
+                    id="taxRate"
+                    value={formData.taxRate || ''}
+                    onChange={handleChange}
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                  />
+                </div>
+              </div>
+              
+              <div className="sm:col-span-3">
+                <label htmlFor="taxAmount" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Tax Amount (€)
+                </label>
+                <div className="mt-1">
+                  <input
+                    type="number"
+                    name="taxAmount"
+                    id="taxAmount"
+                    value={formData.taxAmount?.toFixed(2) || '0.00'}
+                    readOnly
+                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10 bg-gray-100 dark:bg-gray-600"
+                  />
+                </div>
+              </div>
+              
+              <div className="sm:col-span-6">
+                <label htmlFor="notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Notes
+                </label>
+                <div className="mt-1">
+                  <textarea
+                    id="notes"
+                    name="notes"
+                    rows={3}
+                    value={formData.notes || ''}
+                    onChange={handleChange}
+                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2"
+                  />
+                </div>
+              </div>
+            </div>
 
-              {assignedProjects.length > 0 ? (
+            {/* Projects Section */}
+            {formData.customerId ? (
+              <div className="space-y-4">
+                <h2 className="text-lg font-medium text-gray-900 dark:text-white">Projects</h2>
+                
+                <div className="flex gap-4">
+                  <select
+                    value={selectedProject}
+                    onChange={(e) => setSelectedProject(e.target.value)}
+                    className="flex-1 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
+                  >
+                    <option value="">Select a project</option>
+                    {availableProjects
+                      .filter(project => !formData.projectIds?.includes(project.id))
+                      .map(project => (
+                        <option key={project.id} value={project.id}>
+                          {project.name}
+                        </option>
+                      ))}
+                  </select>
+                  
+                  <button
+                    type="button"
+                    onClick={handleAddProject}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 h-10"
+                  >
+                    <IconPlus className="h-5 w-5 mr-2" />
+                    Add
+                  </button>
+                </div>
+
                 <div className="mt-4">
                   <table className="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
                     <thead className="bg-gray-50 dark:bg-gray-700">
@@ -411,75 +460,68 @@ const InvoiceForm: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 dark:divide-gray-600 bg-white dark:bg-gray-800">
-                      {assignedProjects.map((project) => (
-                        <tr key={project.id}>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
-                            {project.name}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
-                            {project.status}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
-                            {project.budget ? `$${project.budget.toFixed(2)}` : 'N/A'}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveProject(project.id)}
-                              className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                            >
-                              <IconTrash className="h-5 w-5" />
-                            </button>
+                      {assignedProjects.length > 0 ? (
+                        assignedProjects.map((project) => (
+                          <tr key={project.id}>
+                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                              {project.name}
+                            </td>
+                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                              {project.status}
+                            </td>
+                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                              {project.budget ? `€${project.budget.toFixed(2)}` : 'N/A'}
+                            </td>
+                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveProject(project.id)}
+                                className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                              >
+                                <IconTrash className="h-5 w-5" />
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={4} className="px-3 py-4 text-sm text-gray-500 dark:text-gray-400 text-center">
+                            No projects assigned to this invoice yet.
                           </td>
                         </tr>
-                      ))}
+                      )}
                     </tbody>
                   </table>
                 </div>
-              ) : (
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  No projects assigned to this invoice yet.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <h2 className="text-lg font-medium text-gray-900 dark:text-white">Projects</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Please select a customer to view available projects.
                 </p>
-              )}
-            </>
-          ) : (
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Please select a customer to view available projects.
-            </p>
-          )}
-        </div>
-        
-        {/* Notes */}
-        <div className="mt-6">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Notes
-          </label>
-          <textarea
-            name="notes"
-            value={formData.notes || ''}
-            onChange={handleChange}
-            rows={4}
-            className="w-full p-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-          />
-        </div>
-        
-        {/* Form Actions */}
-        <div className="mt-8 flex justify-end space-x-3">
-          <button
-            type="button"
-            onClick={() => navigate('/invoices')}
-            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          >
-            {isEditMode ? 'Save Changes' : 'Create Invoice'}
-          </button>
-        </div>
-      </form>
+              </div>
+            )}
+
+            <div className="flex justify-end space-x-3">
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 h-10"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 h-10"
+              >
+                {isSubmitting ? 'Saving...' : (isEditMode ? 'Save Invoice' : 'Create Invoice')}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };
