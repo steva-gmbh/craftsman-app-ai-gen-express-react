@@ -69,7 +69,6 @@ const TemplateForm: React.FC = () => {
   };
 
   const handleEditorChange = (value: string) => {
-    console.log("Editor changed to:", value);
     setFormData(prev => ({
       ...prev,
       body: value
@@ -97,21 +96,12 @@ const TemplateForm: React.FC = () => {
       body: latestContent
     };
     
-    // Log current form state before validation
-    console.log('Form submission state:', {
-      title: updatedFormData.title,
-      body: updatedFormData.body,
-      bodyLength: updatedFormData.body.length,
-      hasContent: updatedFormData.body && updatedFormData.body.trim().length > 0
-    });
-    
     setShowErrors(true);
     
     // Validate with the updated data
     const isValid = validateFormData(updatedFormData);
     
     if (!isValid) {
-      console.log('Form validation failed:', errors);
       return;
     }
     
@@ -149,12 +139,6 @@ const TemplateForm: React.FC = () => {
       .replace(/<br>/g, '') // Remove <br> tags
       .trim();
       
-    console.log('Validating content:', {
-      original: data.body,
-      stripped: strippedContent,
-      isEmpty: !strippedContent
-    });
-    
     if (!strippedContent) {
       newErrors.body = 'Content is required';
     }
@@ -172,103 +156,118 @@ const TemplateForm: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">{isEditMode ? 'Edit Template' : 'Create Template'}</h1>
-      </div>
-      
-      <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 shadow-md rounded px-8 pt-6 pb-8 mb-4">
-        <div className="mb-4">
-          <label htmlFor="type" className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
-            Template Type
-          </label>
-          <select
-            id="type"
-            name="type"
-            value={formData.type}
-            onChange={handleInputChange}
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          >
-            <option value="invoice">Invoice</option>
-          </select>
+    <div className="max-w-5xl mx-auto">
+      <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
+        {isEditMode ? 'Edit Template' : 'Create Template'}
+      </h1>
+
+      {Object.keys(errors).length > 0 && showErrors && (
+        <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-md">
+          Please fix the errors below to continue.
         </div>
-        
-        <div className="mb-4">
-          <label htmlFor="title" className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
-            Title
-          </label>
-          <input
-            type="text"
-            id="title"
-            name="title"
-            value={formData.title}
-            onChange={handleInputChange}
-            className={`shadow appearance-none border ${showErrors && errors.title ? 'border-red-500' : ''} rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline`}
-            placeholder="Template Title"
-          />
-          {showErrors && errors.title && (
-            <p className="text-red-500 text-xs italic mt-1">{errors.title}</p>
-          )}
-        </div>
-        
-        <div className="mb-4">
-          <label htmlFor="description" className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
-            Description
-          </label>
-          <textarea
-            id="description"
-            name="description"
-            value={formData.description}
-            onChange={handleInputChange}
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            placeholder="Template Description"
-            rows={3}
-          />
-        </div>
-        
-        <div className="mb-4">
-          <div className="flex items-center mb-2">
-            <input
-              type="checkbox"
-              id="isDefault"
-              name="isDefault"
-              checked={formData.isDefault}
-              onChange={handleInputChange}
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-            />
-            <label htmlFor="isDefault" className="ml-2 block text-gray-700 dark:text-gray-300 text-sm font-bold">
-              Set as Default Template
-            </label>
-          </div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            If checked, this template will be used as the default for its type.
-          </p>
-        </div>
-        
-        <div className="mb-6">
-          <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
-            Template Content
-          </label>
-          <div className={`bg-white dark:bg-gray-700 border ${showErrors && errors.body ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded`}>
-            <RichTextEditor
-              ref={editorRef}
-              value={formData.body}
-              onChange={handleEditorChange}
-              placeholder="Enter template content here..."
-              height="500px"
-            />
-          </div>
-          {showErrors && errors.body ? (
-            <p className="text-red-500 text-xs italic mt-1">{errors.body}</p>
-          ) : (
-            <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-              <p>
-                Use the 'Variables' dropdown in the toolbar to insert placeholders like {'{'}{'{'}'invoice.invoiceNumber'{'}'}{'}}'} for dynamic content.
-              </p>
-              <p className="mt-1">
-                <strong>Loop Functionality:</strong> You can now iterate over projects and jobs using the loop syntax:
-              </p>
-              <pre className="bg-gray-100 dark:bg-gray-700 p-2 rounded mt-1 overflow-x-auto">
+      )}
+
+      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+        <form onSubmit={handleSubmit}>
+          <div className="border-b border-gray-200 dark:border-gray-700 p-6 space-y-6">
+            <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+              <div className="sm:col-span-3">
+                <label htmlFor="type" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Template Type
+                </label>
+                <div className="mt-1">
+                  <select
+                    id="type"
+                    name="type"
+                    value={formData.type}
+                    onChange={handleInputChange}
+                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                  >
+                    <option value="invoice">Invoice</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="sm:col-span-3">
+                <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Title
+                </label>
+                <div className="mt-1">
+                  <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleInputChange}
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.title ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
+                    placeholder="Template Title"
+                  />
+                  {showErrors && errors.title && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.title}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="sm:col-span-6">
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Description
+                </label>
+                <div className="mt-1">
+                  <textarea
+                    id="description"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    rows={3}
+                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2"
+                    placeholder="Template Description"
+                  />
+                </div>
+              </div>
+
+              <div className="sm:col-span-6">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="isDefault"
+                    name="isDefault"
+                    checked={formData.isDefault}
+                    onChange={handleInputChange}
+                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="isDefault" className="ml-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Set as Default Template
+                  </label>
+                </div>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  If checked, this template will be used as the default for its type.
+                </p>
+              </div>
+
+              <div className="sm:col-span-6">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Template Content
+                </label>
+                <div className={`bg-white dark:bg-gray-700 border ${showErrors && errors.body ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-md`}>
+                  <RichTextEditor
+                    ref={editorRef}
+                    value={formData.body}
+                    onChange={handleEditorChange}
+                    placeholder="Enter template content here..."
+                    height="400px"
+                  />
+                </div>
+                {showErrors && errors.body ? (
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.body}</p>
+                ) : (
+                  <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                    <p>
+                      Use the 'Variables' dropdown in the toolbar to insert placeholders like {'{'}{'{'}'invoice.invoiceNumber'{'}'}{'}}'} for dynamic content.
+                    </p>
+                    <p className="mt-1">
+                      <strong>Loop Functionality:</strong> You can iterate over projects and jobs using the loop syntax:
+                    </p>
+                    <pre className="bg-gray-100 dark:bg-gray-700 p-2 rounded mt-1 overflow-x-auto">
 {`{{#each projects}}
   Project: {{project.name}}
   
@@ -276,28 +275,31 @@ const TemplateForm: React.FC = () => {
     • {{job.title}}: {{job.price}}
   {{/each}}
 {{/each}}`}
-              </pre>
+                    </pre>
+                  </div>
+                )}
+              </div>
             </div>
-          )}
-        </div>
-        
-        <div className="flex items-center justify-end space-x-4">
-          <button
-            type="button"
-            onClick={() => navigate('/templates')}
-            className="bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline hover:bg-gray-100 dark:hover:bg-gray-600"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={isSaving}
-            className={`bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded focus:outline-none focus:shadow-outline ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            {isSaving ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Create Template')}
-          </button>
-        </div>
-      </form>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                type="button"
+                onClick={() => navigate('/templates')}
+                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 h-10"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSaving}
+                className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 h-10"
+              >
+                {isSaving ? 'Saving...' : (isEditMode ? 'Save Template' : 'Create Template')}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };
