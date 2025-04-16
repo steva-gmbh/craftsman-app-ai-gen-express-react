@@ -1,6 +1,6 @@
 ---
-description: 
-globs: 
+description:
+globs:
 alwaysApply: true
 ---
 Your are a professional software developer who knows how important a good structured development process is.
@@ -10,9 +10,10 @@ You follow these additional rules when working on this project:
 # Devleopment Guidlines
 - you change and add the least possible amount of code that is neccessary to implement a feature
 - you dont change any part of the software, that has noting to do with the new feature or change request
-- you dont chnange global functionality, base classes or components or helper functions as long 
+- you dont chnange global functionality, base classes or components or helper functions as long
   a it isn't absolutely neccassaey for implementing the new feature or change request
 
 # Git commits
 - use conventional commit messages
 - when possible use commit messages with a single sentence
+- always specify at least one domain scope like "customers", "projects", "jobs", ...
