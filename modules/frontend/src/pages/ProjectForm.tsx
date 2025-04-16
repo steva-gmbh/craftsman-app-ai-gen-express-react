@@ -125,9 +125,9 @@ export default function ProjectForm() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-5xl mx-auto">
       <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
-        {id ? 'Edit Project' : 'Add New Project'}
+        {id ? 'Edit Project' : 'Create New Project'}
       </h1>
 
       {error && (
@@ -136,235 +136,250 @@ export default function ProjectForm() {
         </div>
       )}
 
-      <form id="project-form" onSubmit={handleSubmit} className="space-y-6 bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-        <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Project Name
-          </label>
-          <input
-            type="text"
-            name="name"
-            id="name"
-            required
-            value={formData.name}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
-          />
-        </div>
+      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+        <form onSubmit={handleSubmit}>
+          <div className="border-b border-gray-200 dark:border-gray-700 p-6 space-y-6">
+            <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+              <div className="sm:col-span-6">
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Project Name
+                </label>
+                <div className="mt-1">
+                  <input
+                    type="text"
+                    name="name"
+                    id="name"
+                    required
+                    value={formData.name}
+                    onChange={handleChange}
+                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                  />
+                </div>
+              </div>
 
-        <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Description
-          </label>
-          <textarea
-            name="description"
-            id="description"
-            rows={3}
-            required
-            value={formData.description}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2"
-          />
-        </div>
+              <div className="sm:col-span-6">
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Description
+                </label>
+                <div className="mt-1">
+                  <textarea
+                    name="description"
+                    id="description"
+                    rows={3}
+                    required
+                    value={formData.description}
+                    onChange={handleChange}
+                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2"
+                  />
+                </div>
+              </div>
 
-        <div>
-          <label htmlFor="customerId" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Customer
-          </label>
-          <select
-            id="customerId"
-            name="customerId"
-            required
-            value={formData.customerId}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
-          >
-            <option value="">Select Customer</option>
-            {customers?.map((customer) => (
-              <option key={customer.id} value={customer.id}>
-                {customer.name}
-              </option>
-            ))}
-          </select>
-        </div>
+              <div className="sm:col-span-3">
+                <label htmlFor="customerId" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Customer
+                </label>
+                <div className="mt-1">
+                  <select
+                    id="customerId"
+                    name="customerId"
+                    required
+                    value={formData.customerId}
+                    onChange={handleChange}
+                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                  >
+                    <option value="">Select Customer</option>
+                    {customers?.map((customer) => (
+                      <option key={customer.id} value={customer.id}>
+                        {customer.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
 
-        <div>
-          <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Status
-          </label>
-          <select
-            id="status"
-            name="status"
-            required
-            value={formData.status}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
-          >
-            <option value="active">Active</option>
-            <option value="on_hold">On Hold</option>
-            <option value="completed">Completed</option>
-          </select>
-        </div>
+              <div className="sm:col-span-3">
+                <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Status
+                </label>
+                <div className="mt-1">
+                  <select
+                    id="status"
+                    name="status"
+                    required
+                    value={formData.status}
+                    onChange={handleChange}
+                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                  >
+                    <option value="active">Active</option>
+                    <option value="on_hold">On Hold</option>
+                    <option value="completed">Completed</option>
+                  </select>
+                </div>
+              </div>
 
-        <div>
-          <label htmlFor="budget" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Budget ($)
-          </label>
-          <input
-            type="number"
-            name="budget"
-            id="budget"
-            step="0.01"
-            min="0"
-            value={formData.budget}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
-          />
-        </div>
+              <div className="sm:col-span-3">
+                <label htmlFor="budget" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Budget (€)
+                </label>
+                <div className="mt-1">
+                  <input
+                    type="number"
+                    name="budget"
+                    id="budget"
+                    step="0.01"
+                    min="0"
+                    value={formData.budget}
+                    onChange={handleChange}
+                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                  />
+                </div>
+              </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Start Date
-            </label>
-            <input
-              type="date"
-              name="startDate"
-              id="startDate"
-              value={formData.startDate}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
-            />
-          </div>
+              <div className="sm:col-span-3">
+                <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Start Date
+                </label>
+                <div className="mt-1">
+                  <input
+                    type="date"
+                    name="startDate"
+                    id="startDate"
+                    value={formData.startDate}
+                    onChange={handleChange}
+                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                  />
+                </div>
+              </div>
 
-          <div>
-            <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              End Date
-            </label>
-            <input
-              type="date"
-              name="endDate"
-              id="endDate"
-              value={formData.endDate}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
-            />
-          </div>
-        </div>
-      </form>
-
-      {/* Jobs List Section - Only show for existing projects */}
-      {id && (
-        <div className="mt-8 bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Project Jobs</h2>
-            <button
-              type="button"
-              onClick={() => navigate(`/jobs/new?customerId=${formData.customerId}&projectId=${id}&returnToProject=true`)}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              <IconPlus className="h-5 w-5 mr-2" />
-              Add Job
-            </button>
-          </div>
-
-          {isLoadingJobs ? (
-            <div>Loading jobs...</div>
-          ) : projectJobs && projectJobs.length > 0 ? (
-            <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-              <table className="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
-                <thead className="bg-gray-50 dark:bg-gray-700">
-                  <tr>
-                    <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-white sm:pl-6">Title</th>
-                    <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Status</th>
-                    <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Price</th>
-                    <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Start Date</th>
-                    <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">End Date</th>
-                    <th className="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                      <span className="sr-only">Actions</span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-600 bg-white dark:bg-gray-800">
-                  {projectJobs.map((job) => (
-                    <tr key={job.id}>
-                      <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-white sm:pl-6">
-                        {job.title}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            job.status === 'PENDING'
-                              ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400'
-                              : job.status === 'COMPLETED'
-                              ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400'
-                              : 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400'
-                          }`}
-                        >
-                          {job.status === 'PENDING' 
-                            ? 'Pending' 
-                            : job.status === 'IN_PROGRESS' 
-                            ? 'In Progress' 
-                            : 'Completed'}
-                        </span>
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
-                        {job.price ? `$${job.price.toFixed(2)}` : '-'}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
-                        {job.startDate ? new Date(job.startDate).toLocaleDateString() : '-'}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
-                        {job.endDate ? new Date(job.endDate).toLocaleDateString() : '-'}
-                      </td>
-                      <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                        <div className="flex justify-end space-x-2">
-                          <button
-                            onClick={() => navigate(`/jobs/${job.id}?returnToProject=true`)}
-                            className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
-                          >
-                            <IconEdit className="h-5 w-5" />
-                            <span className="sr-only">Edit {job.title}</span>
-                          </button>
-                          <button
-                            onClick={() => setJobToDelete({ id: job.id, title: job.title })}
-                            className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                          >
-                            <IconTrash className="h-5 w-5" />
-                            <span className="sr-only">Delete {job.title}</span>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <div className="sm:col-span-3">
+                <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  End Date
+                </label>
+                <div className="mt-1">
+                  <input
+                    type="date"
+                    name="endDate"
+                    id="endDate"
+                    value={formData.endDate}
+                    onChange={handleChange}
+                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10"
+                  />
+                </div>
+              </div>
             </div>
-          ) : (
-            <div className="text-center py-6 text-gray-500 dark:text-gray-400">
-              No jobs found for this project. Add your first job to get started.
-            </div>
-          )}
-        </div>
-      )}
 
-      {/* Form action buttons moved to the bottom */}
-      <div className="mt-8 flex justify-end space-x-3">
-        <button
-          type="button"
-          onClick={() => navigate('/projects')}
-          className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 h-10"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          form="project-form" 
-          disabled={isSubmitting}
-          className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 h-10"
-        >
-          {isSubmitting ? 'Saving...' : id ? 'Save Changes' : 'Save Project'}
-        </button>
+            {/* Jobs List Section - Only show for existing projects */}
+            {id && (
+              <div className="space-y-4 mt-8">
+                <h2 className="text-lg font-medium text-gray-900 dark:text-white">Project Jobs</h2>
+                
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/jobs/new?customerId=${formData.customerId}&projectId=${id}&returnToProject=true`)}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 h-10"
+                  >
+                    <IconPlus className="h-5 w-5 mr-2" />
+                    Add Job
+                  </button>
+                </div>
+
+                {isLoadingJobs ? (
+                  <div>Loading jobs...</div>
+                ) : projectJobs && projectJobs.length > 0 ? (
+                  <div className="mt-4">
+                    <table className="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
+                      <thead className="bg-gray-50 dark:bg-gray-700">
+                        <tr>
+                          <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Title</th>
+                          <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Status</th>
+                          <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Price</th>
+                          <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Start Date</th>
+                          <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">End Date</th>
+                          <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200 dark:divide-gray-600 bg-white dark:bg-gray-800">
+                        {projectJobs.map((job) => (
+                          <tr key={job.id}>
+                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                              {job.title}
+                            </td>
+                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                              <span
+                                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                  job.status === 'PENDING'
+                                    ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400'
+                                    : job.status === 'COMPLETED'
+                                    ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400'
+                                    : 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400'
+                                }`}
+                              >
+                                {job.status === 'PENDING' 
+                                  ? 'Pending' 
+                                  : job.status === 'IN_PROGRESS' 
+                                  ? 'In Progress' 
+                                  : 'Completed'}
+                              </span>
+                            </td>
+                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                              {job.price ? `€${job.price.toFixed(2)}` : '-'}
+                            </td>
+                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                              {job.startDate ? new Date(job.startDate).toLocaleDateString() : '-'}
+                            </td>
+                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                              {job.endDate ? new Date(job.endDate).toLocaleDateString() : '-'}
+                            </td>
+                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                              <div className="flex space-x-2">
+                                <button
+                                  onClick={() => navigate(`/jobs/${job.id}?returnToProject=true`)}
+                                  className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                                >
+                                  <IconEdit className="h-5 w-5" />
+                                  <span className="sr-only">Edit {job.title}</span>
+                                </button>
+                                <button
+                                  onClick={() => setJobToDelete({ id: job.id, title: job.title })}
+                                  className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                                >
+                                  <IconTrash className="h-5 w-5" />
+                                  <span className="sr-only">Delete {job.title}</span>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-gray-500 dark:text-gray-400">
+                    No jobs found for this project. Add your first job to get started.
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="flex justify-end space-x-3">
+              <button
+                type="button"
+                onClick={() => navigate('/projects')}
+                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 h-10"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 h-10"
+              >
+                {isSubmitting ? 'Saving...' : 'Save Project'}
+              </button>
+            </div>
+          </div>
+        </form>
       </div>
 
       {/* Delete Job Confirmation Dialog */}
