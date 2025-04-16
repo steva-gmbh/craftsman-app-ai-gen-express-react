@@ -1,7 +1,5 @@
-import express from 'express';
+import { Request, Response } from 'express';
 import { createAgent } from '../ai/agent';
-
-const router = express.Router();
 
 // Initialize the agent
 let agent: Awaited<ReturnType<typeof createAgent>>;
@@ -11,8 +9,7 @@ createAgent().then((initializedAgent) => {
   agent = initializedAgent;
 });
 
-// Route to handle AI assistant requests
-router.post('/chat', async (req, res) => {
+export const handleAiChat = async (req: Request, res: Response) => {
   try {
     const { message } = req.body;
 
@@ -41,6 +38,4 @@ router.post('/chat', async (req, res) => {
     console.error('Error in AI chat:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
-});
-
-export default router;
+}; 

@@ -272,17 +272,13 @@ export const generateInvoicePdf = async (req: Request, res: Response) => {
     }
 
     // Fetch default invoice template if it exists
-    const templateResult = await prisma.$queryRaw`
-      SELECT * FROM Template 
-      WHERE type = 'invoice' AND isDefault = 1 
-      LIMIT 1
-    `;
+    const templateData = await prisma.template.findFirst({
+      where: {
+        type: 'invoice',
+        isDefault: true
+      }
+    });
     
-    // Convert to a more usable form (the result is an array)
-    const templateData = Array.isArray(templateResult) && templateResult.length > 0 
-      ? templateResult[0] 
-      : null;
-
     // Create PDF document
     const doc = new PDFDocument({ margin: 50 });
     

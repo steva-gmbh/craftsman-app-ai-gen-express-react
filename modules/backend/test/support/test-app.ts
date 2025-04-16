@@ -1,4 +1,4 @@
-import express, { Router, Request, Response } from 'express';
+import express, { Router, Request, Response, RequestHandler } from 'express';
 import { PrismaClient } from '@prisma/client';
 
 // Import controllers
@@ -84,101 +84,101 @@ app.get('/health', (req, res) => {
 
 // Setup customer routes
 const customerRouter = Router();
-customerRouter.get('/', getCustomers);
-customerRouter.get('/:id', getCustomer);
-customerRouter.post('/', createCustomer);
-customerRouter.put('/:id', updateCustomer);
-customerRouter.delete('/:id', deleteCustomer);
+customerRouter.get('/', getCustomers as RequestHandler);
+customerRouter.get('/:id', getCustomer as RequestHandler);
+customerRouter.post('/', createCustomer as RequestHandler);
+customerRouter.put('/:id', updateCustomer as RequestHandler);
+customerRouter.delete('/:id', deleteCustomer as RequestHandler);
 
 app.use('/api/customers', customerRouter);
 
 // Setup vehicle routes
 const vehicleRouter = Router();
-vehicleRouter.get('/', getVehicles);
-vehicleRouter.get('/:id', getVehicle);
-vehicleRouter.post('/', createVehicle);
-vehicleRouter.put('/:id', updateVehicle);
-vehicleRouter.delete('/:id', deleteVehicle);
+vehicleRouter.get('/', getVehicles as RequestHandler);
+vehicleRouter.get('/:id', getVehicle as RequestHandler);
+vehicleRouter.post('/', createVehicle as RequestHandler);
+vehicleRouter.put('/:id', updateVehicle as RequestHandler);
+vehicleRouter.delete('/:id', deleteVehicle as RequestHandler);
 
 app.use('/api/vehicles', vehicleRouter);
 
 // Setup tool routes
 const toolRouter = Router();
-toolRouter.get('/', getTools);
-toolRouter.get('/:id', getTool);
-toolRouter.post('/', createTool);
-toolRouter.put('/:id', updateTool);
-toolRouter.delete('/:id', deleteTool);
+toolRouter.get('/', getTools as RequestHandler);
+toolRouter.get('/:id', getTool as RequestHandler);
+toolRouter.post('/', createTool as RequestHandler);
+toolRouter.put('/:id', updateTool as RequestHandler);
+toolRouter.delete('/:id', deleteTool as RequestHandler);
 
 app.use('/api/tools', toolRouter);
 
 // Setup material routes
 const materialRouter = Router();
-materialRouter.get('/', getMaterials);
-materialRouter.get('/:id', getMaterial);
-materialRouter.post('/', createMaterial);
-materialRouter.put('/:id', updateMaterial);
-materialRouter.delete('/:id', deleteMaterial);
+materialRouter.get('/', getMaterials as RequestHandler);
+materialRouter.get('/:id', getMaterial as RequestHandler);
+materialRouter.post('/', createMaterial as RequestHandler);
+materialRouter.put('/:id', updateMaterial as RequestHandler);
+materialRouter.delete('/:id', deleteMaterial as RequestHandler);
 
 app.use('/api/materials', materialRouter);
 
 // Setup job routes
 const jobRouter = Router();
-jobRouter.get('/', getJobs);
-jobRouter.get('/:id', getJob);
-jobRouter.post('/', createJob);
-jobRouter.put('/:id', updateJob);
-jobRouter.delete('/:id', deleteJob);
+jobRouter.get('/', getJobs as RequestHandler);
+jobRouter.get('/:id', getJob as RequestHandler);
+jobRouter.post('/', createJob as RequestHandler);
+jobRouter.put('/:id', updateJob as RequestHandler);
+jobRouter.delete('/:id', deleteJob as RequestHandler);
 
 // Job material routes
-jobRouter.get('/:id/materials', getJobMaterials);
-jobRouter.post('/:id/materials', addJobMaterial);
+jobRouter.get('/:id/materials', getJobMaterials as RequestHandler);
+jobRouter.post('/:id/materials', addJobMaterial as RequestHandler);
 
 // Job tool routes
-jobRouter.get('/:id/tools', getJobTools);
-jobRouter.post('/:id/tools', addJobTool);
+jobRouter.get('/:id/tools', getJobTools as RequestHandler);
+jobRouter.post('/:id/tools', addJobTool as RequestHandler);
 
 app.use('/api/jobs', jobRouter);
 
 // Setup project routes
 const projectRouter = Router();
-projectRouter.get('/', getProjects);
-projectRouter.get('/:id', getProjectById);
-projectRouter.post('/', createProject);
-projectRouter.put('/:id', updateProject);
-projectRouter.delete('/:id', deleteProject);
+projectRouter.get('/', getProjects as RequestHandler);
+projectRouter.get('/:id', getProjectById as RequestHandler);
+projectRouter.post('/', createProject as RequestHandler);
+projectRouter.put('/:id', updateProject as RequestHandler);
+projectRouter.delete('/:id', deleteProject as RequestHandler);
 
 // Project-Job relationship routes
-projectRouter.post('/:id/jobs', async (req: Request, res: Response) => {
+projectRouter.post('/:id/jobs', (async (req: Request, res: Response) => {
   const { id } = req.params;
   const { jobId } = req.body;
-  
+
   try {
     // Check if project exists
     const project = await prisma.project.findUnique({
       where: { id: Number(id) },
       include: { jobs: true }
     });
-    
+
     if (!project) {
       return res.status(404).json({ error: 'Project not found' });
     }
-    
+
     // Check if job exists
     const job = await prisma.job.findUnique({
       where: { id: Number(jobId) }
     });
-    
+
     if (!job) {
       return res.status(404).json({ error: 'Job not found' });
     }
-    
+
     // Update the job to belong to this project
     await prisma.job.update({
       where: { id: Number(jobId) },
       data: { projectId: Number(id) }
     });
-    
+
     // Return the updated project with jobs
     const updatedProject = await prisma.project.findUnique({
       where: { id: Number(id) },
@@ -187,45 +187,45 @@ projectRouter.post('/:id/jobs', async (req: Request, res: Response) => {
         jobs: true
       }
     });
-    
+
     res.json(updatedProject);
   } catch (error) {
     console.error('Error adding job to project:', error);
     res.status(500).json({ error: 'Failed to add job to project' });
   }
-});
+}) as RequestHandler);
 
-projectRouter.delete('/:id/jobs/:jobId', async (req: Request, res: Response) => {
+projectRouter.delete('/:id/jobs/:jobId', (async (req: Request, res: Response) => {
   const { id, jobId } = req.params;
-  
+
   try {
     // Check if project exists
     const project = await prisma.project.findUnique({
       where: { id: Number(id) }
     });
-    
+
     if (!project) {
       return res.status(404).json({ error: 'Project not found' });
     }
-    
+
     // Check if job exists and belongs to the project
     const job = await prisma.job.findFirst({
-      where: { 
+      where: {
         id: Number(jobId),
         projectId: Number(id)
       }
     });
-    
+
     if (!job) {
       return res.status(404).json({ error: 'Job not found' });
     }
-    
+
     // Update job to remove project reference
     await prisma.job.update({
       where: { id: Number(jobId) },
       data: { projectId: null }
     });
-    
+
     // Return the updated project with jobs
     const updatedProject = await prisma.project.findUnique({
       where: { id: Number(id) },
@@ -234,25 +234,25 @@ projectRouter.delete('/:id/jobs/:jobId', async (req: Request, res: Response) => 
         jobs: true
       }
     });
-    
+
     res.json(updatedProject);
   } catch (error) {
     console.error('Error removing job from project:', error);
     res.status(500).json({ error: 'Failed to remove job from project' });
   }
-});
+}) as RequestHandler);
 
 app.use('/api/projects', projectRouter);
 
 // Setup settings routes
 const settingsRouter = Router();
-settingsRouter.get('/', getSettings);
-settingsRouter.get('/:userId', getSettingsByUserId);
-settingsRouter.post('/', createSettings);
-settingsRouter.put('/:userId', updateSettings);
-settingsRouter.delete('/:userId', deleteSettings);
+settingsRouter.get('/', getSettings as RequestHandler);
+settingsRouter.get('/:userId', getSettingsByUserId as RequestHandler);
+settingsRouter.post('/', createSettings as RequestHandler);
+settingsRouter.put('/:userId', updateSettings as RequestHandler);
+settingsRouter.delete('/:userId', deleteSettings as RequestHandler);
 
 app.use('/api/settings', settingsRouter);
 
 // Export prisma client for use in tests
-export const prisma = new PrismaClient(prismaOptions); 
+export const prisma = new PrismaClient(prismaOptions);

@@ -1,4 +1,4 @@
-import express from 'express';
+import express, {RequestHandler} from 'express';
 import {
   getSettings,
   getSettingsByUserId,
@@ -9,10 +9,10 @@ import {
 
 const router = express.Router();
 
-router.get('/', getSettings);
-router.get('/:userId', getSettingsByUserId);
-router.post('/', createSettings);
-router.put('/:userId', updateSettings);
-router.delete('/:userId', deleteSettings);
+router.get('/', getSettings as RequestHandler);
+router.get('/:userId', getSettingsByUserId as RequestHandler);
+router.post('/', createSettings as RequestHandler);
+router.put('/:userId', updateSettings as RequestHandler);
+router.delete('/:userId', deleteSettings as RequestHandler);
 
-export default router; 
+export default router;

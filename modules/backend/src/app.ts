@@ -8,7 +8,7 @@ import userRoutes from './routes/users';
 import settingsRoutes from './routes/settings';
 import toolsRoutes from './routes/tools';
 import jobToolsRoutes from './routes/jobTools';
-import aiRoutes from './routes/aiRoutes';
+import aiRoutes from './routes/ai';
 import projectsRoutes from './routes/projects';
 import invoicesRoutes from './routes/invoices';
 import vehiclesRoutes from './routes/vehicles';

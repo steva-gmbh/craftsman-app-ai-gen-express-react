@@ -398,9 +398,6 @@ const getVehicleTool = new DynamicStructuredTool({
     if (id) {
       const vehicle = await prisma.vehicle.findUnique({
         where: { id },
-        include: {
-          customer: true,
-        },
       });
       return JSON.stringify(vehicle);
     } else {
@@ -431,9 +428,6 @@ const getVehicleTool = new DynamicStructuredTool({
       
       const vehicles = await prisma.vehicle.findMany({
         where: whereClause,
-        include: {
-          customer: true,
-        },
         take: 5, // Limit to top 5 matches
       });
       
@@ -458,13 +452,12 @@ const createVehicleTool = new DynamicStructuredTool({
     licensePlate: z.string().optional(),
     vin: z.string().optional(),
     color: z.string().optional(),
-    customerId: z.number().optional(),
     status: z.string().optional(),
     mileage: z.number().optional(),
     fuelType: z.string().optional(),
     notes: z.string().optional(),
   }),
-  func: async ({ name, make, model, year, type, licensePlate, vin, color, customerId, status, mileage, fuelType, notes }) => {
+  func: async ({ name, make, model, year, type, licensePlate, vin, color, status, mileage, fuelType, notes }) => {
     console.log(`[AI Agent] Creating new vehicle: ${make} ${model} (${year})`);
     
     const vehicle = await prisma.vehicle.create({
@@ -477,7 +470,6 @@ const createVehicleTool = new DynamicStructuredTool({
         licensePlate,
         vin,
         color,
-        customerId,
         status: status || "active",
         mileage,
         fuelType,

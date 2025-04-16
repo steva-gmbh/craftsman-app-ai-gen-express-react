@@ -1,4 +1,4 @@
-import express from 'express';
+import express, {RequestHandler} from 'express';
 import {
   getCustomers,
   getCustomer,
@@ -9,10 +9,10 @@ import {
 
 const router = express.Router();
 
-router.get('/', getCustomers);
-router.get('/:id', getCustomer);
-router.post('/', createCustomer);
-router.put('/:id', updateCustomer);
-router.delete('/:id', deleteCustomer);
+router.get('/', getCustomers as RequestHandler);
+router.get('/:id', getCustomer as RequestHandler);
+router.post('/', createCustomer as RequestHandler);
+router.put('/:id', updateCustomer as RequestHandler);
+router.delete('/:id', deleteCustomer as RequestHandler);
 
-export default router; 
+export default router;

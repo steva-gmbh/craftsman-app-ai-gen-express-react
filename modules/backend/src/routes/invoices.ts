@@ -1,24 +1,13 @@
-import express from 'express';
+import express, {RequestHandler} from 'express';
 import { getInvoices, getInvoice, createInvoice, updateInvoice, deleteInvoice, generateInvoicePdf } from '../controllers/invoices';
 
 const router = express.Router();
 
-// GET all invoices
-router.get('/', getInvoices);
+router.get('/', getInvoices as RequestHandler);
+router.get('/:id', getInvoice as RequestHandler);
+router.get('/:id/pdf', generateInvoicePdf as RequestHandler);
+router.post('/', createInvoice as RequestHandler);
+router.put('/:id', updateInvoice as RequestHandler);
+router.delete('/:id', deleteInvoice as RequestHandler);
 
-// GET a single invoice
-router.get('/:id', getInvoice);
-
-// GET invoice as PDF
-router.get('/:id/pdf', generateInvoicePdf);
-
-// POST a new invoice
-router.post('/', createInvoice);
-
-// PUT/UPDATE an invoice
-router.put('/:id', updateInvoice);
-
-// DELETE an invoice
-router.delete('/:id', deleteInvoice);
-
-export default router; 
+export default router;

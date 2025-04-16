@@ -1,4 +1,4 @@
-import express from 'express';
+import express, {RequestHandler} from 'express';
 import {
   getVehicles,
   getVehicle,
@@ -9,10 +9,10 @@ import {
 
 const router = express.Router();
 
-router.get('/', getVehicles);
-router.get('/:id', getVehicle);
-router.post('/', createVehicle);
-router.put('/:id', updateVehicle);
-router.delete('/:id', deleteVehicle);
+router.get('/', getVehicles as RequestHandler);
+router.get('/:id', getVehicle as RequestHandler);
+router.post('/', createVehicle as RequestHandler);
+router.put('/:id', updateVehicle as RequestHandler);
+router.delete('/:id', deleteVehicle as RequestHandler);
 
-export default router; 
+export default router;

@@ -1,4 +1,4 @@
-import express from 'express';
+import express, {RequestHandler} from 'express';
 import {
   getJobs,
   getJob,
@@ -21,23 +21,20 @@ import {
 
 const router = express.Router();
 
-// Job routes
-router.get('/', getJobs);
-router.get('/:id', getJob);
-router.post('/', createJob);
-router.put('/:id', updateJob);
-router.delete('/:id', deleteJob);
+router.get('/', getJobs as RequestHandler);
+router.get('/:id', getJob as RequestHandler);
+router.post('/', createJob as RequestHandler);
+router.put('/:id', updateJob as RequestHandler);
+router.delete('/:id', deleteJob as RequestHandler);
 
-// Job materials routes
-router.get('/:jobId/materials', getJobMaterials);
-router.post('/:jobId/materials', addJobMaterial);
-router.put('/:jobId/materials/:materialId', updateJobMaterial);
-router.delete('/:jobId/materials/:materialId', removeJobMaterial);
+router.get('/:jobId/materials', getJobMaterials as RequestHandler);
+router.post('/:jobId/materials', addJobMaterial as RequestHandler);
+router.put('/:jobId/materials/:materialId', updateJobMaterial as RequestHandler);
+router.delete('/:jobId/materials/:materialId', removeJobMaterial as RequestHandler);
 
-// Job tools routes
-router.get('/:jobId/tools', getJobTools);
-router.post('/:jobId/tools', addJobTool);
-router.put('/:jobId/tools/:toolId', updateJobTool);
-router.delete('/:jobId/tools/:toolId', removeJobTool);
+router.get('/:jobId/tools', getJobTools as RequestHandler);
+router.post('/:jobId/tools', addJobTool as RequestHandler);
+router.put('/:jobId/tools/:toolId', updateJobTool as RequestHandler);
+router.delete('/:jobId/tools/:toolId', removeJobTool as RequestHandler);
 
-export default router; 
+export default router;

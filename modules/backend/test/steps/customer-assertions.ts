@@ -20,4 +20,4 @@ Then('the response should contain a customer with name {string}', function(name:
 
 Then('the response should contain a customer with email {string}', function(email: string) {
   expect(response.body).to.have.property('email', email);
-}); 
+});

@@ -1,4 +1,4 @@
-import express from 'express';
+import express, {RequestHandler} from 'express';
 import {
   getMaterials,
   getMaterial,
@@ -9,10 +9,10 @@ import {
 
 const router = express.Router();
 
-router.get('/', getMaterials);
-router.get('/:id', getMaterial);
-router.post('/', createMaterial);
-router.put('/:id', updateMaterial);
-router.delete('/:id', deleteMaterial);
+router.get('/', getMaterials as RequestHandler);
+router.get('/:id', getMaterial as RequestHandler);
+router.post('/', createMaterial as RequestHandler);
+router.put('/:id', updateMaterial as RequestHandler);
+router.delete('/:id', deleteMaterial as RequestHandler);
 
-export default router; 
+export default router;

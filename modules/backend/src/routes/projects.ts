@@ -1,4 +1,4 @@
-import express from 'express';
+import express, {RequestHandler} from 'express';
 import {
   getProjects,
   getProjectById,
@@ -9,10 +9,10 @@ import {
 
 const router = express.Router();
 
-router.get('/', getProjects);
-router.get('/:id', getProjectById);
-router.post('/', createProject);
-router.put('/:id', updateProject);
-router.delete('/:id', deleteProject);
+router.get('/', getProjects as RequestHandler);
+router.get('/:id', getProjectById as RequestHandler);
+router.post('/', createProject as RequestHandler);
+router.put('/:id', updateProject as RequestHandler);
+router.delete('/:id', deleteProject as RequestHandler);
 
-export default router; 
+export default router;
