@@ -6,6 +6,7 @@ export interface Customer {
   email: string;
   phone: string;
   address: string;
+  billingAddress: string;
 }
 
 export interface Job {

@@ -514,18 +514,21 @@ async function main() {
       email: 'john.smith@example.com',
       phone: '555-123-4567',
       address: '123 Main St, Anytown, USA',
+      billingAddress: '123 Main St, Anytown, USA',
     },
     {
       name: 'Sarah Johnson',
       email: 'sarah.johnson@example.com',
       phone: '555-234-5678',
       address: '456 Oak Ave, Somewhere, USA',
+      billingAddress: '456 Oak Ave, Somewhere, USA',
     },
     {
       name: 'Michael Brown',
       email: 'michael.brown@example.com',
       phone: '555-345-6789',
       address: '789 Pine Rd, Nowhere, USA',
+      billingAddress: '789 Pine Rd, Nowhere, USA',
     },
   ];
 

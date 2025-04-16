@@ -197,7 +197,8 @@ const VARIABLES = [
       { label: 'Name', value: '{{customer.name}}' },
       { label: 'Email', value: '{{customer.email}}' },
       { label: 'Phone', value: '{{customer.phone}}' },
-      { label: 'Address', value: '{{customer.address}}' }
+      { label: 'Address', value: '{{customer.address}}' },
+      { label: 'Billing Address', value: '{{customer.billingAddress}}' }
     ]
   },
   {

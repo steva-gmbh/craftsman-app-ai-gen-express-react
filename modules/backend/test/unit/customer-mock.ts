@@ -4,8 +4,8 @@ import { Request, Response } from 'express';
 // Create mock functions with the same signature as the real controllers
 export const getCustomers = jest.fn().mockImplementation(async (req: Request, res: Response) => {
   const mockCustomers = [
-    { id: 1, name: 'John Doe', email: 'john@example.com', phone: '123-456-7890', address: '123 Main St', createdAt: new Date(), updatedAt: new Date() },
-    { id: 2, name: 'Jane Smith', email: 'jane@example.com', phone: '987-654-3210', address: '456 Oak Ave', createdAt: new Date(), updatedAt: new Date() }
+    { id: 1, name: 'John Doe', email: 'john@example.com', phone: '123-456-7890', address: '123 Main St', billingAddress: '123 Main St', createdAt: new Date(), updatedAt: new Date() },
+    { id: 2, name: 'Jane Smith', email: 'jane@example.com', phone: '987-654-3210', address: '456 Oak Ave', billingAddress: '456 Oak Ave', createdAt: new Date(), updatedAt: new Date() }
   ];
   
   // Get pagination parameters from query
@@ -38,6 +38,7 @@ export const getCustomer = jest.fn().mockImplementation(async (req: Request, res
     email: 'john@example.com', 
     phone: '123-456-7890', 
     address: '123 Main St', 
+    billingAddress: '123 Billing St',
     createdAt: new Date(), 
     updatedAt: new Date() 
   };

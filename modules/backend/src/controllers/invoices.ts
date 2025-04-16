@@ -334,6 +334,7 @@ export const generateInvoicePdf = async (req: Request, res: Response) => {
       content = content.replace(/{{customer\.email}}/g, invoice.customer.email);
       content = content.replace(/{{customer\.phone}}/g, invoice.customer.phone || '');
       content = content.replace(/{{customer\.address}}/g, invoice.customer.address || '');
+      content = content.replace(/{{customer\.billingAddress}}/g, invoice.customer.billingAddress || invoice.customer.address || '');
       
       // Process loops over projects and jobs
       content = processTemplateLoops(content, invoice);

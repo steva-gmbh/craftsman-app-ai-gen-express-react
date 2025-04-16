@@ -20,7 +20,8 @@ Given('there is a customer with ID {int} in the database', async function(id: nu
           name: `Test Customer ${id}`,
           email: `test${id}@example.com`,
           phone: '555-123-4567',
-          address: '123 Test Street'
+          address: '123 Test Street',
+          billingAddress: '123 Test Street',
         }
       });
       testCustomers.push(testCustomer);

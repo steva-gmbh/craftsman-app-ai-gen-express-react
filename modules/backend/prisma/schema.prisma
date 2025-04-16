@@ -8,16 +8,17 @@ datasource db {
 }
 
 model Customer {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  phone     String?
-  address   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  jobs      Job[]
-  projects  Project[]
-  invoices  Invoice[]
+  id            Int      @id @default(autoincrement())
+  name          String
+  email         String   @unique
+  phone         String?
+  address       String?
+  billingAddress String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  jobs          Job[]
+  projects      Project[]
+  invoices      Invoice[]
 }
 
 model Job {

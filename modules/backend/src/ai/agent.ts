@@ -42,8 +42,9 @@ const createCustomerTool = new DynamicStructuredTool({
     email: z.string().optional(),
     phone: z.string().optional(),
     address: z.string().optional(),
+    billingAddress: z.string().optional(),
   }),
-  func: async ({ name, email, phone, address }) => {
+  func: async ({ name, email, phone, address, billingAddress }) => {
     console.log(`[AI Agent] Creating new customer: ${name} (${email || 'no email provided'})`);
 
     // Generate a default email if none is provided
@@ -55,6 +56,7 @@ const createCustomerTool = new DynamicStructuredTool({
         email: customerEmail,
         phone,
         address,
+        billingAddress,
       },
     });
     return JSON.stringify(customer);

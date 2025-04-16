@@ -11,6 +11,7 @@ export default function CustomerForm() {
     email: '',
     phone: '',
     address: '',
+    billingAddress: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -26,6 +27,7 @@ export default function CustomerForm() {
             email: customer.email,
             phone: customer.phone,
             address: customer.address,
+            billingAddress: customer.billingAddress || '',
           });
         } catch (err) {
           setErrors({ general: 'Failed to load customer data' });
@@ -75,6 +77,8 @@ export default function CustomerForm() {
     if (!data.address.trim()) {
       newErrors.address = 'Address is required';
     }
+    
+    // Billing address is optional, no validation needed
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -208,6 +212,22 @@ export default function CustomerForm() {
                   {showErrors && errors.address && (
                     <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.address}</p>
                   )}
+                </div>
+              </div>
+
+              <div className="sm:col-span-3">
+                <label htmlFor="billingAddress" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Billing Address
+                </label>
+                <div className="mt-1">
+                  <input
+                    type="text"
+                    name="billingAddress"
+                    id="billingAddress"
+                    value={formData.billingAddress}
+                    onChange={handleChange}
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
+                  />
                 </div>
               </div>
             </div>
