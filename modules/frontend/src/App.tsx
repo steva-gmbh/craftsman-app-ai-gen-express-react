@@ -25,6 +25,8 @@ import Invoices from './pages/Invoices';
 import InvoiceForm from './pages/InvoiceForm';
 import Vehicles from './pages/Vehicles';
 import VehicleForm from './pages/VehicleForm';
+import Templates from './pages/Templates';
+import TemplateForm from './pages/TemplateForm';
 import UserSettingsDialog from './components/UserSettingsDialog';
 import { api, Customer, Job } from './services/api';
 
@@ -153,6 +155,9 @@ function App() {
                                   <Route path="/vehicles" element={<Vehicles />} />
                                   <Route path="/vehicles/new" element={<VehicleForm />} />
                                   <Route path="/vehicles/:id" element={<VehicleForm />} />
+                                  <Route path="/templates" element={<Templates />} />
+                                  <Route path="/templates/new" element={<TemplateForm />} />
+                                  <Route path="/templates/:id/edit" element={<TemplateForm />} />
                                 </Routes>
                               )}
                             </div>

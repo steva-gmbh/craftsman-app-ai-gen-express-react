@@ -176,4 +176,15 @@ model Vehicle {
   notes           String?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+}
+
+model Template {
+  id          Int       @id @default(autoincrement())
+  type        String    // "invoice", etc.
+  title       String
+  description String?
+  body        String    // HTML template content
+  isDefault   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 } 

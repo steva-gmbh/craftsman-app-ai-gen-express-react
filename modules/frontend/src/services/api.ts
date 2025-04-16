@@ -151,6 +151,17 @@ export interface Vehicle {
   updatedAt: Date;
 }
 
+export interface Template {
+  id: number;
+  type: string;
+  title: string;
+  description?: string;
+  body: string;
+  isDefault: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
 export const api = {
   // Customer endpoints
   getCustomers: async (params?: PaginationParams): Promise<PaginatedResponse<Customer>> => {
@@ -773,5 +784,92 @@ export const api = {
     }
 
     return response.status === 204 ? null : response.json();
+  },
+
+  // Template endpoints
+  getTemplates: async (params: { page?: number; limit?: number; type?: string } = {}) => {
+    const { page, limit, type } = params;
+    const queryParams = new URLSearchParams();
+
+    if (page) queryParams.append('page', page.toString());
+    if (limit) queryParams.append('limit', limit.toString());
+    if (type) queryParams.append('type', type);
+
+    const queryString = queryParams.toString();
+    const response = await fetch(`${API_BASE_URL}/templates${queryString ? `?${queryString}` : ''}`);
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch templates');
+    }
+
+    return response.json();
+  },
+
+  getTemplate: async (id: number) => {
+    const response = await fetch(`${API_BASE_URL}/templates/${id}`);
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch template');
+    }
+
+    return response.json();
+  },
+
+  getDefaultTemplate: async (type: string) => {
+    const response = await fetch(`${API_BASE_URL}/templates/default/${type}`);
+
+    if (!response.ok && response.status !== 404) {
+      throw new Error('Failed to fetch default template');
+    }
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    return response.json();
+  },
+
+  createTemplate: async (data: Omit<Template, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const response = await fetch(`${API_BASE_URL}/templates`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create template');
+    }
+
+    return response.json();
+  },
+
+  updateTemplate: async (id: number, data: Omit<Template, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const response = await fetch(`${API_BASE_URL}/templates/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update template');
+    }
+
+    return response.json();
+  },
+
+  deleteTemplate: async (id: number) => {
+    const response = await fetch(`${API_BASE_URL}/templates/${id}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete template');
+    }
+
+    return response.json();
   },
 };

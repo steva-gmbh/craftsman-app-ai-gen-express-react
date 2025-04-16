@@ -12,6 +12,7 @@ import aiRoutes from './routes/aiRoutes';
 import projectsRoutes from './routes/projects';
 import invoicesRoutes from './routes/invoices';
 import vehiclesRoutes from './routes/vehicles';
+import templatesRoutes from './routes/templates';
 
 const app = express();
 
@@ -36,5 +37,6 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/projects', projectsRoutes);
 app.use('/api/invoices', invoicesRoutes);
 app.use('/api/vehicles', vehiclesRoutes);
+app.use('/api/templates', templatesRoutes);
 
 export default app; 

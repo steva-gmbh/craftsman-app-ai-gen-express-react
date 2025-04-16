@@ -14,6 +14,7 @@ import {
   IconHammer,
   IconReceipt,
   IconCar,
+  IconFile,
 } from './icons';
 
 interface SidebarProps {
@@ -42,6 +43,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open }) => {
     { name: 'Projects', href: '/projects', icon: IconHammer },
     { name: 'Jobs', href: '/jobs', icon: IconBriefcase },
     { name: 'Invoices', href: '/invoices', icon: IconReceipt },
+    { name: 'Templates', href: '/templates', icon: IconFile },
     { name: 'Materials', href: '/materials', icon: IconBox },
     { name: 'Tools', href: '/tools', icon: IconTool },
     { name: 'Vehicles', href: '/vehicles', icon: IconCar },

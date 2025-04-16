@@ -20,11 +20,22 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const navigate = useNavigate();
 
   useEffect(() => {
-    const socketInstance = io('http://localhost:3000');
+    // Get the server URL dynamically to match the current origin
+    const apiUrl = new URL(window.location.origin);
+    apiUrl.port = '3000'; // Backend always runs on port 3000
+    
+    const socketInstance = io(apiUrl.toString(), {
+      withCredentials: true,
+      transports: ['websocket', 'polling']
+    });
 
     socketInstance.on('connect', () => {
       console.log('Connected to WebSocket server');
       setIsConnected(true);
+    });
+
+    socketInstance.on('connect_error', (error) => {
+      console.log('Connection error:', error.message);
     });
 
     socketInstance.on('disconnect', () => {
