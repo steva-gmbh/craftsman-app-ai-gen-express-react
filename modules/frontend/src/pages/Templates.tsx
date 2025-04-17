@@ -5,50 +5,99 @@ import { api, Template } from '../services/api';
 import DataTable from '../components/DataTable';
 import { IconEdit, IconTrash, IconPlus } from '../components/icons';
 import DeleteConfirmationDialog from '../components/DeleteConfirmationDialog';
+import { settingsService } from '../services/settingsService';
 
 const Templates: React.FC = () => {
-  const [data, setData] = useState<{ data: Template[], totalCount: number, totalPages: number, currentPage: number }>({
-    data: [],
-    totalCount: 0,
-    totalPages: 0,
-    currentPage: 1
-  });
-  const [currentPage, setCurrentPage] = useState(1);
+  const [templates, setTemplates] = useState<Template[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
   const [templateToDelete, setTemplateToDelete] = useState<{ id: number, title: string } | null>(null);
   const [filterType, setFilterType] = useState<string>('all');
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  // Filtered data state
+  const [filteredTemplates, setFilteredTemplates] = useState<Template[]>([]);
+  const [filteredTotalCount, setFilteredTotalCount] = useState(0);
+  const [filteredTotalPages, setFilteredTotalPages] = useState(1);
+  
   const navigate = useNavigate();
 
-  const fetchTemplates = async (page: number = 1, type?: string, query?: string) => {
-    setIsLoading(true);
-    try {
-      const params: { page: number; limit: number; type?: string; search?: string } = { page, limit: 10 };
-      if (type && type !== 'all') {
-        params.type = type;
-      }
-      if (query) {
-        params.search = query;
-      }
-      const response = await api.getTemplates(params);
-      setData(response);
-      setCurrentPage(response.currentPage);
-    } catch (error) {
-      toast.error('Failed to load templates');
-      console.error('Error fetching templates:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  // Load rows per page from user settings
   useEffect(() => {
-    fetchTemplates(currentPage, filterType === 'all' ? undefined : filterType, searchQuery);
-  }, [currentPage, filterType, searchQuery]);
+    const loadRowsPerPage = async () => {
+      try {
+        const perPage = await settingsService.getRowsPerPage();
+        setRowsPerPage(perPage);
+      } catch (error) {
+        console.error('Error loading rows per page setting:', error);
+      }
+    };
+    
+    loadRowsPerPage();
+  }, []);
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
+  // Fetch all templates
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      setIsLoading(true);
+      try {
+        // Fetch all templates without pagination
+        const response = await api.getTemplates({ page: 1, limit: 1000 });
+        setTemplates(response.data);
+        setError(null);
+      } catch (error) {
+        console.error('Error fetching templates:', error);
+        setError(error instanceof Error ? error : new Error('Failed to load templates'));
+        toast.error('Failed to load templates');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTemplates();
+  }, []);
+
+  // Apply filters and pagination whenever data, search query, or type filter changes
+  useEffect(() => {
+    if (!templates.length) return;
+    
+    let result = [...templates];
+    
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(template => 
+        template.title.toLowerCase().includes(query) ||
+        template.type.toLowerCase().includes(query) ||
+        template.description?.toLowerCase().includes(query)
+      );
+    }
+    
+    // Apply type filter
+    if (filterType !== 'all') {
+      result = result.filter(template => 
+        template.type === filterType
+      );
+    }
+    
+    // Update filtered data and pagination info
+    const filteredCount = result.length;
+    const filteredPages = Math.max(1, Math.ceil(filteredCount / rowsPerPage));
+    
+    setFilteredTotalCount(filteredCount);
+    setFilteredTotalPages(filteredPages);
+    
+    // Make sure we don't exceed the total number of pages
+    const validCurrentPage = Math.min(currentPage, filteredPages);
+    
+    // Apply pagination to the filtered results
+    const startIndex = (validCurrentPage - 1) * rowsPerPage;
+    const paginatedResult = result.slice(startIndex, startIndex + rowsPerPage);
+    setFilteredTemplates(paginatedResult);
+  }, [templates, searchQuery, filterType, rowsPerPage, currentPage]);
 
   const handleDeleteTemplate = async () => {
     if (!templateToDelete) return;
@@ -57,7 +106,11 @@ const Templates: React.FC = () => {
       await api.deleteTemplate(templateToDelete.id);
       setTemplateToDelete(null);
       toast.success(`Template "${templateToDelete.title}" deleted successfully`);
-      fetchTemplates(currentPage, filterType === 'all' ? undefined : filterType, searchQuery);
+      
+      // Update templates state by removing the deleted template
+      setTemplates(prevTemplates => 
+        prevTemplates.filter(template => template.id !== templateToDelete.id)
+      );
     } catch (error) {
       toast.error('Failed to delete template');
       console.error('Error deleting template:', error);
@@ -66,13 +119,21 @@ const Templates: React.FC = () => {
 
   const handleTypeFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setFilterType(e.target.value);
-    setCurrentPage(1);
+    setCurrentPage(1); // Reset to first page on filter change
   };
 
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       setSearchQuery(searchInput);
       setCurrentPage(1); // Reset to first page on new search
+    }
+  };
+
+  const handlePageChange = (page: number) => {
+    // Only update the page if it's different from the current page
+    // and within the valid range
+    if (page !== currentPage && page >= 1 && page <= filteredTotalPages) {
+      setCurrentPage(page);
     }
   };
 
@@ -98,6 +159,18 @@ const Templates: React.FC = () => {
       accessor: (row: Template) => new Date(row.createdAt!).toLocaleDateString(),
     }
   ];
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div>Error loading templates: {error.message}</div>;
+  }
 
   return (
     <div className="h-full">
@@ -152,49 +225,52 @@ const Templates: React.FC = () => {
           >
             <option value="all">All Types</option>
             <option value="invoice">Invoice</option>
+            <option value="proposal">Proposal</option>
+            <option value="contract">Contract</option>
+            <option value="estimate">Estimate</option>
+            <option value="receipt">Receipt</option>
+            <option value="project_report">Project Report</option>
+            <option value="maintenance_plan">Maintenance Plan</option>
+            <option value="warranty">Warranty</option>
+            <option value="thank_you">Thank You</option>
+            <option value="quote">Quote</option>
           </select>
         </div>
       </div>
 
-      {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-        </div>
-      ) : (
-        <div className="mt-8 shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-          <DataTable 
-            columns={columns}
-            data={data?.data || []}
-            keyField="id"
-            actions={(template) => (
-              <div className="flex justify-end space-x-2">
-                <button
-                  onClick={() => navigate(`/templates/${template.id}/edit`)}
-                  className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
-                  title="Edit template"
-                >
-                  <IconEdit className="h-5 w-5" />
-                  <span className="sr-only">Edit template</span>
-                </button>
-                <button
-                  onClick={() => setTemplateToDelete({ id: template.id, title: template.title })}
-                  className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                  title="Delete template"
-                >
-                  <IconTrash className="h-5 w-5" />
-                  <span className="sr-only">Delete template</span>
-                </button>
-              </div>
-            )}
-            totalCount={data?.totalCount || 0}
-            currentPage={currentPage}
-            totalPages={data?.totalPages || 1}
-            onPageChange={handlePageChange}
-            isPaginated={true}
-            rowsPerPage={10}
-          />
-        </div>
-      )}
+      <div className="mt-8 shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+        <DataTable 
+          columns={columns}
+          data={filteredTemplates}
+          keyField="id"
+          actions={(template) => (
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={() => navigate(`/templates/${template.id}/edit`)}
+                className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                title="Edit template"
+              >
+                <IconEdit className="h-5 w-5" />
+                <span className="sr-only">Edit template</span>
+              </button>
+              <button
+                onClick={() => setTemplateToDelete({ id: template.id, title: template.title })}
+                className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                title="Delete template"
+              >
+                <IconTrash className="h-5 w-5" />
+                <span className="sr-only">Delete template</span>
+              </button>
+            </div>
+          )}
+          totalCount={filteredTotalCount}
+          currentPage={currentPage}
+          totalPages={filteredTotalPages}
+          onPageChange={handlePageChange}
+          isPaginated={true}
+          rowsPerPage={rowsPerPage}
+        />
+      </div>
 
       {/* Delete Confirmation Dialog */}
       <DeleteConfirmationDialog

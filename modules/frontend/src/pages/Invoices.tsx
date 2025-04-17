@@ -17,6 +17,11 @@ const Invoices: React.FC = () => {
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  
+  // Filtered data state
+  const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>([]);
+  const [filteredTotalCount, setFilteredTotalCount] = useState(0);
+  const [filteredTotalPages, setFilteredTotalPages] = useState(1);
 
   // Load rows per page from user settings
   useEffect(() => {
@@ -33,30 +38,14 @@ const Invoices: React.FC = () => {
   }, []);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['invoices', searchQuery, currentPage, rowsPerPage],
+    queryKey: ['invoices'],
     queryFn: async () => {
       try {
-        const params = {
-          page: currentPage,
-          limit: rowsPerPage
-        };
-        const response = await api.getInvoices(params);
-
-        // Apply search filter if query exists
-        if (searchQuery) {
-          const query = searchQuery.toLowerCase();
-          const filteredInvoices = response.data.filter((invoice) =>
-            invoice.invoiceNumber.toLowerCase().includes(query) ||
-            (invoice.customer?.name && invoice.customer.name.toLowerCase().includes(query)) ||
-            invoice.status.toLowerCase().includes(query)
-          );
-
-          return {
-            ...response,
-            data: filteredInvoices
-          };
-        }
-
+        // Fetch all invoices without pagination to handle client-side filtering/pagination properly
+        const response = await api.getInvoices({
+          page: 1,
+          limit: 1000 // Use a high limit to get all invoices
+        });
         return response;
       } catch (error) {
         console.error('Error fetching invoices:', error);
@@ -64,6 +53,38 @@ const Invoices: React.FC = () => {
       }
     },
   });
+
+  // Apply filters and pagination whenever data or search query changes
+  useEffect(() => {
+    if (!data?.data) return;
+    
+    let result = [...data.data];
+    
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter((invoice) =>
+        invoice.invoiceNumber.toLowerCase().includes(query) ||
+        (invoice.customer?.name && invoice.customer.name.toLowerCase().includes(query)) ||
+        invoice.status.toLowerCase().includes(query)
+      );
+    }
+    
+    // Update filtered data and pagination info
+    const filteredCount = result.length;
+    const filteredPages = Math.max(1, Math.ceil(filteredCount / rowsPerPage));
+    
+    setFilteredTotalCount(filteredCount);
+    setFilteredTotalPages(filteredPages);
+    
+    // Make sure we don't exceed the total number of pages
+    const validCurrentPage = Math.min(currentPage, filteredPages);
+    
+    // Apply pagination to the filtered results
+    const startIndex = (validCurrentPage - 1) * rowsPerPage;
+    const paginatedResult = result.slice(startIndex, startIndex + rowsPerPage);
+    setFilteredInvoices(paginatedResult);
+  }, [data?.data, searchQuery, rowsPerPage, currentPage]);
 
   const handleDelete = async () => {
     if (!invoiceToDelete) return;
@@ -90,7 +111,11 @@ const Invoices: React.FC = () => {
   };
 
   const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+    // Only update the page if it's different from the current page
+    // and within the valid range
+    if (page !== currentPage && page >= 1 && page <= filteredTotalPages) {
+      setCurrentPage(page);
+    }
   };
 
   if (isLoading) {
@@ -195,7 +220,7 @@ const Invoices: React.FC = () => {
       <div className="mt-8 shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
         <DataTable
           columns={columns}
-          data={data?.data || []}
+          data={filteredInvoices}
           keyField="id"
           actions={(invoice) => (
             <div className="flex justify-end space-x-2">
@@ -234,9 +259,9 @@ const Invoices: React.FC = () => {
               </button>
             </div>
           )}
-          totalCount={data?.totalCount || 0}
+          totalCount={filteredTotalCount}
           currentPage={currentPage}
-          totalPages={data?.totalPages || 1}
+          totalPages={filteredTotalPages}
           onPageChange={handlePageChange}
           isPaginated={true}
           rowsPerPage={rowsPerPage}

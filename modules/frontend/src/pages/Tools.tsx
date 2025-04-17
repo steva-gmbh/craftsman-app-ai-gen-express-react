@@ -29,6 +29,11 @@ export default function Tools() {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
+  // Filtered data state
+  const [filteredTools, setFilteredTools] = useState<Tool[]>([]);
+  const [filteredTotalCount, setFilteredTotalCount] = useState(0);
+  const [filteredTotalPages, setFilteredTotalPages] = useState(1);
+
   // Load rows per page from user settings
   useEffect(() => {
     const loadRowsPerPage = async () => {
@@ -44,38 +49,55 @@ export default function Tools() {
   }, []);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['tools', searchQuery, selectedCategory, currentPage, rowsPerPage],
+    queryKey: ['tools'],
     queryFn: async () => {
+      // Fetch all tools without pagination to handle client-side filtering/pagination properly
       const toolsResponse = await api.getTools({
-        page: currentPage,
-        limit: rowsPerPage
+        page: 1,
+        limit: 1000 // Use a high limit to get all tools
       });
-      
-      let filteredTools = toolsResponse.data;
-      
-      // Apply search filter
-      if (searchQuery) {
-        filteredTools = filteredTools.filter(tool => 
-          tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          tool.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          tool.brand?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          tool.model?.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-      }
-      
-      // Apply category filter
-      if (selectedCategory !== 'All') {
-        filteredTools = filteredTools.filter(tool => 
-          tool.category === selectedCategory
-        );
-      }
-      
-      return {
-        ...toolsResponse,
-        data: filteredTools
-      };
+      return toolsResponse;
     },
   });
+
+  // Apply filters and pagination whenever data, search query, or category changes
+  useEffect(() => {
+    if (!data?.data) return;
+    
+    let result = [...data.data];
+    
+    // Apply search filter
+    if (searchQuery) {
+      result = result.filter(tool => 
+        tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        tool.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        tool.brand?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        tool.model?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    
+    // Apply category filter
+    if (selectedCategory !== 'All') {
+      result = result.filter(tool => 
+        tool.category === selectedCategory
+      );
+    }
+    
+    // Update filtered data and pagination info
+    const filteredCount = result.length;
+    const filteredPages = Math.max(1, Math.ceil(filteredCount / rowsPerPage));
+    
+    setFilteredTotalCount(filteredCount);
+    setFilteredTotalPages(filteredPages);
+    
+    // Make sure we don't exceed the total number of pages
+    const validCurrentPage = Math.min(currentPage, filteredPages);
+    
+    // Apply pagination to the filtered results
+    const startIndex = (validCurrentPage - 1) * rowsPerPage;
+    const paginatedResult = result.slice(startIndex, startIndex + rowsPerPage);
+    setFilteredTools(paginatedResult);
+  }, [data?.data, searchQuery, selectedCategory, rowsPerPage, currentPage]);
 
   const handleDelete = async () => {
     if (!toolToDelete) return;
@@ -101,7 +123,11 @@ export default function Tools() {
   };
 
   const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+    // Only update the page if it's different from the current page
+    // and within the valid range
+    if (page !== currentPage && page >= 1 && page <= filteredTotalPages) {
+      setCurrentPage(page);
+    }
   };
 
   // Extract unique categories for the dropdown
@@ -212,7 +238,7 @@ export default function Tools() {
       <div className="mt-8 shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
         <DataTable 
           columns={columns}
-          data={data?.data || []}
+          data={filteredTools}
           keyField="id"
           actions={(tool) => (
             <div className="flex justify-end space-x-2">
@@ -232,9 +258,9 @@ export default function Tools() {
               </button>
             </div>
           )}
-          totalCount={data?.totalCount || 0}
+          totalCount={filteredTotalCount}
           currentPage={currentPage}
-          totalPages={data?.totalPages || 1}
+          totalPages={filteredTotalPages}
           onPageChange={handlePageChange}
           isPaginated={true}
           rowsPerPage={rowsPerPage}

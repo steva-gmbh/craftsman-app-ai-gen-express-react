@@ -22,6 +22,11 @@ export default function Vehicles() {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
+  // Filtered data state
+  const [filteredVehicles, setFilteredVehicles] = useState<Vehicle[]>([]);
+  const [filteredTotalCount, setFilteredTotalCount] = useState(0);
+  const [filteredTotalPages, setFilteredTotalPages] = useState(1);
+
   // Vehicle type options
   const vehicleTypes = [
     { value: '', label: 'All Types' },
@@ -71,61 +76,77 @@ export default function Vehicles() {
   }, [statusFilter, typeFilter, fuelTypeFilter]);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['vehicles', searchQuery, statusFilter, typeFilter, fuelTypeFilter, currentPage, rowsPerPage],
+    queryKey: ['vehicles'],
     queryFn: async () => {
       try {
-        // Get paginated vehicles
+        // Get all vehicles
         const response = await api.getVehicles({
-          page: currentPage,
-          limit: rowsPerPage
+          page: 1,
+          limit: 1000 // Use a high limit to get all vehicles
         });
 
-        // Apply filters
-        let filteredVehicles = response.data;
-
-        // Apply search filter if query exists
-        if (searchQuery) {
-          const query = searchQuery.toLowerCase();
-          filteredVehicles = filteredVehicles.filter((vehicle: Vehicle) =>
-            vehicle.name.toLowerCase().includes(query) ||
-            vehicle.make.toLowerCase().includes(query) ||
-            vehicle.model.toLowerCase().includes(query) ||
-            vehicle.licensePlate?.toLowerCase().includes(query) ||
-            vehicle.type.toLowerCase().includes(query)
-          );
-        }
-
-        // Apply status filter
-        if (statusFilter) {
-          filteredVehicles = filteredVehicles.filter((vehicle: Vehicle) =>
-            vehicle.status === statusFilter
-          );
-        }
-
-        // Apply type filter
-        if (typeFilter) {
-          filteredVehicles = filteredVehicles.filter((vehicle: Vehicle) =>
-            vehicle.type === typeFilter
-          );
-        }
-
-        // Apply fuel type filter
-        if (fuelTypeFilter) {
-          filteredVehicles = filteredVehicles.filter((vehicle: Vehicle) =>
-            vehicle.fuelType === fuelTypeFilter
-          );
-        }
-
-        return {
-          ...response,
-          data: filteredVehicles
-        };
+        return response;
       } catch (error) {
         console.error('Error fetching vehicles:', error);
         throw error;
       }
     },
   });
+
+  // Apply filters and pagination whenever data, search query, or filters change
+  useEffect(() => {
+    if (!data?.data) return;
+
+    let result = [...data.data];
+
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter((vehicle: Vehicle) =>
+        vehicle.name.toLowerCase().includes(query) ||
+        vehicle.make.toLowerCase().includes(query) ||
+        vehicle.model.toLowerCase().includes(query) ||
+        vehicle.licensePlate?.toLowerCase().includes(query) ||
+        vehicle.type.toLowerCase().includes(query)
+      );
+    }
+
+    // Apply status filter
+    if (statusFilter) {
+      result = result.filter((vehicle: Vehicle) =>
+        vehicle.status === statusFilter
+      );
+    }
+
+    // Apply type filter
+    if (typeFilter) {
+      result = result.filter((vehicle: Vehicle) =>
+        vehicle.type === typeFilter
+      );
+    }
+
+    // Apply fuel type filter
+    if (fuelTypeFilter) {
+      result = result.filter((vehicle: Vehicle) =>
+        vehicle.fuelType === fuelTypeFilter
+      );
+    }
+
+    // Update filtered data and pagination info
+    const filteredCount = result.length;
+    const filteredPages = Math.max(1, Math.ceil(filteredCount / rowsPerPage));
+
+    setFilteredTotalCount(filteredCount);
+    setFilteredTotalPages(filteredPages);
+
+    // Make sure we don't exceed the total number of pages
+    const validCurrentPage = Math.min(currentPage, filteredPages);
+
+    // Apply pagination to the filtered results
+    const startIndex = (validCurrentPage - 1) * rowsPerPage;
+    const paginatedResult = result.slice(startIndex, startIndex + rowsPerPage);
+    setFilteredVehicles(paginatedResult);
+  }, [data?.data, searchQuery, statusFilter, typeFilter, fuelTypeFilter, rowsPerPage, currentPage]);
 
   const handleDelete = async () => {
     if (!vehicleToDelete) return;
@@ -152,7 +173,11 @@ export default function Vehicles() {
   };
 
   const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+    // Only update the page if it's different from the current page
+    // and within the valid range
+    if (page !== currentPage && page >= 1 && page <= filteredTotalPages) {
+      setCurrentPage(page);
+    }
   };
 
   if (isLoading) {
@@ -217,8 +242,8 @@ export default function Vehicles() {
       </div>
 
       {/* Search and Filters */}
-      <div className="mt-6 space-y-4">
-        {/* Text Search */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+        {/* Search */}
         <div>
           <label htmlFor="search" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             Search (press Enter to search)
@@ -232,68 +257,68 @@ export default function Vehicles() {
               onChange={(e) => setSearchInput(e.target.value)}
               onKeyDown={handleSearch}
               className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
-              placeholder="Search vehicles... (press Enter to search)"
+              placeholder="Search vehicles..."
             />
           </div>
         </div>
 
-        {/* Filter Controls */}
-        <div className="flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0">
-          {/* Status Filter */}
-          <div className="flex-1">
-            <label htmlFor="statusFilter" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Filter by Status
-            </label>
+        {/* Type Filter */}
+        <div>
+          <label htmlFor="type-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Type
+          </label>
+          <div className="mt-1">
             <select
-              id="statusFilter"
-              name="statusFilter"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
-            >
-              {statusOptions.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Type Filter */}
-          <div className="flex-1">
-            <label htmlFor="typeFilter" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Filter by Type
-            </label>
-            <select
-              id="typeFilter"
-              name="typeFilter"
+              id="type-filter"
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
+              className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
             >
-              {vehicleTypes.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
+              {vehicleTypes.map((type) => (
+                <option key={type.value} value={type.value}>
+                  {type.label}
                 </option>
               ))}
             </select>
           </div>
+        </div>
 
-          {/* Fuel Type Filter */}
-          <div className="flex-1">
-            <label htmlFor="fuelTypeFilter" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Filter by Fuel Type
-            </label>
+        {/* Status Filter */}
+        <div>
+          <label htmlFor="status-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Status
+          </label>
+          <div className="mt-1">
             <select
-              id="fuelTypeFilter"
-              name="fuelTypeFilter"
+              id="status-filter"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+            >
+              {statusOptions.map((status) => (
+                <option key={status.value} value={status.value}>
+                  {status.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Fuel Type Filter */}
+        <div>
+          <label htmlFor="fuel-type-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Fuel Type
+          </label>
+          <div className="mt-1">
+            <select
+              id="fuel-type-filter"
               value={fuelTypeFilter}
               onChange={(e) => setFuelTypeFilter(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
+              className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
             >
-              {fuelTypeOptions.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
+              {fuelTypeOptions.map((fuel) => (
+                <option key={fuel.value} value={fuel.value}>
+                  {fuel.label}
                 </option>
               ))}
             </select>
@@ -301,37 +326,11 @@ export default function Vehicles() {
         </div>
       </div>
 
-      {/* Filter Summary */}
-      {(statusFilter || typeFilter || fuelTypeFilter || searchQuery) && (
-        <div className="mt-4 flex flex-wrap gap-2">
-          {searchQuery && (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
-              Search: {searchQuery}
-            </span>
-          )}
-          {statusFilter && (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300">
-              Status: {statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)}
-            </span>
-          )}
-          {typeFilter && (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
-              Type: {typeFilter.charAt(0).toUpperCase() + typeFilter.slice(1)}
-            </span>
-          )}
-          {fuelTypeFilter && (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">
-              Fuel: {fuelTypeFilter.charAt(0).toUpperCase() + fuelTypeFilter.slice(1)}
-            </span>
-          )}
-        </div>
-      )}
-
       {/* Vehicles List */}
-      <div className="mt-4 shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+      <div className="mt-8 shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
         <DataTable
           columns={columns}
-          data={data?.data || []}
+          data={filteredVehicles}
           keyField="id"
           actions={(vehicle) => (
             <div className="flex justify-end space-x-2">
@@ -351,9 +350,9 @@ export default function Vehicles() {
               </button>
             </div>
           )}
-          totalCount={data?.totalCount || 0}
+          totalCount={filteredTotalCount}
           currentPage={currentPage}
-          totalPages={data?.totalPages || 1}
+          totalPages={filteredTotalPages}
           onPageChange={handlePageChange}
           isPaginated={true}
           rowsPerPage={rowsPerPage}

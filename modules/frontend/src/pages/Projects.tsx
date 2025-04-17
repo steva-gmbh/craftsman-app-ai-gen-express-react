@@ -8,8 +8,8 @@ import { toast } from 'react-hot-toast';
 import DataTable from '../components/DataTable';
 import DeleteConfirmationDialog from '../components/DeleteConfirmationDialog';
 
-// Project statuses for filtering
-const projectStatuses = ['All', 'active', 'completed', 'pending'];
+// Define status options
+const projectStatuses = ['All', 'pending', 'active', 'completed', 'cancelled'];
 
 interface Project {
   id: number;
@@ -32,6 +32,11 @@ export default function Projects() {
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  // Filtered data state
+  const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
+  const [filteredTotalCount, setFilteredTotalCount] = useState(0);
+  const [filteredTotalPages, setFilteredTotalPages] = useState(1);
 
   // Load rows per page from user settings
   useEffect(() => {
@@ -59,49 +64,26 @@ export default function Projects() {
   const customers = customersResponse?.data || [];
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['projects', searchQuery, selectedCustomer, selectedStatus, currentPage, rowsPerPage],
+    queryKey: ['projects'],
     queryFn: async () => {
       try {
         const projectsResponse = await api.getProjects({
-          page: currentPage,
-          limit: rowsPerPage
+          page: 1,
+          limit: 1000 // Use a high limit to get all projects
         });
 
         // Count jobs for each project
         const jobsResponse = await api.getJobs();
         const jobs = jobsResponse.data || [];
 
-        let filteredProjects = projectsResponse.data.map(project => ({
+        let projects = projectsResponse.data.map(project => ({
           ...project,
           jobCount: jobs.filter(job => job.projectId === project.id).length
         }));
 
-        // Apply text search filter
-        if (searchQuery) {
-          const query = searchQuery.toLowerCase();
-          filteredProjects = filteredProjects.filter(project =>
-            project.name.toLowerCase().includes(query) ||
-            project.description?.toLowerCase().includes(query)
-          );
-        }
-
-        // Apply customer filter
-        if (selectedCustomer !== 'All') {
-          filteredProjects = filteredProjects.filter(project =>
-            project.customer?.name === selectedCustomer
-          );
-        }
-
-        // Apply status filter
-        if (selectedStatus !== 'All') {
-          filteredProjects = filteredProjects.filter(project =>
-            project.status === selectedStatus
-          );
-        }
-
         return {
           ...projectsResponse,
-          data: filteredProjects
+          data: projects
         };
       } catch (error) {
         console.error('Error fetching projects:', error);
@@ -109,6 +91,51 @@ export default function Projects() {
       }
     },
   });
+
+  // Apply filters and pagination whenever data, search query, or filters change
+  useEffect(() => {
+    if (!data?.data) return;
+    
+    let result = [...data.data];
+    
+    // Apply text search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(project =>
+        project.name.toLowerCase().includes(query) ||
+        project.description?.toLowerCase().includes(query)
+      );
+    }
+
+    // Apply customer filter
+    if (selectedCustomer !== 'All') {
+      result = result.filter(project =>
+        project.customer?.name === selectedCustomer
+      );
+    }
+
+    // Apply status filter
+    if (selectedStatus !== 'All') {
+      result = result.filter(project =>
+        project.status === selectedStatus
+      );
+    }
+    
+    // Update filtered data and pagination info
+    const filteredCount = result.length;
+    const filteredPages = Math.max(1, Math.ceil(filteredCount / rowsPerPage));
+    
+    setFilteredTotalCount(filteredCount);
+    setFilteredTotalPages(filteredPages);
+    
+    // Make sure we don't exceed the total number of pages
+    const validCurrentPage = Math.min(currentPage, filteredPages);
+    
+    // Apply pagination to the filtered results
+    const startIndex = (validCurrentPage - 1) * rowsPerPage;
+    const paginatedResult = result.slice(startIndex, startIndex + rowsPerPage);
+    setFilteredProjects(paginatedResult);
+  }, [data?.data, searchQuery, selectedCustomer, selectedStatus, rowsPerPage, currentPage]);
 
   const handleDelete = async () => {
     if (!projectToDelete) return;
@@ -135,7 +162,11 @@ export default function Projects() {
   };
 
   const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+    // Only update the page if it's different from the current page
+    // and within the valid range
+    if (page !== currentPage && page >= 1 && page <= filteredTotalPages) {
+      setCurrentPage(page);
+    }
   };
 
   // Extract unique customer names for the dropdown
@@ -235,9 +266,9 @@ export default function Projects() {
             }}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
           >
-            {customerOptions.map((name) => (
-              <option key={name} value={name}>
-                {name}
+            {customerOptions.map((customer) => (
+              <option key={customer} value={customer}>
+                {customer}
               </option>
             ))}
           </select>
@@ -268,7 +299,7 @@ export default function Projects() {
       <div className="mt-8 shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
         <DataTable
           columns={columns}
-          data={data?.data || []}
+          data={filteredProjects}
           keyField="id"
           actions={(project) => (
             <div className="flex justify-end space-x-2">
@@ -296,9 +327,9 @@ export default function Projects() {
               </button>
             </div>
           )}
-          totalCount={data?.totalCount || 0}
+          totalCount={filteredTotalCount}
           currentPage={currentPage}
-          totalPages={data?.totalPages || 1}
+          totalPages={filteredTotalPages}
           onPageChange={handlePageChange}
           isPaginated={true}
           rowsPerPage={rowsPerPage}

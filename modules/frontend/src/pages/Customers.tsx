@@ -28,6 +28,11 @@ export default function Customers() {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
+  // Filtered data state
+  const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
+  const [filteredTotalCount, setFilteredTotalCount] = useState(0);
+  const [filteredTotalPages, setFilteredTotalPages] = useState(1);
+
   // Load rows per page from user settings
   useEffect(() => {
     const loadRowsPerPage = async () => {
@@ -43,13 +48,13 @@ export default function Customers() {
   }, []);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['customers', searchQuery, currentPage, rowsPerPage],
+    queryKey: ['customers'],
     queryFn: async () => {
       try {
-        // Get paginated customers
+        // Get all customers
         let response = await api.getCustomers({
-          page: currentPage,
-          limit: rowsPerPage
+          page: 1,
+          limit: 1000 // Use a high limit to get all customers
         });
 
         // Get all jobs to count for each customer
@@ -61,22 +66,6 @@ export default function Customers() {
           jobs: jobs.data ? jobs.data.filter(job => job.customerId === customer.id).length : 0
         }));
 
-        // Apply search filter if query exists
-        if (searchQuery) {
-          const query = searchQuery.toLowerCase();
-          const filteredCustomers = customersWithJobs.filter(customer =>
-            customer.name.toLowerCase().includes(query) ||
-            customer.email.toLowerCase().includes(query) ||
-            customer.phone.toLowerCase().includes(query) ||
-            customer.address.toLowerCase().includes(query)
-          );
-
-          return {
-            ...response,
-            data: filteredCustomers
-          };
-        }
-
         return {
           ...response,
           data: customersWithJobs
@@ -87,6 +76,38 @@ export default function Customers() {
       }
     },
   });
+
+  // Apply filters and pagination whenever data, search query, or category changes
+  useEffect(() => {
+    if (!data?.data) return;
+    
+    let result = [...data.data];
+    
+    // Apply search filter
+    if (searchQuery) {
+      result = result.filter(customer =>
+        customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        customer.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        customer.phone.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        customer.address.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    
+    // Update filtered data and pagination info
+    const filteredCount = result.length;
+    const filteredPages = Math.max(1, Math.ceil(filteredCount / rowsPerPage));
+    
+    setFilteredTotalCount(filteredCount);
+    setFilteredTotalPages(filteredPages);
+    
+    // Make sure we don't exceed the total number of pages
+    const validCurrentPage = Math.min(currentPage, filteredPages);
+    
+    // Apply pagination to the filtered results
+    const startIndex = (validCurrentPage - 1) * rowsPerPage;
+    const paginatedResult = result.slice(startIndex, startIndex + rowsPerPage);
+    setFilteredCustomers(paginatedResult);
+  }, [data?.data, searchQuery, rowsPerPage, currentPage]);
 
   const handleDelete = async () => {
     if (!customerToDelete) return;
@@ -113,7 +134,11 @@ export default function Customers() {
   };
 
   const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+    // Only update the page if it's different from the current page
+    // and within the valid range
+    if (page !== currentPage && page >= 1 && page <= filteredTotalPages) {
+      setCurrentPage(page);
+    }
   };
 
   if (isLoading) {
@@ -175,7 +200,7 @@ export default function Customers() {
       <div className="mt-8 shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
         <DataTable
           columns={columns}
-          data={data?.data || []}
+          data={filteredCustomers}
           keyField="id"
           actions={(customer) => (
             <div className="flex justify-end space-x-2">
@@ -195,9 +220,9 @@ export default function Customers() {
               </button>
             </div>
           )}
-          totalCount={data?.totalCount || 0}
+          totalCount={filteredTotalCount}
           currentPage={currentPage}
-          totalPages={data?.totalPages || 1}
+          totalPages={filteredTotalPages}
           onPageChange={handlePageChange}
           isPaginated={true}
           rowsPerPage={rowsPerPage}

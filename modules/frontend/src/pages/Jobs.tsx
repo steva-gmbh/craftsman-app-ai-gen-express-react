@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { IconPlus, IconEdit, IconTrash } from '../components/icons';
 import { api } from '../services/api';
 import { settingsService } from '../services/settingsService';
@@ -8,9 +8,9 @@ import { toast } from 'react-hot-toast';
 import DataTable from '../components/DataTable';
 import DeleteConfirmationDialog from '../components/DeleteConfirmationDialog';
 
-// Update job types and statuses to match our database schema
-const jobTypes = ['All', 'Website Redesign', 'Mobile App Development', 'Database Migration'];
-const jobStatuses = ['All', 'pending', 'in progress', 'completed'];
+// Define job types
+const jobTypes = ['All', 'Renovation', 'Repair', 'Installation', 'Maintenance'];
+const jobStatuses = ['All', 'PENDING', 'IN_PROGRESS', 'COMPLETED'];
 
 interface Job {
   id: number;
@@ -34,6 +34,11 @@ export default function Jobs() {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
+  // Filtered data state
+  const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
+  const [filteredTotalCount, setFilteredTotalCount] = useState(0);
+  const [filteredTotalPages, setFilteredTotalPages] = useState(1);
+
   // Load rows per page from user settings
   useEffect(() => {
     const loadRowsPerPage = async () => {
@@ -49,13 +54,13 @@ export default function Jobs() {
   }, []);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['jobs', selectedType, selectedStatus, searchQuery, currentPage, rowsPerPage],
+    queryKey: ['jobs'],
     queryFn: async () => {
       try {
         const [jobsResponse, customersResponse] = await Promise.all([
           api.getJobs({
-            page: currentPage,
-            limit: rowsPerPage
+            page: 1,
+            limit: 1000 // Use a high limit to get all jobs
           }),
           api.getCustomers(),
         ]);
@@ -74,25 +79,6 @@ export default function Jobs() {
           };
         });
 
-        // Filter jobs based on selected type and status
-        if (selectedType !== 'All') {
-          mappedJobs = mappedJobs.filter(job => job.type === selectedType);
-        }
-        if (selectedStatus !== 'All') {
-          mappedJobs = mappedJobs.filter(job => job.status === selectedStatus);
-        }
-
-        // Filter jobs based on search text
-        if (searchQuery) {
-          const query = searchQuery.toLowerCase();
-          mappedJobs = mappedJobs.filter(job =>
-            job.customer.toLowerCase().includes(query) ||
-            job.project.toLowerCase().includes(query) ||
-            job.type.toLowerCase().includes(query) ||
-            job.description.toLowerCase().includes(query)
-          );
-        }
-
         return {
           ...jobsResponse,
           data: mappedJobs
@@ -103,6 +89,49 @@ export default function Jobs() {
       }
     },
   });
+
+  // Apply filters and pagination whenever data, search query, or filters change
+  useEffect(() => {
+    if (!data?.data) return;
+    
+    let result = [...data.data];
+    
+    // Apply type filter
+    if (selectedType !== 'All') {
+      result = result.filter(job => job.type === selectedType);
+    }
+    
+    // Apply status filter
+    if (selectedStatus !== 'All') {
+      result = result.filter(job => job.status === selectedStatus);
+    }
+    
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(job =>
+        job.customer.toLowerCase().includes(query) ||
+        job.project.toLowerCase().includes(query) ||
+        job.type.toLowerCase().includes(query) ||
+        job.description.toLowerCase().includes(query)
+      );
+    }
+    
+    // Update filtered data and pagination info
+    const filteredCount = result.length;
+    const filteredPages = Math.max(1, Math.ceil(filteredCount / rowsPerPage));
+    
+    setFilteredTotalCount(filteredCount);
+    setFilteredTotalPages(filteredPages);
+    
+    // Make sure we don't exceed the total number of pages
+    const validCurrentPage = Math.min(currentPage, filteredPages);
+    
+    // Apply pagination to the filtered results
+    const startIndex = (validCurrentPage - 1) * rowsPerPage;
+    const paginatedResult = result.slice(startIndex, startIndex + rowsPerPage);
+    setFilteredJobs(paginatedResult);
+  }, [data?.data, selectedType, selectedStatus, searchQuery, rowsPerPage, currentPage]);
 
   const handleDelete = async () => {
     if (!jobToDelete) return;
@@ -129,7 +158,11 @@ export default function Jobs() {
   };
 
   const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+    // Only update the page if it's different from the current page
+    // and within the valid range
+    if (page !== currentPage && page >= 1 && page <= filteredTotalPages) {
+      setCurrentPage(page);
+    }
   };
 
   if (isLoading) {
@@ -253,9 +286,9 @@ export default function Jobs() {
 
       {/* Jobs List */}
       <div className="mt-8 shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-        <DataTable
+        <DataTable 
           columns={columns}
-          data={data?.data || []}
+          data={filteredJobs}
           keyField="id"
           actions={(job) => (
             <div className="flex justify-end space-x-2">
@@ -263,21 +296,21 @@ export default function Jobs() {
                 onClick={() => navigate(`/jobs/${job.id}`)}
                 className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
               >
-                <IconEdit className="h-5 w-5" stroke={1.5} />
+                <IconEdit className="h-5 w-5" />
                 <span className="sr-only">Edit {job.type}</span>
               </button>
               <button
                 onClick={() => setJobToDelete({ id: job.id, title: job.type })}
                 className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
               >
-                <IconTrash className="h-5 w-5" stroke={1.5} />
+                <IconTrash className="h-5 w-5" />
                 <span className="sr-only">Delete {job.type}</span>
               </button>
             </div>
           )}
-          totalCount={data?.totalCount || 0}
+          totalCount={filteredTotalCount}
           currentPage={currentPage}
-          totalPages={data?.totalPages || 1}
+          totalPages={filteredTotalPages}
           onPageChange={handlePageChange}
           isPaginated={true}
           rowsPerPage={rowsPerPage}

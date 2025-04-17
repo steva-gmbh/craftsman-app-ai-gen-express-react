@@ -32,6 +32,11 @@ export default function Materials() {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
+  // Filtered data state
+  const [filteredMaterials, setFilteredMaterials] = useState<Material[]>([]);
+  const [filteredTotalCount, setFilteredTotalCount] = useState(0);
+  const [filteredTotalPages, setFilteredTotalPages] = useState(1);
+
   // Load rows per page from user settings
   useEffect(() => {
     const loadRowsPerPage = async () => {
@@ -47,38 +52,55 @@ export default function Materials() {
   }, []);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['materials', searchQuery, selectedCategory, currentPage, rowsPerPage],
+    queryKey: ['materials'],
     queryFn: async () => {
+      // Fetch all materials without pagination to handle client-side filtering/pagination properly
       const materialsResponse = await api.getMaterials({
-        page: currentPage,
-        limit: rowsPerPage
+        page: 1,
+        limit: 1000 // Use a high limit to get all materials
       });
-      
-      let filteredMaterials = materialsResponse.data;
-      
-      // Apply search filter
-      if (searchQuery) {
-        filteredMaterials = filteredMaterials.filter(material => 
-          material.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          material.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          material.brand?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          material.supplier?.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-      }
-      
-      // Apply category filter
-      if (selectedCategory !== 'All') {
-        filteredMaterials = filteredMaterials.filter(material => 
-          material.category === selectedCategory
-        );
-      }
-      
-      return {
-        ...materialsResponse,
-        data: filteredMaterials
-      };
+      return materialsResponse;
     },
   });
+
+  // Apply filters and pagination whenever data, search query, or category changes
+  useEffect(() => {
+    if (!data?.data) return;
+    
+    let result = [...data.data];
+    
+    // Apply search filter
+    if (searchQuery) {
+      result = result.filter(material => 
+        material.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        material.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        material.brand?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        material.supplier?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    
+    // Apply category filter
+    if (selectedCategory !== 'All') {
+      result = result.filter(material => 
+        material.category === selectedCategory
+      );
+    }
+    
+    // Update filtered data and pagination info
+    const filteredCount = result.length;
+    const filteredPages = Math.max(1, Math.ceil(filteredCount / rowsPerPage));
+    
+    setFilteredTotalCount(filteredCount);
+    setFilteredTotalPages(filteredPages);
+    
+    // Make sure we don't exceed the total number of pages
+    const validCurrentPage = Math.min(currentPage, filteredPages);
+    
+    // Apply pagination to the filtered results
+    const startIndex = (validCurrentPage - 1) * rowsPerPage;
+    const paginatedResult = result.slice(startIndex, startIndex + rowsPerPage);
+    setFilteredMaterials(paginatedResult);
+  }, [data?.data, searchQuery, selectedCategory, rowsPerPage, currentPage]);
 
   const handleDelete = async () => {
     if (!materialToDelete) return;
@@ -104,7 +126,11 @@ export default function Materials() {
   };
 
   const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+    // Only update the page if it's different from the current page
+    // and within the valid range
+    if (page !== currentPage && page >= 1 && page <= filteredTotalPages) {
+      setCurrentPage(page);
+    }
   };
 
   // Extract unique categories for the dropdown
@@ -212,7 +238,7 @@ export default function Materials() {
       <div className="mt-8 shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
         <DataTable 
           columns={columns}
-          data={data?.data || []}
+          data={filteredMaterials}
           keyField="id"
           actions={(material) => (
             <div className="flex justify-end space-x-2">
@@ -232,9 +258,9 @@ export default function Materials() {
               </button>
             </div>
           )}
-          totalCount={data?.totalCount || 0}
+          totalCount={filteredTotalCount}
           currentPage={currentPage}
-          totalPages={data?.totalPages || 1}
+          totalPages={filteredTotalPages}
           onPageChange={handlePageChange}
           isPaginated={true}
           rowsPerPage={rowsPerPage}
