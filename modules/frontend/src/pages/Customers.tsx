@@ -6,6 +6,7 @@ import { api } from '../services/api';
 import { settingsService } from '../services/settingsService';
 import { toast } from 'react-hot-toast';
 import DataTable from '../components/DataTable';
+import DeleteConfirmationDialog from '../components/DeleteConfirmationDialog';
 
 interface Customer {
   id: number;
@@ -204,38 +205,17 @@ export default function Customers() {
       </div>
 
       {/* Delete Confirmation Dialog */}
-      {customerToDelete && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm w-full">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white">Delete Customer</h3>
-            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-              Are you sure you want to delete the customer "{customerToDelete.name}"?
-            </p>
-            {deleteError && (
-              <p className="mt-2 text-sm text-red-600 dark:text-red-400">{deleteError}</p>
-            )}
-            <div className="mt-4 flex justify-end space-x-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setCustomerToDelete(null);
-                  setDeleteError(null);
-                }}
-                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleDelete}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteConfirmationDialog
+        isOpen={customerToDelete !== null}
+        title="Delete Customer"
+        message={customerToDelete ? `Are you sure you want to delete the customer "${customerToDelete.name}"?` : ''}
+        errorMessage={deleteError}
+        onCancel={() => {
+          setCustomerToDelete(null);
+          setDeleteError(null);
+        }}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }

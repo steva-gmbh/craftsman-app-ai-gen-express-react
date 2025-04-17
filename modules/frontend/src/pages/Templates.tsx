@@ -4,6 +4,7 @@ import { toast } from 'react-hot-toast';
 import { api, Template } from '../services/api';
 import DataTable from '../components/DataTable';
 import { IconEdit, IconTrash, IconPlus } from '../components/icons';
+import DeleteConfirmationDialog from '../components/DeleteConfirmationDialog';
 
 const Templates: React.FC = () => {
   const [data, setData] = useState<{ data: Template[], totalCount: number, totalPages: number, currentPage: number }>({
@@ -195,33 +196,15 @@ const Templates: React.FC = () => {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
-      {templateToDelete && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm w-full">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white">Delete Template</h3>
-            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-              Are you sure you want to delete the template "{templateToDelete.title}"? This action cannot be undone.
-            </p>
-            <div className="mt-4 flex justify-end space-x-3">
-              <button
-                type="button"
-                onClick={() => setTemplateToDelete(null)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleDeleteTemplate}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmationDialog
+        isOpen={templateToDelete !== null}
+        title="Delete Template"
+        message={templateToDelete ? `Are you sure you want to delete the template "${templateToDelete.title}"? This action cannot be undone.` : ''}
+        errorMessage={null}
+        onCancel={() => setTemplateToDelete(null)}
+        onConfirm={handleDeleteTemplate}
+      />
     </div>
   );
 };

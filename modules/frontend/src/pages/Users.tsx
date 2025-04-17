@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { IconPlus, IconEdit, IconTrash } from '../components/icons';
 import { api, User } from '../services/api';
 import { toast } from 'react-hot-toast';
+import DeleteConfirmationDialog from '../components/DeleteConfirmationDialog';
 
 export default function Users() {
   const navigate = useNavigate();
@@ -71,35 +72,14 @@ export default function Users() {
   return (
     <div>
       {/* Confirm Delete Modal */}
-      {userToDelete && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg max-w-md w-full">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white">Delete User</h3>
-            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-              Are you sure you want to delete {userToDelete.name}? This action cannot be undone.
-            </p>
-            {deleteError && (
-              <p className="mt-2 text-sm text-red-600 dark:text-red-400">{deleteError}</p>
-            )}
-            <div className="mt-4 flex justify-end space-x-3">
-              <button
-                type="button"
-                onClick={() => setUserToDelete(null)}
-                className="inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleDelete}
-                className="inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteConfirmationDialog
+        isOpen={userToDelete !== null}
+        title="Delete User"
+        message={userToDelete ? `Are you sure you want to delete ${userToDelete.name}? This action cannot be undone.` : ''}
+        errorMessage={deleteError}
+        onCancel={() => setUserToDelete(null)}
+        onConfirm={handleDelete}
+      />
 
       <div className="sm:flex sm:items-center">
         <div className="sm:flex-auto">
