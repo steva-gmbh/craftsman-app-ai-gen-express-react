@@ -8,38 +8,37 @@ interface PaginationProps {
 }
 
 export default function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) {
-  // Don't render pagination if there's only one page
-  if (totalPages <= 1) {
-    return null;
-  }
+  // Ensure totalPages is at least 1
+  const safeTotalPages = Math.max(1, totalPages);
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), safeTotalPages);
 
   // Calculate visible page numbers
   const getVisiblePageNumbers = () => {
     const pages = [];
-    
+
     // Always show the first page
-    if (currentPage > 3) {
+    if (safeCurrentPage > 3) {
       pages.push(1);
     }
-    
+
     // Show two pages before current page if they exist
-    for (let i = Math.max(1, currentPage - 2); i < currentPage; i++) {
+    for (let i = Math.max(1, safeCurrentPage - 2); i < safeCurrentPage; i++) {
       pages.push(i);
     }
-    
+
     // Show current page
-    pages.push(currentPage);
-    
+    pages.push(safeCurrentPage);
+
     // Show two pages after current page if they exist
-    for (let i = currentPage + 1; i <= Math.min(currentPage + 2, totalPages); i++) {
+    for (let i = safeCurrentPage + 1; i <= Math.min(safeCurrentPage + 2, safeTotalPages); i++) {
       pages.push(i);
     }
-    
+
     // Always show the last page
-    if (currentPage < totalPages - 2) {
-      pages.push(totalPages);
+    if (safeCurrentPage < safeTotalPages - 2) {
+      pages.push(safeTotalPages);
     }
-    
+
     return pages;
   };
 
@@ -49,8 +48,8 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
     <nav className="flex items-center justify-between px-4 py-3 sm:px-6" aria-label="Pagination">
       <div className="hidden sm:block">
         <p className="text-sm text-gray-700 dark:text-gray-400">
-          Showing page <span className="font-medium">{currentPage}</span> of{' '}
-          <span className="font-medium">{totalPages}</span>
+          Showing page <span className="font-medium">{safeCurrentPage}</span> of{' '}
+          <span className="font-medium">{safeTotalPages}</span>
         </p>
       </div>
       <div className="flex flex-1 justify-center sm:justify-end">
@@ -58,9 +57,9 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
           {/* First page button */}
           <button
             onClick={() => onPageChange(1)}
-            disabled={currentPage === 1}
+            disabled={safeCurrentPage === 1}
             className={`relative inline-flex items-center p-2 text-sm font-medium ${
-              currentPage === 1
+              safeCurrentPage === 1
                 ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
                 : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
             } rounded-md`}
@@ -73,10 +72,10 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
 
           {/* Previous page button */}
           <button
-            onClick={() => onPageChange(currentPage - 1)}
-            disabled={currentPage === 1}
+            onClick={() => onPageChange(safeCurrentPage - 1)}
+            disabled={safeCurrentPage === 1}
             className={`relative inline-flex items-center p-2 text-sm font-medium ${
-              currentPage === 1
+              safeCurrentPage === 1
                 ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
                 : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
             } rounded-md`}
@@ -98,11 +97,11 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
               <button
                 onClick={() => onPageChange(page)}
                 className={`relative inline-flex items-center px-4 py-2 text-sm font-medium ${
-                  currentPage === page
+                  safeCurrentPage === page
                     ? 'bg-indigo-600 text-white'
                     : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                 } rounded-md`}
-                aria-current={currentPage === page ? 'page' : undefined}
+                aria-current={safeCurrentPage === page ? 'page' : undefined}
               >
                 {page}
               </button>
@@ -111,10 +110,10 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
 
           {/* Next page button */}
           <button
-            onClick={() => onPageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
+            onClick={() => onPageChange(safeCurrentPage + 1)}
+            disabled={safeCurrentPage === safeTotalPages}
             className={`relative inline-flex items-center p-2 text-sm font-medium ${
-              currentPage === totalPages
+              safeCurrentPage === safeTotalPages
                 ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
                 : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
             } rounded-md`}
@@ -126,10 +125,10 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
 
           {/* Last page button */}
           <button
-            onClick={() => onPageChange(totalPages)}
-            disabled={currentPage === totalPages}
+            onClick={() => onPageChange(safeTotalPages)}
+            disabled={safeCurrentPage === safeTotalPages}
             className={`relative inline-flex items-center p-2 text-sm font-medium ${
-              currentPage === totalPages
+              safeCurrentPage === safeTotalPages
                 ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
                 : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
             } rounded-md`}
@@ -143,4 +142,4 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
       </div>
     </nav>
   );
-} 
+}
