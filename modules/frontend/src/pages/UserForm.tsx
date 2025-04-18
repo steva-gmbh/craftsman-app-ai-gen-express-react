@@ -22,7 +22,8 @@ export default function UserForm() {
     role: 'user',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showErrors, setShowErrors] = useState(false);
 
   // Fetch user data if editing
   const { data: userData, isLoading, error } = useQuery({
@@ -51,20 +52,53 @@ export default function UserForm() {
       ...prev,
       [name]: value,
     }));
+    
+    // Clear error for this field when user changes it
+    if (errors[name]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  };
+
+  const validateFormData = (data: typeof formData) => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!data.name.trim()) {
+      newErrors.name = 'Name is required';
+    }
+    
+    if (!data.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(data.email)) {
+      newErrors.email = 'Email is invalid';
+    }
+    
+    if (isNewUser && !data.password.trim()) {
+      newErrors.password = 'Password is required for new users';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setShowErrors(true);
+    
+    // Validate the form data
+    const isValid = validateFormData(formData);
+    
+    if (!isValid) {
+      return;
+    }
+    
     setIsSubmitting(true);
-    setFormError(null);
 
     try {
       if (isNewUser) {
-        // For new users, all fields are required
-        if (!formData.name || !formData.email || !formData.password) {
-          throw new Error('Please fill in all required fields');
-        }
-
         await api.createUser(formData);
         toast.success('User created successfully');
       } else {
@@ -85,7 +119,7 @@ export default function UserForm() {
       navigate('/users');
     } catch (error) {
       console.error('Form submission error:', error);
-      setFormError(error instanceof Error ? error.message : 'An error occurred');
+      setErrors({ general: error instanceof Error ? error.message : 'An error occurred' });
       toast.error(error instanceof Error ? error.message : 'An error occurred');
     } finally {
       setIsSubmitting(false);
@@ -110,94 +144,123 @@ export default function UserForm() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-5xl mx-auto">
       <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
         {isNewUser ? 'Add New User' : 'Edit User'}
       </h1>
 
-      {formError && (
+      {Object.keys(errors).length > 0 && showErrors && errors.general && (
         <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-md">
-          {formError}
+          {errors.general}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Name
-          </label>
-          <input
-            type="text"
-            name="name"
-            id="name"
-            required
-            value={formData.name}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
-          />
+      {Object.keys(errors).length > 0 && showErrors && !errors.general && (
+        <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-md">
+          Please fix the errors below to continue.
         </div>
+      )}
 
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Email
-          </label>
-          <input
-            type="email"
-            name="email"
-            id="email"
-            required
-            value={formData.email}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
-          />
-        </div>
+      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+        <form onSubmit={handleSubmit}>
+          <div className="border-b border-gray-200 dark:border-gray-700 p-6 space-y-6">
+            <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+              <div className="sm:col-span-3">
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Name
+                </label>
+                <div className="mt-1">
+                  <input
+                    type="text"
+                    name="name"
+                    id="name"
+                    required
+                    value={formData.name}
+                    onChange={handleChange}
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
+                  />
+                  {showErrors && errors.name && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.name}</p>
+                  )}
+                </div>
+              </div>
 
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Password {isNewUser ? '' : '(leave blank to keep current)'}
-          </label>
-          <input
-            type="password"
-            name="password"
-            id="password"
-            required={isNewUser}
-            value={formData.password}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
-          />
-        </div>
+              <div className="sm:col-span-3">
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Email
+                </label>
+                <div className="mt-1">
+                  <input
+                    type="email"
+                    name="email"
+                    id="email"
+                    required
+                    value={formData.email}
+                    onChange={handleChange}
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
+                  />
+                  {showErrors && errors.email && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.email}</p>
+                  )}
+                </div>
+              </div>
 
-        <div>
-          <Dropdown
-            id="role"
-            name="role"
-            value={formData.role}
-            onChange={handleChange}
-            options={[
-              { value: 'user', label: 'User' },
-              { value: 'admin', label: 'Admin' }
-            ]}
-            label="Role"
-          />
-        </div>
+              <div className="sm:col-span-3">
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Password {isNewUser ? '' : '(leave blank to keep current)'}
+                </label>
+                <div className="mt-1">
+                  <input
+                    type="password"
+                    name="password"
+                    id="password"
+                    required={isNewUser}
+                    value={formData.password}
+                    onChange={handleChange}
+                    className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.password ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
+                  />
+                  {showErrors && errors.password && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.password}</p>
+                  )}
+                </div>
+              </div>
 
-        <div className="flex justify-end space-x-3">
-          <button
-            type="button"
-            onClick={() => navigate('/users')}
-            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 h-10"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 h-10"
-          >
-            {isSubmitting ? 'Saving...' : isNewUser ? 'Create User' : 'Save Changes'}
-          </button>
-        </div>
-      </form>
+              <div className="sm:col-span-3">
+                <Dropdown
+                  id="role"
+                  name="role"
+                  value={formData.role}
+                  onChange={handleChange}
+                  options={[
+                    { value: 'user', label: 'User' },
+                    { value: 'admin', label: 'Admin' }
+                  ]}
+                  label="Role"
+                  error={errors.role}
+                  showError={showErrors}
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                type="button"
+                onClick={() => navigate('/users')}
+                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 h-10"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 h-10"
+              >
+                {isSubmitting ? 'Saving...' : isNewUser ? 'Create User' : 'Save Changes'}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
