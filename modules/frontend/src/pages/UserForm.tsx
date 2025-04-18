@@ -149,20 +149,14 @@ export default function UserForm() {
         {isNewUser ? 'Add New User' : 'Edit User'}
       </h1>
 
-      {Object.keys(errors).length > 0 && showErrors && errors.general && (
+      {Object.keys(errors).length > 0 && showErrors && (
         <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-md">
-          {errors.general}
-        </div>
-      )}
-
-      {Object.keys(errors).length > 0 && showErrors && !errors.general && (
-        <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-md">
-          Please fix the errors below to continue.
+          {errors.general || "Please fix the errors below to continue."}
         </div>
       )}
 
       <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} noValidate>
           <div className="border-b border-gray-200 dark:border-gray-700 p-6 space-y-6">
             <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
               <div className="sm:col-span-3">
@@ -174,7 +168,6 @@ export default function UserForm() {
                     type="text"
                     name="name"
                     id="name"
-                    required
                     value={formData.name}
                     onChange={handleChange}
                     className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
@@ -194,7 +187,6 @@ export default function UserForm() {
                     type="email"
                     name="email"
                     id="email"
-                    required
                     value={formData.email}
                     onChange={handleChange}
                     className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm ${showErrors && errors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
