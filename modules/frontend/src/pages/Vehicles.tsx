@@ -243,26 +243,27 @@ export default function Vehicles() {
       </div>
 
       {/* Search and Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-        {/* Search */}
-        <div>
-          <label htmlFor="search" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Search (press Enter to search)
-          </label>
-          <div className="mt-1">
-            <input
-              type="text"
-              name="search"
-              id="search"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              onKeyDown={handleSearch}
-              className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
-              placeholder="Search vehicles..."
-            />
-          </div>
+      {/* Search Row */}
+      <div className="mt-6">
+        <label htmlFor="search" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Search (press Enter to search)
+        </label>
+        <div className="mt-1">
+          <input
+            type="text"
+            name="search"
+            id="search"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyDown={handleSearch}
+            className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
+            placeholder="Search vehicles..."
+          />
         </div>
+      </div>
 
+      {/* Filters Row */}
+      <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Type Filter */}
         <div>
           <Dropdown
