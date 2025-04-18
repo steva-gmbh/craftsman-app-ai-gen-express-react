@@ -7,6 +7,7 @@ import { settingsService } from '../services/settingsService';
 import { toast } from 'react-hot-toast';
 import DataTable from '../components/DataTable';
 import DeleteConfirmationDialog from '../components/DeleteConfirmationDialog';
+import Dropdown from '../components/Dropdown';
 
 interface Material {
   id: number;
@@ -212,31 +213,20 @@ export default function Materials() {
 
       {/* Category Filter */}
       <div className="mt-6">
-        <label htmlFor="category-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Category
-        </label>
-        <div className="mt-1 relative">
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500 dark:text-gray-400">
-            <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-            </svg>
-          </div>
-          <select
-            id="category-filter"
-            value={selectedCategory}
-            onChange={(e) => {
-              setSelectedCategory(e.target.value);
-              setCurrentPage(1); // Reset to first page on filter change
-            }}
-            className="block w-full appearance-none rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
-          >
-            {categoryOptions.map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
-        </div>
+        <Dropdown
+          id="category-filter"
+          name="category-filter"
+          value={selectedCategory}
+          onChange={(e) => {
+            setSelectedCategory(e.target.value);
+            setCurrentPage(1); // Reset to first page on filter change
+          }}
+          options={categoryOptions.map(category => ({
+            value: category,
+            label: category
+          }))}
+          label="Category"
+        />
       </div>
 
       {/* Materials List */}

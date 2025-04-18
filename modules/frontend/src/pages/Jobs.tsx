@@ -7,6 +7,7 @@ import { settingsService } from '../services/settingsService';
 import { toast } from 'react-hot-toast';
 import DataTable from '../components/DataTable';
 import DeleteConfirmationDialog from '../components/DeleteConfirmationDialog';
+import Dropdown from '../components/Dropdown';
 
 // Define job types
 const jobTypes = ['All', 'Renovation', 'Repair', 'Installation', 'Maintenance'];
@@ -243,58 +244,36 @@ export default function Jobs() {
       {/* Filters */}
       <div className="mt-6 flex flex-col sm:flex-row gap-4">
         <div className="flex-1">
-          <label htmlFor="job-type" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Job Type
-          </label>
-          <div className="relative">
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500 dark:text-gray-400">
-              <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <select
-              id="job-type"
-              value={selectedType}
-              onChange={(e) => {
-                setSelectedType(e.target.value);
-                setCurrentPage(1); // Reset to first page on filter change
-              }}
-              className="mt-1 block w-full appearance-none rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
-            >
-              {jobTypes.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
-          </div>
+          <Dropdown
+            id="job-type"
+            name="job-type"
+            value={selectedType}
+            onChange={(e) => {
+              setSelectedType(e.target.value);
+              setCurrentPage(1); // Reset to first page on filter change
+            }}
+            options={jobTypes.map(type => ({
+              value: type,
+              label: type
+            }))}
+            label="Job Type"
+          />
         </div>
         <div className="flex-1">
-          <label htmlFor="job-status" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Status
-          </label>
-          <div className="relative">
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500 dark:text-gray-400">
-              <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <select
-              id="job-status"
-              value={selectedStatus}
-              onChange={(e) => {
-                setSelectedStatus(e.target.value);
-                setCurrentPage(1); // Reset to first page on filter change
-              }}
-              className="mt-1 block w-full appearance-none rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
-            >
-              {jobStatuses.map((status) => (
-                <option key={status} value={status}>
-                  {status}
-                </option>
-              ))}
-            </select>
-          </div>
+          <Dropdown
+            id="job-status"
+            name="job-status"
+            value={selectedStatus}
+            onChange={(e) => {
+              setSelectedStatus(e.target.value);
+              setCurrentPage(1); // Reset to first page on filter change
+            }}
+            options={jobStatuses.map(status => ({
+              value: status,
+              label: status === 'All' ? status : status === 'IN_PROGRESS' ? 'In Progress' : status.charAt(0) + status.slice(1).toLowerCase()
+            }))}
+            label="Status"
+          />
         </div>
       </div>
 

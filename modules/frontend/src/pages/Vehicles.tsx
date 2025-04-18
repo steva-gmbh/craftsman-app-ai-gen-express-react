@@ -8,6 +8,7 @@ import { toast } from 'react-hot-toast';
 import DataTable from '../components/DataTable';
 import { Vehicle } from '../services/api';
 import DeleteConfirmationDialog from '../components/DeleteConfirmationDialog';
+import Dropdown from '../components/Dropdown';
 
 export default function Vehicles() {
   const navigate = useNavigate();
@@ -264,80 +265,38 @@ export default function Vehicles() {
 
         {/* Type Filter */}
         <div>
-          <label htmlFor="type-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Type
-          </label>
-          <div className="mt-1 relative">
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500 dark:text-gray-400">
-              <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <select
-              id="type-filter"
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="block w-full appearance-none rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
-            >
-              {vehicleTypes.map((type) => (
-                <option key={type.value} value={type.value}>
-                  {type.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          <Dropdown
+            id="type-filter"
+            name="type-filter"
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
+            options={vehicleTypes}
+            label="Type"
+          />
         </div>
 
         {/* Status Filter */}
         <div>
-          <label htmlFor="status-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Status
-          </label>
-          <div className="mt-1 relative">
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500 dark:text-gray-400">
-              <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <select
-              id="status-filter"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="block w-full appearance-none rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
-            >
-              {statusOptions.map((status) => (
-                <option key={status.value} value={status.value}>
-                  {status.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          <Dropdown
+            id="status-filter"
+            name="status-filter"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            options={statusOptions}
+            label="Status"
+          />
         </div>
 
         {/* Fuel Type Filter */}
         <div>
-          <label htmlFor="fuel-type-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Fuel Type
-          </label>
-          <div className="mt-1 relative">
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500 dark:text-gray-400">
-              <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <select
-              id="fuel-type-filter"
-              value={fuelTypeFilter}
-              onChange={(e) => setFuelTypeFilter(e.target.value)}
-              className="block w-full appearance-none rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
-            >
-              {fuelTypeOptions.map((fuel) => (
-                <option key={fuel.value} value={fuel.value}>
-                  {fuel.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          <Dropdown
+            id="fuel-type-filter"
+            name="fuel-type-filter"
+            value={fuelTypeFilter}
+            onChange={(e) => setFuelTypeFilter(e.target.value)}
+            options={fuelTypeOptions}
+            label="Fuel Type"
+          />
         </div>
       </div>
 

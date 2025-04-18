@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import { api } from '../services/api';
+import Dropdown from '../components/Dropdown';
 
 export default function UserForm() {
   const { id } = useParams<{ id: string }>();
@@ -167,19 +168,17 @@ export default function UserForm() {
         </div>
 
         <div>
-          <label htmlFor="role" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Role
-          </label>
-          <select
+          <Dropdown
             id="role"
             name="role"
             value={formData.role}
             onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 h-10"
-          >
-            <option value="user">User</option>
-            <option value="admin">Admin</option>
-          </select>
+            options={[
+              { value: 'user', label: 'User' },
+              { value: 'admin', label: 'Admin' }
+            ]}
+            label="Role"
+          />
         </div>
 
         <div className="flex justify-end space-x-3">

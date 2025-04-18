@@ -6,6 +6,7 @@ import DataTable from '../components/DataTable';
 import { IconEdit, IconTrash, IconPlus } from '../components/icons';
 import DeleteConfirmationDialog from '../components/DeleteConfirmationDialog';
 import { settingsService } from '../services/settingsService';
+import Dropdown from '../components/Dropdown';
 
 const Templates: React.FC = () => {
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -213,34 +214,26 @@ const Templates: React.FC = () => {
       </div>
 
       <div className="mt-6">
-        <label htmlFor="type-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Filter by Type
-        </label>
-        <div className="mt-1 relative">
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500 dark:text-gray-400">
-            <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-            </svg>
-          </div>
-          <select
-            id="type-filter"
-            value={filterType}
-            onChange={handleTypeFilterChange}
-            className="block w-full appearance-none rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm pl-3 pr-10 py-2 h-10"
-          >
-            <option value="all">All Types</option>
-            <option value="invoice">Invoice</option>
-            <option value="proposal">Proposal</option>
-            <option value="contract">Contract</option>
-            <option value="estimate">Estimate</option>
-            <option value="receipt">Receipt</option>
-            <option value="project_report">Project Report</option>
-            <option value="maintenance_plan">Maintenance Plan</option>
-            <option value="warranty">Warranty</option>
-            <option value="thank_you">Thank You</option>
-            <option value="quote">Quote</option>
-          </select>
-        </div>
+        <Dropdown
+          id="type-filter"
+          name="type-filter"
+          value={filterType}
+          onChange={handleTypeFilterChange}
+          options={[
+            { value: 'all', label: 'All Types' },
+            { value: 'invoice', label: 'Invoice' },
+            { value: 'proposal', label: 'Proposal' },
+            { value: 'contract', label: 'Contract' },
+            { value: 'estimate', label: 'Estimate' },
+            { value: 'receipt', label: 'Receipt' },
+            { value: 'project_report', label: 'Project Report' },
+            { value: 'maintenance_plan', label: 'Maintenance Plan' },
+            { value: 'warranty', label: 'Warranty' },
+            { value: 'thank_you', label: 'Thank You' },
+            { value: 'quote', label: 'Quote' }
+          ]}
+          label="Filter by Type"
+        />
       </div>
 
       <div className="mt-8 shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">

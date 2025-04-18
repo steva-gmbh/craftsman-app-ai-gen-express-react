@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../services/api';
 import { toast } from 'react-hot-toast';
+import Dropdown from '../components/Dropdown';
 
 const UNITS = ['kg', 'l', 'm', 'pcs', 'box', 'roll', 'sheet', 'tube'];
 const CATEGORIES = ['Paint', 'Wood', 'Metal', 'Tools', 'Electrical', 'Plumbing', 'Concrete', 'Carpet', 'Tile', 'Glass'];
@@ -63,7 +64,7 @@ export default function MaterialForm() {
       ...prev,
       [name]: value,
     }));
-    
+
     // Clear error for this field when user changes it
     if (errors[name]) {
       setErrors(prev => {
@@ -76,37 +77,37 @@ export default function MaterialForm() {
 
   const validateFormData = (data: typeof formData) => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!data.name.trim()) {
       newErrors.name = 'Name is required';
     }
-    
+
     if (!data.unit) {
       newErrors.unit = 'Unit is required';
     }
-    
+
     if (!data.costPerUnit.trim()) {
       newErrors.costPerUnit = 'Cost per unit is required';
     } else if (isNaN(parseFloat(data.costPerUnit)) || parseFloat(data.costPerUnit) < 0) {
       newErrors.costPerUnit = 'Cost per unit must be a positive number';
     }
-    
+
     if (!data.category) {
       newErrors.category = 'Category is required';
     }
-    
+
     if (!data.stock.trim()) {
       newErrors.stock = 'Current stock is required';
     } else if (isNaN(parseInt(data.stock)) || parseInt(data.stock) < 0) {
       newErrors.stock = 'Current stock must be a non-negative number';
     }
-    
+
     if (!data.minStock.trim()) {
       newErrors.minStock = 'Minimum stock is required';
     } else if (isNaN(parseInt(data.minStock)) || parseInt(data.minStock) < 0) {
       newErrors.minStock = 'Minimum stock must be a non-negative number';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -114,14 +115,14 @@ export default function MaterialForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setShowErrors(true);
-    
+
     // Validate the form data
     const isValid = validateFormData(formData);
-    
+
     if (!isValid) {
       return;
     }
-    
+
     setIsSubmitting(true);
 
     try {
@@ -219,33 +220,18 @@ export default function MaterialForm() {
               </div>
 
               <div className="sm:col-span-3">
-                <label htmlFor="unit" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Unit
-                </label>
-                <div className="mt-1">
-                  <div className="relative">
-                    <select
-                      name="unit"
-                      id="unit"
-                      value={formData.unit}
-                      onChange={handleChange}
-                      className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full appearance-none sm:text-sm ${showErrors && errors.unit ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
-                    >
-                      <option value="">Select a unit</option>
-                      {UNITS.map(unit => (
-                        <option key={unit} value={unit}>{unit}</option>
-                      ))}
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500 dark:text-gray-400">
-                      <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  </div>
-                  {showErrors && errors.unit && (
-                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.unit}</p>
-                  )}
-                </div>
+                <Dropdown
+                  id="unit"
+                  name="unit"
+                  value={formData.unit}
+                  onChange={handleChange}
+                  options={UNITS.map(unit => ({ value: unit, label: unit }))}
+                  placeholder="Select a unit"
+                  label="Unit"
+                  error={errors.unit}
+                  showError={showErrors}
+                  required
+                />
               </div>
 
               <div className="sm:col-span-3">
@@ -270,33 +256,18 @@ export default function MaterialForm() {
               </div>
 
               <div className="sm:col-span-3">
-                <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Category
-                </label>
-                <div className="mt-1">
-                  <div className="relative">
-                    <select
-                      name="category"
-                      id="category"
-                      value={formData.category}
-                      onChange={handleChange}
-                      className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full appearance-none sm:text-sm ${showErrors && errors.category ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
-                    >
-                      <option value="">Select a category</option>
-                      {CATEGORIES.map(category => (
-                        <option key={category} value={category}>{category}</option>
-                      ))}
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500 dark:text-gray-400">
-                      <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  </div>
-                  {showErrors && errors.category && (
-                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.category}</p>
-                  )}
-                </div>
+                <Dropdown
+                  id="category"
+                  name="category"
+                  value={formData.category}
+                  onChange={handleChange}
+                  options={CATEGORIES.map(category => ({ value: category, label: category }))}
+                  placeholder="Select a category"
+                  label="Category"
+                  error={errors.category}
+                  showError={showErrors}
+                  required
+                />
               </div>
 
               <div className="sm:col-span-3">
@@ -456,4 +427,4 @@ export default function MaterialForm() {
       </div>
     </div>
   );
-} 
+}

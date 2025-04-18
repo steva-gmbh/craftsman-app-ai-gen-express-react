@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../services/api';
 import { toast } from 'react-hot-toast';
+import Dropdown from '../components/Dropdown';
 
 export default function VehicleForm() {
   const navigate = useNavigate();
@@ -31,12 +32,12 @@ export default function VehicleForm() {
       const fetchVehicle = async () => {
         try {
           const vehicle = await api.getVehicle(Number(id));
-          
+
           // Ensure we have a valid vehicle object
           if (!vehicle) {
             throw new Error('Vehicle data is empty or invalid');
           }
-          
+
           setFormData({
             name: vehicle.name || '',
             make: vehicle.make || '',
@@ -70,7 +71,7 @@ export default function VehicleForm() {
       ...prev,
       [name]: type === 'number' ? Number(value) : value,
     }));
-    
+
     // Clear error for this field when user changes it
     if (errors[name]) {
       setErrors(prev => {
@@ -83,43 +84,43 @@ export default function VehicleForm() {
 
   const validateFormData = (data: typeof formData) => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!data.name.trim()) {
       newErrors.name = 'Name is required';
     }
-    
+
     if (!data.make.trim()) {
       newErrors.make = 'Make is required';
     }
-    
+
     if (!data.model.trim()) {
       newErrors.model = 'Model is required';
     }
-    
+
     if (!data.year || data.year < 1900 || data.year > new Date().getFullYear() + 1) {
       newErrors.year = 'Valid year is required (1900 - present)';
     }
-    
+
     if (!data.type) {
       newErrors.type = 'Vehicle type is required';
     }
-    
+
     if (!data.status) {
       newErrors.status = 'Status is required';
     }
-    
+
     if (data.purchasePrice < 0) {
       newErrors.purchasePrice = 'Purchase price cannot be negative';
     }
-    
+
     if (data.mileage < 0) {
       newErrors.mileage = 'Mileage cannot be negative';
     }
-    
+
     if (data.purchaseDate && !/^\d{4}-\d{2}-\d{2}$/.test(data.purchaseDate)) {
       newErrors.purchaseDate = 'Invalid date format';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -127,14 +128,14 @@ export default function VehicleForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setShowErrors(true);
-    
+
     // Validate the form data
     const isValid = validateFormData(formData);
-    
+
     if (!isValid) {
       return;
     }
-    
+
     setIsSubmitting(true);
 
     try {
@@ -264,65 +265,44 @@ export default function VehicleForm() {
               </div>
 
               <div className="sm:col-span-3">
-                <label htmlFor="type" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Type
-                </label>
-                <div className="mt-1">
-                  <div className="relative">
-                    <select
-                      name="type"
-                      id="type"
-                      value={formData.type}
-                      onChange={handleChange}
-                      className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full appearance-none sm:text-sm ${showErrors && errors.type ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
-                    >
-                      <option value="">Select a type</option>
-                      <option value="car">Car</option>
-                      <option value="truck">Truck</option>
-                      <option value="van">Van</option>
-                      <option value="suv">SUV</option>
-                      <option value="motorcycle">Motorcycle</option>
-                      <option value="other">Other</option>
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500 dark:text-gray-400">
-                      <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  </div>
-                  {showErrors && errors.type && (
-                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.type}</p>
-                  )}
-                </div>
+                <Dropdown
+                  id="type"
+                  name="type"
+                  value={formData.type}
+                  onChange={handleChange}
+                  options={[
+                    { value: 'car', label: 'Car' },
+                    { value: 'truck', label: 'Truck' },
+                    { value: 'van', label: 'Van' },
+                    { value: 'suv', label: 'SUV' },
+                    { value: 'motorcycle', label: 'Motorcycle' },
+                    { value: 'other', label: 'Other' }
+                  ]}
+                  placeholder="Select a type"
+                  label="Type"
+                  error={errors.type}
+                  showError={showErrors}
+                  required
+                />
               </div>
 
               <div className="sm:col-span-3">
-                <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Status
-                </label>
-                <div className="mt-1">
-                  <div className="relative">
-                    <select
-                      name="status"
-                      id="status"
-                      value={formData.status}
-                      onChange={handleChange}
-                      className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full appearance-none sm:text-sm ${showErrors && errors.status ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
-                    >
-                      <option value="active">Active</option>
-                      <option value="maintenance">Maintenance</option>
-                      <option value="retired">Retired</option>
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500 dark:text-gray-400">
-                      <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  </div>
-                  {showErrors && errors.status && (
-                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.status}</p>
-                  )}
-                </div>
+                <Dropdown
+                  id="status"
+                  name="status"
+                  value={formData.status}
+                  onChange={handleChange}
+                  options={[
+                    { value: 'active', label: 'Active' },
+                    { value: 'maintenance', label: 'Maintenance' },
+                    { value: 'retired', label: 'Retired' }
+                  ]}
+                  placeholder="Select status"
+                  label="Status"
+                  error={errors.status}
+                  showError={showErrors}
+                  required
+                />
               </div>
 
               <div className="sm:col-span-3">
@@ -383,35 +363,24 @@ export default function VehicleForm() {
               </div>
 
               <div className="sm:col-span-3">
-                <label htmlFor="fuelType" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Fuel Type
-                </label>
-                <div className="mt-1">
-                  <div className="relative">
-                    <select
-                      name="fuelType"
-                      id="fuelType"
-                      value={formData.fuelType}
-                      onChange={handleChange}
-                      className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full appearance-none sm:text-sm ${showErrors && errors.fuelType ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 h-10`}
-                    >
-                      <option value="">Select a fuel type</option>
-                      <option value="gasoline">Gasoline</option>
-                      <option value="diesel">Diesel</option>
-                      <option value="electric">Electric</option>
-                      <option value="hybrid">Hybrid</option>
-                      <option value="other">Other</option>
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500 dark:text-gray-400">
-                      <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  </div>
-                  {showErrors && errors.fuelType && (
-                    <p className="mt-1 text-sm text-red-600 dark:text-red-500">{errors.fuelType}</p>
-                  )}
-                </div>
+                <Dropdown
+                  id="fuelType"
+                  name="fuelType"
+                  value={formData.fuelType}
+                  onChange={handleChange}
+                  options={[
+                    { value: 'gasoline', label: 'Gasoline' },
+                    { value: 'diesel', label: 'Diesel' },
+                    { value: 'electric', label: 'Electric' },
+                    { value: 'hybrid', label: 'Hybrid' },
+                    { value: 'other', label: 'Other' }
+                  ]}
+                  placeholder="Select a fuel type"
+                  label="Fuel Type"
+                  error={errors.fuelType}
+                  showError={showErrors}
+                  required
+                />
               </div>
 
               <div className="sm:col-span-3">
@@ -515,4 +484,4 @@ export default function VehicleForm() {
       </div>
     </div>
   );
-} 
+}
